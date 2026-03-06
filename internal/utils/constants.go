@@ -1,0 +1,62 @@
+package utils
+
+type RqBodyType string
+
+const (
+	Unknown               RqBodyType = ""
+	AcctCreditRq          RqBodyType = "AcctCreditRq"
+	AcctDebitRq           RqBodyType = "AcctDebitRq"
+	AddCMSAbonentRq       RqBodyType = "AddCMSAbonentRq"
+	AddPersonCMSAbonentRq RqBodyType = "AddPersonCMSAbonentRq"
+
+	// CardCredit; CardDebit
+	POSRequestRq RqBodyType = "POSRequestRq"
+	//
+	ChangeCMSAbonentRq RqBodyType = "ChangeCMSAbonentRq"
+	GetAcctInfoRq      RqBodyType = "GetAcctInfoRq"
+	GetAcctStatementRq RqBodyType = "GetAcctStatementRq"
+	GetCardInfoRq      RqBodyType = "GetCardInfoRq"
+	GetCardStatementRq RqBodyType = "GetCardStatementRq"
+	GetCVVRq           RqBodyType = "GetCVVRq"
+	GetPersonInfoRq    RqBodyType = "GetPersonInfoRq"
+	GetTransInfoRq     RqBodyType = "GetTransInfoRq"
+	InitSessionRq      RqBodyType = "InitSessionRq"
+
+	// RelinkPreIssuedCards
+	UpdateCard2AcctLinkRq RqBodyType = "UpdateCard2AcctLinkRq"
+	DeleteCard2AcctLinkRq RqBodyType = "DeleteCard2AcctLinkRq"
+	SetCardPersonRq       RqBodyType = "SetCardPersonRq"
+	// SetCardStatusRq       RqBodyType = "SetCardStatusRq"
+	//
+	RemoveCMSAbonentRq       RqBodyType = "RemoveCMSAbonentRq"
+	RemovePersonCMSAbonentRq RqBodyType = "RemovePersonCMSAbonentRq"
+	ResetBadPINTriesRq       RqBodyType = "ResetBadPINTriesRq"
+	SetCardStatusRq          RqBodyType = "SetCardStatusRq"
+	UpdatePersonRq           RqBodyType = "UpdatePersonRq"
+)
+
+// Создаем карту конструкторов
+var BodyTypes = []RqBodyType{
+	AcctCreditRq,
+	AcctDebitRq,
+	AddCMSAbonentRq,
+	AddPersonCMSAbonentRq,
+	POSRequestRq,
+	ChangeCMSAbonentRq,
+	GetAcctInfoRq,
+	GetAcctStatementRq,
+	GetCardInfoRq,
+	GetCardStatementRq,
+	GetCVVRq,
+	GetPersonInfoRq,
+	GetTransInfoRq,
+	InitSessionRq,
+	UpdateCard2AcctLinkRq,
+	DeleteCard2AcctLinkRq,
+	SetCardPersonRq,
+	RemoveCMSAbonentRq,
+	RemovePersonCMSAbonentRq,
+	ResetBadPINTriesRq,
+	SetCardStatusRq,
+	UpdatePersonRq,
+}
