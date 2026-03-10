@@ -2,6 +2,7 @@ package config
 
 type Configs struct {
 	App      App      `json:"app"`
+	Jobs     Jobs     `jaon:"jobs"`
 	Envelope Envelope `json:"envelope"`
 }
 
@@ -12,6 +13,7 @@ type App struct {
 	DefaultParams        DefaultParams `json:"default_params"`
 	ApiKey               string        `json:"api_key"`
 	Processing           string        `json:"processing"`
+	Storage              Storage       `json:"storage"`
 }
 
 type Server struct {
@@ -21,6 +23,12 @@ type Server struct {
 	Port    string            `json:"port"`
 	Token   string            `json:"token"`
 	Extra   map[string]string `json:"extra,omitempty"`
+}
+
+type Storage struct {
+	Basepath string `json:"basepath"`
+	In       string `json:"in"`
+	Out      string `json:"out"`
 }
 
 type DefaultParams struct {
@@ -43,4 +51,14 @@ type Envelope struct {
 	TokensAdmin string `json:"tokensAdmin"`
 	Tcmn        string `json:"tcmn"`
 	NetworkRid  string `json:"networkRid"`
+}
+
+type Jobs struct {
+	ConvScanner Job `json:"conv_scanner"`
+}
+
+type Job struct {
+	IsOn       bool `json:"is_on"`
+	Interval   int  `json:"interval_seconds"`
+	QueryLimit int  `json:"query_limit"`
 }

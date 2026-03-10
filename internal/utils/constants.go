@@ -35,7 +35,6 @@ const (
 	UpdatePersonRq           RqBodyType = "UpdatePersonRq"
 )
 
-// Создаем карту конструкторов
 var BodyTypes = []RqBodyType{
 	AcctCreditRq,
 	AcctDebitRq,
@@ -59,4 +58,28 @@ var BodyTypes = []RqBodyType{
 	ResetBadPINTriesRq,
 	SetCardStatusRq,
 	UpdatePersonRq,
+}
+
+type OfflineReqType string
+
+const (
+	CreateCardsOut                          OfflineReqType = "CreateCardsOut.xml"
+	CreateCustomerAndAccount                OfflineReqType = "CreateCustomerAndAccount.xml"
+	CreateOrganizations                     OfflineReqType = "CreateOrganizations.xml"
+	CreatePreIssuedCards                    OfflineReqType = "CreatePreIssuedCards.xml"
+	CreateStatusActivationsOut              OfflineReqType = "CreateStatusActivationsOut.xml"
+	ReissueCardsOut                         OfflineReqType = "ReissueCardsOut.xml"
+	RelinkPreIssuedCardsOut                 OfflineReqType = "RelinkPreIssuedCardsOut.xml"
+	RelinkPreIssuedCardStatusActivationsOut OfflineReqType = "RelinkPreIssuedCardStatusActivationsOut.xml"
+)
+
+var OfflineReqTypes = []OfflineReqType{
+	CreateCardsOut,
+	CreateCustomerAndAccount,
+	CreateOrganizations,
+	CreatePreIssuedCards,
+	CreateStatusActivationsOut,
+	ReissueCardsOut,
+	RelinkPreIssuedCardsOut,
+	RelinkPreIssuedCardStatusActivationsOut,
 }

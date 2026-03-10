@@ -15,11 +15,11 @@ import (
 )
 
 type App struct {
-	server  *http.Server
 	repo    *repository.Repository
 	service *service.Service
 	handler *handler.Handler
 	gengine *gin.Engine
+	server  *http.Server
 }
 
 func New() *App {

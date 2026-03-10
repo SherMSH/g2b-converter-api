@@ -8,6 +8,17 @@
         "client_timeout_seconds": 30,
         "debug_mode": true,
         "api_key": "converter_api_test",
-        "processing": "tranzaxis"
+        "processing": "tranzaxis",
+        "storage": {
+            "basepath":"C:/Users/MustafokulovSh/Documents/d8-partnerapi_docs/Examples/OffLine",
+            "in":"/in",
+            "out":"/out"
+        }
+    },
+    "jobs": {
+        "conv_scanner": {
+            "is_on": true,
+            "interval_seconds": 10
+        }
     }
 }
