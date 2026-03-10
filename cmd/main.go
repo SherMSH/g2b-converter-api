@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
 	"converterapi/internal/app"
 	"converterapi/internal/config"
 	"converterapi/pkg/logger"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func init() {
@@ -20,10 +26,28 @@ func main() {
 	defer beforeQuit()
 	app := app.New()
 
-	if err := app.Run(&config.Config); err != nil {
-		logger.Fatal("Application run failed")
+	go func() {
+		if err := app.Run(); err != nil && err != http.ErrServerClosed {
+			logger.Warn("Exite application")
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	q := <-quit
+	logger.Info("[SERVER] Shutdown signal received %v", q)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	err := app.Shutdown(ctx)
+	if err != nil {
+		logger.Error("Server Shutdown err: %v", err)
 	}
+	<-ctx.Done()
+	defer cancel()
 }
+
+// TODO:
+// docker
 
 func beforeQuit() {
 	logger.Info("[MAIN] Work has stopped!")

@@ -1,18 +1,21 @@
 package app
 
 import (
+	"context"
 	"converterapi/internal/config"
 	"converterapi/internal/handler"
 	"converterapi/internal/repository"
 	"converterapi/internal/service"
 	"converterapi/pkg/prometheus"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type App struct {
+	server  *http.Server
 	repo    *repository.Repository
 	service *service.Service
 	handler *handler.Handler
@@ -23,19 +26,27 @@ func New() *App {
 	app := &App{}
 
 	app.repo = repository.New()
-	app.service = service.New(app.repo)
+	app.service = service.New(&config.Config, app.repo)
 	app.handler = handler.New(app.service)
 	app.gengine = handler.Init(app.handler)
+	app.server = &http.Server{
+		Addr:    net.JoinHostPort(config.Config.App.Server.Host, config.Config.App.Server.Port),
+		Handler: app.gengine,
+	}
 	prometheus.Init()
 	return app
 }
 
-func (a *App) Run(cfg *config.Configs) error {
+func (a *App) Run() error {
 	go func() {
 		for {
 			prometheus.UpdateSystemMetrics()
 			time.Sleep(1 * time.Minute)
 		}
 	}()
-	return a.gengine.Run(net.JoinHostPort(cfg.App.Server.Host, cfg.App.Server.Port))
+	return a.server.ListenAndServe()
+}
+
+func (a *App) Shutdown(c context.Context) error {
+	return a.server.Shutdown(c)
 }

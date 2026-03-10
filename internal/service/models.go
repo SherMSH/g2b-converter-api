@@ -1,12 +1,15 @@
 package service
 
-import "converterapi/internal/repository"
+import (
+	"converterapi/internal/config"
+	"converterapi/internal/repository"
+)
 
 type Service struct {
 	Repository *repository.Repository
 }
 
-func New(repo *repository.Repository) *Service {
+func New(cfg *config.Configs, repo *repository.Repository) *Service {
 	return &Service{
 		Repository: repo,
 	}
