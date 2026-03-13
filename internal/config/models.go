@@ -1,9 +1,10 @@
 package config
 
 type Configs struct {
-	App      App      `json:"app"`
-	Jobs     Jobs     `jaon:"jobs"`
-	Envelope Envelope `json:"envelope"`
+	App        App      `json:"app"`
+	Jobs       Jobs     `json:"jobs"`
+	Processing System   `json:"processing"`
+	Envelope   Envelope `json:"envelope"`
 }
 
 type App struct {
@@ -61,4 +62,9 @@ type Job struct {
 	IsOn       bool `json:"is_on"`
 	Interval   int  `json:"interval_seconds"`
 	QueryLimit int  `json:"query_limit"`
+}
+
+type System struct {
+	Address string `json:"address"`
+	Token   string `json:"token"`
 }

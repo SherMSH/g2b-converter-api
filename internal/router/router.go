@@ -1,14 +1,14 @@
-package handler
+package router
 
 import (
+	"converterapi/internal/handlers"
 	"converterapi/internal/middlewares"
-	"converterapi/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func Init(h *Handler) *gin.Engine {
+func Init(h *handlers.Handler) *gin.Engine {
 	router := gin.Default()
 	router.Use(middlewares.CORS())
 	router.Use(middlewares.Prometheus())
@@ -17,7 +17,7 @@ func Init(h *Handler) *gin.Engine {
 
 	soap := router.Group("/g2b")
 	soap.Use(middlewares.SOAPLogger())
-	soap.POST("/d8convert", service.D8Converter)
+	soap.POST("/d8convert", handlers.D8Converter)
 
 	// json := router.Group("/json")
 	// json.POST("/convert2xml")

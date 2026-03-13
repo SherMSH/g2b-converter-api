@@ -20,5 +20,10 @@
             "is_on": true,
             "interval_seconds": 10
         }
+    },
+    "processing": {
+        "address": "http://d8-tprocweb1.humo.lab",
+        "token": ""
     }
+
 }

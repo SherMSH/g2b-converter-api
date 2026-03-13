@@ -20,17 +20,17 @@ import (
 )
 
 func ConvScanner() {
-	logger.Info("[JOBS] Converter scanner")
+	logger.Infof("[JOBS] Converter scanner")
 
 	for _, v := range utils.OfflineReqTypes {
 		reqOf, err := unmarshalFromFile(v)
 		if err != nil {
 			if !os.IsNotExist(err) {
-				logger.Error("Unmarshal from file %v Error: %v", v, err)
+				logger.Errorf("Unmarshal from file %v Error: %v", v, err)
 			}
 			continue
 		}
-		logger.Info("Converter Scans %v req %+v:", v, reqOf)
+		logger.Infof("Converter Scans %v req %+v:", v, reqOf)
 		sourcePath := config.Config.App.Storage.Basepath + config.Config.App.Storage.In + "/" + string(v)
 		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + time.Now().Format("2006_01_02T15_04_05Z07_00") + string(v)
 		storage.MoveFile(sourcePath, destPath)
@@ -49,10 +49,10 @@ func unmarshalFromFile(ort utils.OfflineReqType) (interface{}, error) {
 		var root createcardsout.Root
 		err = xml.Unmarshal(data, &root)
 		if err != nil {
-			logger.Error("xml unmarshal from file err: %v", err)
+			logger.Errorf("xml unmarshal from file err: %v", err)
 			return nil, fmt.Errorf("ошибка парсинга %s: %w", ort, err)
 		}
-		return root.Record, nil
+		return root.Records, nil
 	case utils.CreateCustomerAndAccount:
 		var root createcustomerandaccount.Root
 		err = xml.Unmarshal(data, &root)

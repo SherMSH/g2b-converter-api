@@ -3,8 +3,9 @@ package app
 import (
 	"context"
 	"converterapi/internal/config"
-	"converterapi/internal/handler"
+	"converterapi/internal/handlers"
 	"converterapi/internal/repository"
+	"converterapi/internal/router"
 	"converterapi/internal/service"
 	"converterapi/pkg/prometheus"
 	"net"
@@ -17,7 +18,7 @@ import (
 type App struct {
 	repo    *repository.Repository
 	service *service.Service
-	handler *handler.Handler
+	handler *handlers.Handler
 	gengine *gin.Engine
 	server  *http.Server
 }
@@ -27,8 +28,8 @@ func New() *App {
 
 	app.repo = repository.New()
 	app.service = service.New(&config.Config, app.repo)
-	app.handler = handler.New(app.service)
-	app.gengine = handler.Init(app.handler)
+	app.handler = handlers.New(app.service)
+	app.gengine = router.Init(app.handler)
 	app.server = &http.Server{
 		Addr:    net.JoinHostPort(config.Config.App.Server.Host, config.Config.App.Server.Port),
 		Handler: app.gengine,

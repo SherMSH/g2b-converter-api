@@ -23,7 +23,7 @@ func init() {
 // @description CONVERTER API for partner (from Compass) xml <-> json (to D8_G2B)
 // @host 192.168.145.74
 func main() {
-	logger.Info("[MAIN] Work has started!")
+	logger.Infof("[MAIN] Work has started!")
 	defer beforeQuit()
 	app := app.New()
 
@@ -31,23 +31,23 @@ func main() {
 	go func() {
 		if err := app.Run(); err != nil {
 			if err == http.ErrServerClosed {
-				logger.Info("Exiting the application")
+				logger.Infof("Exiting the application")
 				return
 			}
-			logger.Warn("Application run err: %v", err)
+			logger.Warnf("Application run err: %v", err)
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	q := <-quit
-	logger.Info("[SERVER] Shutdown signal received %v", q)
+	logger.Infof("[SERVER] Shutdown signal received %v", q)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	if err := app.Shutdown(ctx); err != nil {
-		logger.Error("Server Shutdown err: %v", err)
+		logger.Errorf("Server Shutdown err: %v", err)
 	}
 	<-ctx.Done()
 }
@@ -56,5 +56,5 @@ func main() {
 // docker
 
 func beforeQuit() {
-	logger.Info("[MAIN] Work has stopped!")
+	logger.Infof("[MAIN] Work has stopped!")
 }

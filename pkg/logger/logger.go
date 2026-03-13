@@ -44,33 +44,33 @@ func Get() Logger {
 	return globalLogger
 }
 
-// Debug writes a new message with debug level
-func Debug(format string, v ...interface{}) {
+// Debugf writes a new message with debug level
+func Debugf(format string, v ...interface{}) {
 	Get().Debug().Msgf(format, v...)
 }
 
-// Info writes a new message with info level
-func Info(format string, v ...interface{}) {
+// Infof writes a new message with info level
+func Infof(format string, v ...interface{}) {
 	Get().Info().Msgf(format, v...)
 }
 
-// Warn starts a new message with warn level
-func Warn(format string, v ...interface{}) {
+// Warnf starts a new message with warn level
+func Warnf(format string, v ...interface{}) {
 	Get().Warn().Msgf(format, v...)
 }
 
-// Error starts a new message with error level
-func Error(format string, v ...interface{}) {
+// Errorf starts a new message with error level
+func Errorf(format string, v ...interface{}) {
 	Get().Error().Msgf(format, v...)
 }
 
-// Fatal starts a new message with fatal level
-func Fatal(format string, v ...interface{}) {
+// Fatalf starts a new message with fatal level
+func Fatalf(format string, v ...interface{}) {
 	Get().Fatal().Msgf(format, v...)
 }
 
-// Panic starts a new message with panic level
-func Panic(format string, v ...interface{}) {
+// Panicf starts a new message with panic level
+func Panicf(format string, v ...interface{}) {
 	Get().Panic().Msgf(format, v...)
 }
 

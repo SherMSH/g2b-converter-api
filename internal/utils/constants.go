@@ -83,3 +83,5 @@ var OfflineReqTypes = []OfflineReqType{
 	RelinkPreIssuedCardsOut,
 	RelinkPreIssuedCardStatusActivationsOut,
 }
+
+var D8HeadersMap = make(map[string]string)

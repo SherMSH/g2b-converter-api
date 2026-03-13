@@ -7,7 +7,7 @@ import (
 // Root - корневой элемент XML
 type Root struct {
 	XMLName xml.Name `xml:"ROOT"`
-	Record  []Record `xml:"RECORD"`
+	Records []Record `xml:"RECORD"`
 }
 
 // Record - основная запись с данными клиента

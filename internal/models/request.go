@@ -18,3 +18,13 @@ type XmlBody struct {
 type SoapBody interface {
 	GetBodyType() reflect.Type
 }
+
+type TrnInputIface interface {
+	GetPan() string
+	GetMBR() string
+	GetExpDate() string
+	GetAccount() string
+	GetAmount() float64
+	GetCurrency() string
+	GetRecipientAcc() string
+}

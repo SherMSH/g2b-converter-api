@@ -9,9 +9,9 @@ import (
 )
 
 func Start() {
-	logger.Info("Launch the task scheduler...")
+	logger.Infof("Launch the task scheduler...")
 	params := config.Config.Jobs
-	logger.Info("Parameters: %+v", params)
+	logger.Infof("Parameters: %+v", params)
 
 	scheduler := gocron.NewScheduler(time.UTC)
 	scheduler.SingletonMode()
@@ -20,7 +20,7 @@ func Start() {
 		if _, err := scheduler.Every(params.ConvScanner.Interval).Seconds().
 			// StartAt(time.Now().Local().Add(time.Duration(params.ConvScanner.Interval) * time.Second)).
 			Do(ConvScanner); err != nil {
-			logger.Error("ConvScanner JOB err %v", err)
+			logger.Errorf("ConvScanner JOB err %v", err)
 		}
 	}
 	scheduler.StartAsync()
