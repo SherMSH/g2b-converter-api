@@ -47,3 +47,14 @@ type Lkey struct {
 	LkeyId    int    `json:"lkeyId"`
 	LkeyAlias string `json:"lkeyAlias"`
 }
+
+type TxStatusData struct {
+	TxStatus TxStatus `json:"transactionStatus"`
+}
+
+type TxStatus struct {
+	Rrn         string `json:"rrn"`
+	ActionCode  string `json:"actionCode"`
+	RspCode     string `json:"rspCode"`
+	TxStatusInt int    `json:"txStatus"`
+}

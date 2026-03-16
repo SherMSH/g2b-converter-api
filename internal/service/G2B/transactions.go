@@ -65,7 +65,7 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 		CrdacptBus:         5999, //Card Acceptor Business Code
 		MessageFunction:    0,    //0-Request, 2-Advice
 		RecipientAccount:   input.GetRecipientAcc(),
-		DestinationAccType: "",
+		DestinationAccType: "00",
 	}
 
 	jsonReq, err := json.Marshal(req)
@@ -95,5 +95,49 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction err: empty response")
 		return nil, err
 	}
+	return resp, nil
+}
+
+func GetTransactionStatus(tlId int, ecTxRefNo string) (*d8corp.CommonResp, error) {
+	resp := &d8corp.CommonResp{}
+	trnData := &d8corp.TxStatusData{}
+
+	req := d8corp.ChkTxStatusReq{
+		TlId: tlId,
+	}
+	if len(ecTxRefNo) != 0 {
+		req = d8corp.ChkTxStatusReq{
+			EcTxRefno: ecTxRefNo,
+		}
+	}
+
+	jsonReq, err := json.Marshal(req)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err: %v", err)
+		return nil, fmt.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err")
+	}
+
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/authorizeTransaction", jsonReq, utils.D8HeadersMap)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction request sending err: %v", err)
+		return nil, err
+	}
+	logger.Infof("[SERVICE] D8 G2b authorizeTransaction resp status: %v, body: %v", status, string(data))
+
+	err = json.Unmarshal(data, resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction RESP marshaling err: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(resp.Data, trnData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction DATA marshaling err: %v", err)
+		return nil, err
+	}
+	if len(trnData.TxStatus.RspCode) == 0 {
+		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction err: empty response")
+		return nil, err
+	}
+
 	return resp, nil
 }

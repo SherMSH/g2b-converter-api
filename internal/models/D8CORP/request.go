@@ -69,6 +69,11 @@ type AuthTxReq struct {
 	PurchRefNo         string  `json:"purchrefno,omitempty"`
 }
 
+type ChkTxStatusReq struct {
+	EcTxRefno string `json:"ecTxRefno,omitempty"`
+	TlId      int    `json:"tlId,omitempty"`
+}
+
 type CardKey struct {
 	Pan        string `json:"pan"`
 	ExpiryDate string `json:"expiryDate"`
