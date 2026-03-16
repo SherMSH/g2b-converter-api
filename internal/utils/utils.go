@@ -68,3 +68,17 @@ func SendRequest(method, uri string, jsonBody []byte, headers map[string]string)
 
 	return body, status, nil
 }
+
+func GetExpFromTrack(trck2 string) string {
+	if !strings.Contains(trck2, "=") {
+		return ""
+	}
+	data := strings.Split(trck2, "=")
+	if len(data) < 2 {
+		return ""
+	}
+	if len(data[2]) <= 4 {
+		return data[2]
+	}
+	return data[2][:4]
+}
