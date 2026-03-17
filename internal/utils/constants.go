@@ -85,3 +85,20 @@ var OfflineReqTypes = []OfflineReqType{
 }
 
 var D8HeadersMap = make(map[string]string)
+
+type CompanyRegNum string
+
+const (
+	Dummy  CompanyRegNum = "Default"
+	Arvand CompanyRegNum = "ARV"
+	Humo   CompanyRegNum = "1111"
+)
+
+type Action string
+
+const (
+	Add    = "ADD"
+	Update = "UPDATE"
+	Delete = "DELETE"
+	Set    = "SET" // для установки адресов
+)

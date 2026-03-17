@@ -1,33 +1,5 @@
 package d8corp
 
-type Request struct {
-	MDIRecords []MdiRecord `json:"mdiRecords"`
-}
-
-type MdiRecord struct {
-	IssRectype           string `json:"ISS_RECTYPE"`
-	IssRecaction         string `json:"ISS_RECACTION"`
-	IssRecnum            int    `json:"ISS_RECNUM"`
-	IssCompanyRegnr      string `json:"ISS_COMPANY_REGNR"`
-	IssCompanyRegnrAcc   string `json:"ISS_COMPANY_REGNR_ACC"`
-	IssImpPvki           string `json:"ISS_IMP_PVKI"`
-	DbCustomerCustcode   string `json:"DB_CUSTOMER_CUSTCODE"`
-	DbCdproductCdproduct string `json:"DB_CDPRODUCT_CDPRODUCT"`
-	DbAccountAccnum      string `json:"DB_ACCOUNT_ACCNUM"`
-	DbAccountCurrcode    string `json:"DB_ACCOUNT_CURRCODE"`
-	KlLkeyAlias          string `json:"KL_LKEY_ALIAS"`
-	KlLkeySeqno          string `json:"KL_LKEY_SEQNO"`
-	DbCardaExpdate       string `json:"DB_CARDA_EXPDATE"`
-	DbCardaCommCat       string `json:"DB_CARDA_COMM_CAT"`
-	DbCardaEnroll3ds     string `json:"DB_CARDA_ENROLL3DS"`
-	DbCardaLimitCat      string `json:"DB_CARDA_LIMIT_CAT"`
-	DbCardEmbossname     string `json:"DB_CARD_EMBOSSNAME"`
-	DbCardFirstname      string `json:"DB_CARD_FIRSTNAME"`
-	DbCardLastname       string `json:"DB_CARD_LASTNAME"`
-	DbCardMaidenname     string `json:"DB_CARD_MAIDENNAME"`
-	DbCardDeliveryPoint  string `json:"DB_CARD_DELIVERY_POINT"`
-	DbCrdaccPriority     string `json:"DB_CRDACC_PRIORITY"`
-}
 type InitTxReq struct {
 }
 

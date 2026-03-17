@@ -7,15 +7,34 @@ import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"strings"
+	"time"
 )
 
 func AddCardG2b(input createcardsout.Root) (resp interface{}, err error) {
 	var (
-		req4D8 d8corp.Request
+		recDetails d8corp.MdiFile
 	)
 	recNums := utils.NewSequence()
-	for _, v := range input.Records {
+
+	filename := fmt.Sprintf("G2BISS-%v.JSON", time.Now().Local().Format("20060102-150405"))
+	header := d8corp.HeaderRecord{
+		IssRectype:      "HEADER",
+		IssRecaction:    "IMPORT",
+		CFilename:       filename, //"G2BISS-20060102-150405.JSON"
+		IssSourcesys:    "LK",
+		IssCompanyRegnr: "COMPANY1",
+		IssTimestamp:    "20230906120000123",
+	}
+
+	for i, v := range input.Records {
+		separator := make([]byte, 0)
+		if i != 0 {
+			separator = json.RawMessage(",")
+		}
+
 		var firstSecret, firstName, lastName string
 		if len(v.SecretInfo.Items) != 0 {
 			firstSecret = v.SecretInfo.Items[0].Value
@@ -25,20 +44,19 @@ func AddCardG2b(input createcardsout.Root) (resp interface{}, err error) {
 			lastName = names[0]
 			firstName = names[1]
 		}
-		record := d8corp.MdiRecord{
+		prior, _ := strconv.Atoi(v.MakePrior)
+		record := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
 			IssRecaction:         "ADD",
 			IssRecnum:            recNums.NextVal(),
 			IssCompanyRegnr:      "ARVD",
 			IssCompanyRegnrAcc:   "ARVD",
-			IssImpPvki:           "1",
+			IssImpPvki:           1,
 			DbCustomerCustcode:   firstSecret,
 			DbCdproductCdproduct: "CD01",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,
 			KlLkeyAlias:          "93919",
-			KlLkeySeqno:          "0",
-			DbCardaExpdate:       v.CancelDate,
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
 			DbCardaLimitCat:      "LIM01",
@@ -46,20 +64,57 @@ func AddCardG2b(input createcardsout.Root) (resp interface{}, err error) {
 			DbCardFirstname:      firstName,
 			DbCardLastname:       lastName,
 			DbCardMaidenname:     firstName,
-			DbCardDeliveryPoint:  "000",
-			DbCrdaccPriority:     v.MakePrior,
+			DbCrdaccPriority:     prior,
 		}
-		req4D8.MDIRecords = append(req4D8.MDIRecords, record)
+		jsonRec, err := json.Marshal(record)
+		if err != nil {
+			logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling record err: %v", err)
+			return nil, err
+		}
+		recDetails.MdiRecords = append(recDetails.MdiRecords, separator)
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec)
 	}
 
-	reqBody, err := json.Marshal(req4D8)
+	footer := d8corp.FooterRecord{
+		IssRectype:   "FOOTER",
+		IssRecaction: "IMPORT",
+		CFilename:    filename,
+		IssReccnt:    len(input.Records),
+	}
+
+	headerJSON, err := json.Marshal(header)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
 		return nil, err
 	}
-	logger.Infof("json ADDCARD: %v", string(reqBody))
 
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", reqBody, utils.D8HeadersMap)
+	cardJSON, err := json.Marshal(recDetails)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
+		return nil, err
+	}
+	logger.Infof("json ADDCARD: %v", string(cardJSON))
+
+	footerJSON, err := json.Marshal(footer)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
+		return nil, err
+	}
+
+	mdiFile := d8corp.MdiFile{
+		MdiRecords: []json.RawMessage{
+			headerJSON,
+			cardJSON,
+			footerJSON,
+		},
+	}
+	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
+		return nil, err
+	}
+
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADDCARD request sending err: %v", err)
 		return nil, err

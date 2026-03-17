@@ -69,5 +69,5 @@ type TxResponse struct {
 	Stan       int    `json:"stan"`
 	ActionCode string `json:"actionCode"`
 	RspCode    string `json:"rspCode"`
-	// TxStatus   int    `json:"txStatus"`
+	TxStatus   int    `json:"txStatus"`
 }
