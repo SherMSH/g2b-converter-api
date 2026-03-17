@@ -28,15 +28,18 @@ type MdiRecord struct {
 	DbCardDeliveryPoint  string `json:"DB_CARD_DELIVERY_POINT"`
 	DbCrdaccPriority     string `json:"DB_CRDACC_PRIORITY"`
 }
+type InitTxReq struct {
+}
 
 type AuthTxReq struct {
-	CardKey            CardKey `json:"cardKey,omitempty"`
-	EcTxRefno          string  `json:"ecTxRefno"`
-	TxnType            string  `json:"txnType"`
-	TxnAmount          float64 `json:"txnAmount"`
-	TxnCurrency        string  `json:"txnCurrency"`
-	TermCode           string  `json:"termCode"`
-	CrdacptID          string  `json:"crdacptID"`
+	EcTxRefno          string  `json:"ecTxRefno"`         //+
+	TxnType            string  `json:"txnType"`           //+
+	CardKey            CardKey `json:"cardKey,omitempty"` //+
+	TxnAmount          float64 `json:"txnAmount"`         //+
+	TxnCurrency        string  `json:"txnCurrency"`       //+
+	TermCode           string  `json:"termCode"`          //+
+	CrdacptID          string  `json:"crdacptID"`         //-
+	MessageFunction    int     `json:"messageFunction"`   //+
 	MerchantCommission float64 `json:"merchantCommission,omitempty"`
 	CrdacptBus         int     `json:"crdacptBus,omitempty"`
 	MerchantName       string  `json:"merchantName,omitempty"`
@@ -46,7 +49,6 @@ type AuthTxReq struct {
 	MerchantCountry    string  `json:"merchantCountry,omitempty"`
 	MerchantRegion     string  `json:"merchantRegion,omitempty"`
 	Cvv2               string  `json:"cvv2,omitempty"`
-	MessageFunction    int     `json:"messageFunction"`
 	SenderFirstName    string  `json:"senderfirstName,omitempty"`
 	SenderLastName     string  `json:"senderlastName,omitempty"`
 	SenderLocCity      string  `json:"senderlocCity,omitempty"`
@@ -77,4 +79,12 @@ type ChkTxStatusReq struct {
 type CardKey struct {
 	Pan        string `json:"pan"`
 	ExpiryDate string `json:"expiryDate"`
+}
+
+type ReverceTxReq struct {
+	EcTxRefno         string  `json:"ecTxRefno"`
+	OriginalEcTxRefno string  `json:"originalEcTxRefno"`
+	ReasonCode        int     `json:"reasonCode"`
+	ReversalAmount    float64 `json:"reversalAmount"`
+	TxnCurrency       string  `json:"txnCurrency"`
 }

@@ -58,3 +58,16 @@ type TxStatus struct {
 	RspCode     string `json:"rspCode"`
 	TxStatusInt int    `json:"txStatus"`
 }
+
+type TxResponseData struct {
+	TxResponse TxResponse `json:"transactionResponse"`
+}
+
+type TxResponse struct {
+	TlId       int    `json:"tlId"`
+	EcTxRefNo  string `json:"ecTxRefno"`
+	Stan       int    `json:"stan"`
+	ActionCode string `json:"actionCode"`
+	RspCode    string `json:"rspCode"`
+	// TxStatus   int    `json:"txStatus"`
+}

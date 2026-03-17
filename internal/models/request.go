@@ -27,4 +27,5 @@ type TrnInputIface interface {
 	GetAmount() float64
 	GetCurrency() string
 	GetRecipientAcc() string
+	GetTerminal() string
 }

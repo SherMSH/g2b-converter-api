@@ -14,10 +14,17 @@ import (
 // Нужен до вызова AuthorizeTransaction и ReverseTransaction.
 func InitiateTransaction() (*string, error) {
 	var (
+		req     d8corp.InitTxReq
 		resp    d8corp.CommonResp
 		ectxNum d8corp.InitTransactionResp
 	)
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/initiateTransaction", nil, utils.D8HeadersMap)
+	jsonReq, err := json.Marshal(req)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b initiateTransaction REQ marshaling err: %v", err)
+		return nil, fmt.Errorf("[SERVICE] D8 G2b initiateTransaction REQ marshaling err")
+	}
+
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/initiateTransaction", jsonReq, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b initiateTransaction request sending err: %v", err)
 		return nil, err
@@ -60,7 +67,7 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 		TxnType:            "TRANSF_C2A",
 		TxnAmount:          input.GetAmount(),
 		TxnCurrency:        input.GetCurrency(),
-		TermCode:           "TRM00001",
+		TermCode:           input.GetTerminal(),
 		CrdacptID:          "MRC00001",
 		CrdacptBus:         5999, //Card Acceptor Business Code
 		MessageFunction:    0,    //0-Request, 2-Advice
@@ -113,29 +120,75 @@ func GetTransactionStatus(tlId int, ecTxRefNo string) (*d8corp.CommonResp, error
 
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err: %v", err)
-		return nil, fmt.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err")
+		logger.Errorf("[SERVICE] D8 G2b GetTransactionStatus REQ marshaling err: %v", err)
+		return nil, fmt.Errorf("[SERVICE] D8 G2b GetTransactionStatus REQ marshaling err")
 	}
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/authorizeTransaction", jsonReq, utils.D8HeadersMap)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction request sending err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b GetTransactionStatus request sending err: %v", err)
 		return nil, err
 	}
-	logger.Infof("[SERVICE] D8 G2b authorizeTransaction resp status: %v, body: %v", status, string(data))
+	logger.Infof("[SERVICE] D8 G2b GetTransactionStatus resp status: %v, body: %v", status, string(data))
 
 	err = json.Unmarshal(data, resp)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction RESP marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b GetTransactionStatus RESP marshaling err: %v", err)
 		return nil, err
 	}
 	err = json.Unmarshal(resp.Data, trnData)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction DATA marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b GetTransactionStatus DATA marshaling err: %v", err)
 		return nil, err
 	}
 	if len(trnData.TxStatus.RspCode) == 0 {
-		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction err: empty response")
+		logger.Errorf("[SERVICE] D8 G2b GetTransactionStatus err: empty response")
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+// ReverseTransaction сгенерирует операцию отмены и поместит ее в фоновую очередь для выполнения
+// ВАЖНО: Перед вызовом reverseTransaction необходимо вызвать сервис xkernel/initiateTransaction и получить новый ecTxRefNo
+// Номер ссылки исходной транзакции в поле originalEcTxRefno
+func ReverseTransaction(input models.TrnInputIface, ecTxRefNo, originalEcTxRefno string) (*d8corp.CommonResp, error) {
+	resp := &d8corp.CommonResp{}
+	trnData := &d8corp.TxResponseData{}
+
+	req := d8corp.ReverceTxReq{
+		EcTxRefno:         ecTxRefNo,
+		OriginalEcTxRefno: originalEcTxRefno,
+		ReasonCode:        4000,
+		ReversalAmount:    input.GetAmount(),
+		TxnCurrency:       input.GetCurrency(),
+	}
+
+	jsonReq, err := json.Marshal(req)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b reverseTransaction REQ marshaling err: %v", err)
+		return nil, fmt.Errorf("[SERVICE] D8 G2b reverseTransaction REQ marshaling err")
+	}
+
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/authorizeTransaction", jsonReq, utils.D8HeadersMap)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b reverseTransaction request sending err: %v", err)
+		return nil, err
+	}
+	logger.Infof("[SERVICE] D8 G2b reverseTransaction resp status: %v, body: %v", status, string(data))
+
+	err = json.Unmarshal(data, resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b reverseTransaction RESP marshaling err: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(resp.Data, trnData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b reverseTransaction DATA marshaling err: %v", err)
+		return nil, err
+	}
+	if len(trnData.TxResponse.RspCode) == 0 {
+		logger.Errorf("[SERVICE] D8 G2b reverseTransaction err: empty response")
 		return nil, err
 	}
 
