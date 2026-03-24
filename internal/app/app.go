@@ -23,8 +23,10 @@ type App struct {
 	server  *http.Server
 }
 
+var app *App
+
 func New() *App {
-	app := &App{}
+	app = &App{}
 
 	app.repo = repository.New()
 	app.service = service.New(&config.Config, app.repo)
@@ -36,6 +38,14 @@ func New() *App {
 	}
 	prometheus.Init()
 	return app
+}
+
+func Get() *App {
+	return app
+}
+
+func GetService() *service.Service {
+	return app.service
 }
 
 func (a *App) Run() error {

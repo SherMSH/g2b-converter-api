@@ -1,6 +1,8 @@
 package createcardsout
 
 import (
+	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"encoding/xml"
 )
 
@@ -8,6 +10,16 @@ import (
 type Root struct {
 	XMLName xml.Name `xml:"ROOT"`
 	Records []Record `xml:"RECORD"`
+}
+
+func (r Root) GetReqType() utils.OfflineReqType {
+	return utils.CreateCardsOut
+}
+
+func (r Root) Call() error {
+	resp, err := AddCardG2b(r)
+	logger.Infof("AddCard Mdi call resp: %v", resp)
+	return err
 }
 
 // Record - основная запись с данными клиента

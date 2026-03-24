@@ -1,6 +1,7 @@
 package relinkpreissuedcardstatusactivationsout
 
 import (
+	"converterapi/internal/utils"
 	"encoding/xml"
 )
 
@@ -8,6 +9,14 @@ import (
 type Root struct {
 	XMLName xml.Name `xml:"ROOT"`
 	Record  []Record `xml:"RECORD"`
+}
+
+func (r Root) GetReqType() utils.OfflineReqType {
+	return utils.RelinkPreIssuedCardStatusActivationsOut
+}
+
+func (r Root) Call() error {
+	return nil
 }
 
 // Record - запись с данными о карте

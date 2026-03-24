@@ -1,11 +1,22 @@
 package relinkpreissuedcardsout
 
-import "encoding/xml"
+import (
+	"converterapi/internal/utils"
+	"encoding/xml"
+)
 
 // Root - корневой элемент XML
 type Root struct {
 	XMLName xml.Name `xml:"ROOT"`
 	Record  []Record `xml:"RECORD"`
+}
+
+func (r Root) GetReqType() utils.OfflineReqType {
+	return utils.RelinkPreIssuedCardsOut
+}
+
+func (r Root) Call() error {
+	return nil
 }
 
 // Record - основная запись с данными клиента и карты
