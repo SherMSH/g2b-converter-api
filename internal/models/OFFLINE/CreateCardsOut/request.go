@@ -12,8 +12,8 @@ type Root struct {
 	Records []Record `xml:"RECORD"`
 }
 
-func (r Root) GetReqType() utils.OfflineReqType {
-	return utils.CreateCardsOut
+func (r Root) GetReqType() string {
+	return string(utils.CreateCardsOut)
 }
 
 func (r Root) Call() error {

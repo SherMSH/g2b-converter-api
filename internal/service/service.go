@@ -3,11 +3,10 @@ package service
 import (
 	"converterapi/internal/config"
 	"converterapi/internal/repository"
-	"converterapi/internal/utils"
 )
 
 type G2bServiceIface interface {
-	GetReqType() utils.OfflineReqType
+	GetReqType() string
 	Call() error
 }
 

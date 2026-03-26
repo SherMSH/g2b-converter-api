@@ -1,13 +1,21 @@
 package posrequestrq
 
-import "reflect"
+import (
+	"converterapi/internal/utils"
+)
 
 type Body struct {
 	SoapRq SoapRq `xml:"POSRequestRq" json:"POSRequestRq"`
 }
 
-func (sb Body) GetBodyType() reflect.Type {
-	return reflect.TypeOf(sb)
+func (b Body) Call() (err error) {
+	// resp, err := PosReq(b)
+	// logger.Infof("POS Request call resp: %v", resp)
+	return
+}
+
+func (b Body) GetReqType() interface{} {
+	return utils.POSRequestRq
 }
 
 // SoapRq соответствует элементу GetAcctInfoRq

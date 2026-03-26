@@ -15,6 +15,7 @@ import (
 	getpersoninfo "converterapi/internal/models/ONLINE/GetPersonInfo"
 	gettransinfo "converterapi/internal/models/ONLINE/GetTransInfo"
 	initsession "converterapi/internal/models/ONLINE/InitSession"
+	posrequestrq "converterapi/internal/models/ONLINE/POSRequest"
 	relinkpreissuedcards "converterapi/internal/models/ONLINE/RelinkPreIssuedCards"
 	removecmsabonent "converterapi/internal/models/ONLINE/RemoveCMSAbonent"
 	removepersoncmsabonent "converterapi/internal/models/ONLINE/RemovePersonCMSAbonent"
@@ -58,7 +59,7 @@ func D8Converter(c *gin.Context) {
 	bodyStr := string(envelope.Body.XMLData)
 
 	// 5. Парсинг-логика
-	var reqBody any
+	var resp any
 	rqType := utils.GetRqType(bodyStr)
 
 	switch rqType {
@@ -74,7 +75,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.AcctDebitRq:
 		var unmBody acctdebit.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -83,7 +84,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.AddCMSAbonentRq:
 		var unmBody addcmsabonent.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -92,7 +93,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.AddPersonCMSAbonentRq:
 		var unmBody addpersoncmsabonent.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -101,7 +102,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.ChangeCMSAbonentRq:
 		var unmBody changecmsabonent.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -110,7 +111,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.GetAcctInfoRq:
 		var unmBody getaccinfo.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -119,7 +120,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.GetAcctStatementRq:
 		var unmBody getacctstatement.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -128,7 +129,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.GetCardInfoRq:
 		var unmBody getcardinfo.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -137,7 +138,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.GetCardStatementRq:
 		var unmBody getcardstatement.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -146,7 +147,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 
 	case utils.GetCVVRq:
 		var unmBody getcvv.Body
@@ -156,7 +157,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.GetPersonInfoRq:
 		var unmBody getpersoninfo.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -165,7 +166,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.GetTransInfoRq:
 		var unmBody gettransinfo.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -174,7 +175,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.InitSessionRq:
 		var unmBody initsession.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -183,7 +184,22 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
+	case utils.POSRequestRq:
+		var unmBody posrequestrq.Body
+		var respBody posrequestrq.Envelope
+		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
+		if err != nil {
+			logger.Errorf("posrequestrq.Body unmarshal err: %v", err)
+			sendSoapFault(c, 500, "Client", "Internal server error")
+			return
+		}
+		err := unmBody.Call()
+		if err != nil {
+			logger.Errorf("posrequest service call err: %v", err)
+			return
+		}
+		resp = respBody
 	case utils.UpdateCard2AcctLinkRq:
 		var unmBody relinkpreissuedcards.SoapEnvelope
 		err = xml.Unmarshal(body, &unmBody)
@@ -192,7 +208,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody.Body
+		resp = unmBody.Body
 	case utils.RemoveCMSAbonentRq:
 		var unmBody removecmsabonent.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -201,7 +217,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.RemovePersonCMSAbonentRq:
 		var unmBody removepersoncmsabonent.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -210,7 +226,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.ResetBadPINTriesRq:
 		var unmBody resetbadpintries.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -219,7 +235,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.SetCardStatusRq:
 		var unmBody setcardstatus.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -228,7 +244,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	case utils.UpdatePersonRq:
 		var unmBody updateperson.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -237,7 +253,7 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		reqBody = unmBody
+		resp = unmBody
 	default:
 		logger.Errorf("Unknown XML body")
 		sendSoapFault(c, 400, "Client", "Unknown XML body")
@@ -245,7 +261,7 @@ func D8Converter(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "application/json; charset=utf-8")
-	c.JSON(http.StatusOK, reqBody)
+	c.XML(http.StatusOK, resp)
 }
 
 // Вспомогательная функция для отправки ответа в формате json
