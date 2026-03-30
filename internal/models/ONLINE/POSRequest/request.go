@@ -2,6 +2,7 @@ package posrequestrq
 
 import (
 	"converterapi/internal/utils"
+	"strconv"
 )
 
 type Body struct {
@@ -40,9 +41,10 @@ type Request struct {
 
 	PAN string `xml:"PAN" json:"pan"`
 
+	FromAccount  string `xml:"FromAccount" json:"from_account"`
 	FromAcctType string `xml:"FromAcctType" json:"from_acct_type"`
-	ToAcctType   string `xml:"ToAcctType" json:"to_acct_type"`
 	ToAccount    string `xml:"ToAccount" json:"to_account"`
+	ToAcctType   string `xml:"ToAcctType" json:"to_acct_type"`
 	Amount       string `xml:"Amount" json:"amount"`
 
 	CVV       string `xml:"CVV" json:"cvv"`
@@ -58,4 +60,37 @@ type Request struct {
 
 	MBR      string `xml:"MBR" json:"mbr"`
 	RespCode string `xml:"RespCode" json:"resp_code"`
+}
+
+func (req Request) GetPan() string {
+	return req.PAN
+}
+
+func (req Request) GetMBR() string {
+	return req.MBR
+}
+
+func (req Request) GetExpDate() string {
+	return utils.GetExpFromTrack(req.Track2)
+}
+
+func (req Request) GetAccount() string {
+	return req.FromAccount
+}
+
+func (req Request) GetCurrency() string {
+	return req.Currency
+}
+
+func (req Request) GetRecipientAcc() string {
+	return req.ToAccount
+}
+
+func (req Request) GetTerminal() string {
+	return req.TermName
+}
+
+func (req Request) GetAmount() float64 {
+	amt, _ := strconv.ParseFloat(req.Amount, 64)
+	return amt
 }

@@ -102,3 +102,37 @@ const (
 	Delete = "DELETE"
 	Set    = "SET" // для установки адресов
 )
+
+type D8RspCode string
+
+const (
+	D8Approved         D8RspCode = "00"
+	D8HonourWithID     D8RspCode = "01"
+	D8PartialAmnt      D8RspCode = "02"
+	ICCOfflineApproved D8RspCode = "80"
+	ICCUnableGoOnline  D8RspCode = "81"
+	ICCAAR             D8RspCode = "82"
+	NotDeclined        D8RspCode = "85"
+)
+
+type D8TxStatus string
+
+const (
+	InProgress D8TxStatus = "1"
+	Complete   D8TxStatus = "2"
+	Rejected   D8TxStatus = "3"
+	Approved   D8TxStatus = "4"
+	Partial    D8TxStatus = "5"
+
+	AdviceLogNotProcessed D8TxStatus = "6"
+	AdviceLogRejected     D8TxStatus = "7"
+	AdviceLogApproved     D8TxStatus = "8"
+
+	GotRev           D8TxStatus = "12"
+	GotPrtRev        D8TxStatus = "13"
+	InProgressGotRev D8TxStatus = "14"
+	GotPartialRev    D8TxStatus = "15"
+
+	FirstAttmptContinue D8TxStatus = "16"
+	AdviceLogNotProceed D8TxStatus = "17"
+)
