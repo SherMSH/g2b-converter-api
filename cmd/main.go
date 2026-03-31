@@ -5,6 +5,7 @@ import (
 	"converterapi/internal/app"
 	"converterapi/internal/config"
 	"converterapi/internal/jobs"
+	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"net/http"
 	"os"
@@ -16,6 +17,7 @@ import (
 func init() {
 	config.Setup("internal/config/config.json")
 	logger.Init()
+	utils.Init()
 }
 
 // @title CONVERTER API-MAIN

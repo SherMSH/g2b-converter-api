@@ -23,8 +23,7 @@ func InitiateTransaction() (*string, error) {
 		logger.Errorf("[SERVICE] D8 G2b initiateTransaction REQ marshaling err: %v", err)
 		return nil, fmt.Errorf("[SERVICE] D8 G2b initiateTransaction REQ marshaling err")
 	}
-
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/initiateTransaction", jsonReq, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/initiateTransaction", jsonReq, utils.D8TxHeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b initiateTransaction request sending err: %v", err)
 		return nil, err
@@ -55,7 +54,7 @@ func InitiateTransaction() (*string, error) {
 // вызвав "GetTransactionStatus".
 // При определенных обстоятельствах возможна ситуация, когда ответное сообщение теряется, но система обработки не знает об этом,
 // и транзакция успешно завершается как в системе обработки, так и в системе эмитента карты.
-func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp.CommonResp, error) {
+func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp.TrnData, *d8corp.CommonResp, error) {
 	resp := &d8corp.CommonResp{}
 	trnData := &d8corp.TrnData{}
 	req := d8corp.AuthTxReq{
@@ -64,7 +63,7 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 			ExpiryDate: input.GetExpDate(),
 		},
 		EcTxRefno:          ecTxRefNo,
-		TxnType:            "TRANSF_C2A",
+		TxnType:            input.GetTxnType(),
 		TxnAmount:          input.GetAmount(),
 		TxnCurrency:        input.GetCurrency(),
 		TermCode:           input.GetTerminal(),
@@ -78,31 +77,31 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err: %v", err)
-		return nil, fmt.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err")
+		return nil, nil, fmt.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err")
 	}
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/authorizeTransaction", jsonReq, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction request sending err: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
 	logger.Infof("[SERVICE] D8 G2b authorizeTransaction resp status: %v, body: %v", status, string(data))
 
 	err = json.Unmarshal(data, resp)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction RESP marshaling err: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
 	err = json.Unmarshal(resp.Data, trnData)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction DATA marshaling err: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
 	if len(trnData.TransactionResponse.EcTxRefno) == 0 {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction err: empty response")
-		return nil, err
+		return nil, nil, err
 	}
-	return resp, nil
+	return trnData, resp, nil
 }
 
 func GetTransactionStatus(tlId int, ecTxRefNo string) (*d8corp.CommonResp, error) {

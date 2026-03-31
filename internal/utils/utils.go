@@ -14,6 +14,14 @@ func Init() {
 	D8HeadersMap["Pragma"] = "no-cache"
 	D8HeadersMap["Cashe-Control"] = "no-cache"
 	D8HeadersMap["Content-Type"] = "application/json"
+
+	D8TxHeadersMap["Pragma"] = "no-cache"
+	D8TxHeadersMap["Cashe-Control"] = "no-cache"
+	D8TxHeadersMap["Content-Type"] = "application/json"
+	D8TxHeadersMap["Connection"] = "keep-alive"
+	D8TxHeadersMap["X-Ssl-Client-Serial"] = "0B6F8A39AAC45D27F61F7E1A2D2F94CC"
+	D8TxHeadersMap["X-Ssl-Client-I-Dn"] = "CN=Test Company CA, O=Test Company, C=US"
+	D8TxHeadersMap["X-Ssl-Client-S-Dn"] = "CN=John Doe, O=Test Company, C=US"
 }
 
 func GetRqType(xmlData string) RqBodyType {
@@ -50,9 +58,11 @@ func SendRequest(method, uri string, jsonBody []byte, headers map[string]string)
 		Timeout: 90 * time.Second,
 	}
 	for k, v := range headers {
+		// logger.Infof("Hey: %v value: %v", k, v)
 		req.Header.Set(k, v)
 	}
-	req.Close = true
+	// req.Close = true
+	logger.Infof("url: %v, headers: %v, body: %v", req.URL, req.Header, string(jsonBody))
 
 	resps, err := client.Do(req)
 	if err != nil {

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"converterapi/internal/utils"
 	"encoding/xml"
 	"reflect"
 )
@@ -20,6 +21,7 @@ type SoapBody interface {
 }
 
 type TrnInputIface interface {
+	GetTxnType() utils.TxnType
 	GetPan() string
 	GetMBR() string
 	GetExpDate() string

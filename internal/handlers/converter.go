@@ -187,7 +187,6 @@ func D8Converter(c *gin.Context) {
 		resp = unmBody
 	case utils.POSRequestRq:
 		var unmBody posrequestrq.Body
-		var respBody posrequestrq.Envelope
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("posrequestrq.Body unmarshal err: %v", err)
@@ -196,10 +195,42 @@ func D8Converter(c *gin.Context) {
 		}
 		err := unmBody.Call()
 		if err != nil {
-			logger.Errorf("posrequest service call err: %v", err)
+			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = respBody
+		resp = posrequestrq.Envelope{
+			XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
+			XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
+			XmlnsM0: "http://schemas.compassplus.com/two/1.0/fimi_types.xsd",
+			Body: posrequestrq.RespBody{
+				POSRequestRp: posrequestrq.POSRequestRp{
+					Response: posrequestrq.Response{
+						Product:      unmBody.SoapRq.Req.Product,
+						ResponseAttr: "1",
+						TranId:       unmBody.SoapRq.Req.ThisTranId,
+						Ver:          "16.37",
+
+						AccountCurrency:      unmBody.SoapRq.Req.Currency,
+						ApprovalCode:         unmBody.SoapRq.ApprovalCode,
+						AuthRespCode:         unmBody.SoapRq.Req.RespCode,
+						AuthRespCodeCategory: "0",
+						AvailBalance:         "",
+						BalanceCurrency:      "",
+						BonusDebt:            "",
+						CVxOK:                "-1",
+						Currency:             unmBody.SoapRq.Req.Currency,
+						Fee:                  "",
+						FromAcct:             unmBody.SoapRq.Req.FromAccount,
+						IssuerFee:            "",
+						LedgerBalance:        "",
+						MaskBalances:         "",
+						RelatedTran:          posrequestrq.RelatedTran{},
+						ThisTranId:           unmBody.SoapRq.Req.ThisTranId,
+						ToAcct:               unmBody.SoapRq.Req.ToAccount,
+					},
+				},
+			},
+		}
 	case utils.UpdateCard2AcctLinkRq:
 		var unmBody relinkpreissuedcards.SoapEnvelope
 		err = xml.Unmarshal(body, &unmBody)
@@ -273,7 +304,7 @@ func sendJsonResponse(c *gin.Context, req interface{}) {
 // Вспомогательная функция для отправки SOAP-ошибки (Fault)
 func sendSoapFault(c *gin.Context, status int, faultCode, faultString string) {
 	fault := struct {
-		XMLName xml.Name `xml:"http://www.w3.org/2003/05/soap-envelope Fault"`
+		XMLName xml.Name `xml:"Fault"`
 		Code    struct {
 			Value string `xml:"Value"`
 		} `xml:"Code"`
@@ -292,7 +323,6 @@ func sendSoapFault(c *gin.Context, status int, faultCode, faultString string) {
 			Text: faultString,
 		},
 	}
-	// Переопределяем Body для ошибки (в реальном коде нужно создать отдельную структуру)
 	output, _ := xml.MarshalIndent(fault, "", "  ")
 
 	c.Header("Content-Type", "application/soap+xml; charset=utf-8")

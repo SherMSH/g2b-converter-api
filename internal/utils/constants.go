@@ -85,6 +85,7 @@ var OfflineReqTypes = []OfflineReqType{
 }
 
 var D8HeadersMap = make(map[string]string)
+var D8TxHeadersMap = make(map[string]string)
 
 type CompanyRegNum string
 
@@ -135,4 +136,20 @@ const (
 
 	FirstAttmptContinue D8TxStatus = "16"
 	AdviceLogNotProceed D8TxStatus = "17"
+)
+
+type TxnType string
+
+const (
+	Sales   TxnType = "SALES"
+	Cash    TxnType = "CASH"
+	Deposit TxnType = "DEPOSIT"
+	Balance TxnType = "BALANCE"
+	C2C     TxnType = "TRANSF_C2C"
+	H2C     TxnType = "TRANSF_H2C"
+	C2A     TxnType = "TRANSF_C2A"
+	A2C     TxnType = "TRANSF_A2C"
+	Accver  TxnType = "ACCVER"
+	Refund  TxnType = "REFUND"
+	PreAuth TxnType = "PREAUTH"
 )

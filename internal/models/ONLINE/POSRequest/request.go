@@ -9,9 +9,8 @@ type Body struct {
 	SoapRq SoapRq `xml:"POSRequestRq" json:"POSRequestRq"`
 }
 
-func (b Body) Call() (err error) {
-	// resp, err := PosReq(b)
-	// logger.Infof("POS Request call resp: %v", resp)
+func (b *Body) Call() (err error) {
+	err = PosReq(b)
 	return
 }
 
@@ -21,7 +20,8 @@ func (b Body) GetReqType() interface{} {
 
 // SoapRq соответствует элементу GetAcctInfoRq
 type SoapRq struct {
-	Req Request `xml:"Request" json:"request"`
+	Req          Request `xml:"Request" json:"request"`
+	ApprovalCode string  `xml:"-" json:"-"`
 }
 
 // Request соответствует элементу Request
@@ -32,9 +32,9 @@ type Request struct {
 	Clerk    string `xml:"Clerk,attr" json:"clerk"`
 	Password string `xml:"Password,attr" json:"password"`
 
-	TranType   string `xml:"TranType" json:"tran_type"`
-	TranCode   string `xml:"TranCode" json:"tran_code"`
-	TranNumber string `xml:"TranNumber" json:"tran_number"`
+	TranType   string   `xml:"TranType" json:"tran_type"`
+	TranCode   TranCode `xml:"TranCode" json:"tran_code"`
+	TranNumber string   `xml:"TranNumber" json:"tran_number"`
 
 	TermName     string `xml:"TermName" json:"term_name"`
 	TermInstName string `xml:"TermInstName" json:"term_inst_name"`
@@ -60,6 +60,24 @@ type Request struct {
 
 	MBR      string `xml:"MBR" json:"mbr"`
 	RespCode string `xml:"RespCode" json:"resp_code"`
+}
+
+type TranCode string
+
+const (
+	Credit TranCode = "140"
+	Debit  TranCode = "174"
+)
+
+func (req Request) GetTxnType() utils.TxnType {
+	switch req.TranCode {
+	case Credit:
+		return utils.C2A
+	case Debit:
+		return utils.A2C
+	default:
+		return utils.Sales
+	}
 }
 
 func (req Request) GetPan() string {

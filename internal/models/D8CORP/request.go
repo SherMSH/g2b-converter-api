@@ -1,46 +1,48 @@
 package d8corp
 
+import "converterapi/internal/utils"
+
 type InitTxReq struct {
 }
 
 type AuthTxReq struct {
-	EcTxRefno          string  `json:"ecTxRefno"`         //+
-	TxnType            string  `json:"txnType"`           //+
-	CardKey            CardKey `json:"cardKey,omitempty"` //+
-	TxnAmount          float64 `json:"txnAmount"`         //+
-	TxnCurrency        string  `json:"txnCurrency"`       //+
-	TermCode           string  `json:"termCode"`          //+
-	CrdacptID          string  `json:"crdacptID"`         //-
-	MessageFunction    int     `json:"messageFunction"`   //+
-	MerchantCommission float64 `json:"merchantCommission,omitempty"`
-	CrdacptBus         int     `json:"crdacptBus,omitempty"`
-	MerchantName       string  `json:"merchantName,omitempty"`
-	MerchantStreet     string  `json:"merchantStreet,omitempty"`
-	MerchantCity       string  `json:"merchantCity,omitempty"`
-	MerchantPostcode   string  `json:"merchantPostcode,omitempty"`
-	MerchantCountry    string  `json:"merchantCountry,omitempty"`
-	MerchantRegion     string  `json:"merchantRegion,omitempty"`
-	Cvv2               string  `json:"cvv2,omitempty"`
-	SenderFirstName    string  `json:"senderfirstName,omitempty"`
-	SenderLastName     string  `json:"senderlastName,omitempty"`
-	SenderLocCity      string  `json:"senderlocCity,omitempty"`
-	SenderLocStreet    string  `json:"senderlocStreet,omitempty"`
-	SenderLocCountry   string  `json:"senderlocCountry,omitempty"`
-	RecipientCountry   string  `json:"recipientCountry,omitempty"`
-	RecipientCity      string  `json:"recipientCity,omitempty"`
-	RecipientStreet    string  `json:"recipientStreet,omitempty"`
-	RecipientFirstName string  `json:"recipientfirstName,omitempty"`
-	RecipientLastName  string  `json:"recipientlastName,omitempty"`
-	RecipientAccount   string  `json:"recipientAccount,omitempty"`
-	DestinationAccType string  `json:"destinationAccountType,omitempty"`
-	SenderFundsrc      string  `json:"senderFundsrc,omitempty"`
-	BusinessAppId      string  `json:"businessAppId,omitempty"`
-	Eci3DS             string  `json:"eci3DS,omitempty"`
-	SecurityFlag       int     `json:"securityFlag,omitempty"`
-	Ucaf               string  `json:"ucaf,omitempty"`
-	IssCommCode        string  `json:"issCommCode,omitempty"`
-	AcqCommCode        string  `json:"acqCommCode,omitempty"`
-	PurchRefNo         string  `json:"purchrefno,omitempty"`
+	EcTxRefno          string        `json:"ecTxRefno"`         //+
+	TxnType            utils.TxnType `json:"txnType"`           //+
+	CardKey            CardKey       `json:"cardKey,omitempty"` //+
+	TxnAmount          float64       `json:"txnAmount"`         //+
+	TxnCurrency        string        `json:"txnCurrency"`       //+
+	TermCode           string        `json:"termCode"`          //+
+	CrdacptID          string        `json:"crdacptID"`         //-
+	MessageFunction    int           `json:"messageFunction"`   //+
+	MerchantCommission float64       `json:"merchantCommission,omitempty"`
+	CrdacptBus         int           `json:"crdacptBus,omitempty"`
+	MerchantName       string        `json:"merchantName,omitempty"`
+	MerchantStreet     string        `json:"merchantStreet,omitempty"`
+	MerchantCity       string        `json:"merchantCity,omitempty"`
+	MerchantPostcode   string        `json:"merchantPostcode,omitempty"`
+	MerchantCountry    string        `json:"merchantCountry,omitempty"`
+	MerchantRegion     string        `json:"merchantRegion,omitempty"`
+	Cvv2               string        `json:"cvv2,omitempty"`
+	SenderFirstName    string        `json:"senderfirstName,omitempty"`
+	SenderLastName     string        `json:"senderlastName,omitempty"`
+	SenderLocCity      string        `json:"senderlocCity,omitempty"`
+	SenderLocStreet    string        `json:"senderlocStreet,omitempty"`
+	SenderLocCountry   string        `json:"senderlocCountry,omitempty"`
+	RecipientCountry   string        `json:"recipientCountry,omitempty"`
+	RecipientCity      string        `json:"recipientCity,omitempty"`
+	RecipientStreet    string        `json:"recipientStreet,omitempty"`
+	RecipientFirstName string        `json:"recipientfirstName,omitempty"`
+	RecipientLastName  string        `json:"recipientlastName,omitempty"`
+	RecipientAccount   string        `json:"recipientAccount,omitempty"`
+	DestinationAccType string        `json:"destinationAccountType,omitempty"`
+	SenderFundsrc      string        `json:"senderFundsrc,omitempty"`
+	BusinessAppId      string        `json:"businessAppId,omitempty"`
+	Eci3DS             string        `json:"eci3DS,omitempty"`
+	SecurityFlag       int           `json:"securityFlag,omitempty"`
+	Ucaf               string        `json:"ucaf,omitempty"`
+	IssCommCode        string        `json:"issCommCode,omitempty"`
+	AcqCommCode        string        `json:"acqCommCode,omitempty"`
+	PurchRefNo         string        `json:"purchrefno,omitempty"`
 }
 
 type ChkTxStatusReq struct {

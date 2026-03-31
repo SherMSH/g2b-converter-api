@@ -29,6 +29,7 @@ type TrnData struct {
 	TransactionResponse TransactionResponse `json:"transactionResponse"`
 	Lkey                Lkey                `json:"lkey"`
 	RecipientLkey       Lkey                `json:"recipientLkey"`
+	ApprovalCode        string              `json:"aprvlCode"`
 }
 
 type TransactionResponse struct {
