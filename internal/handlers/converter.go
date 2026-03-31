@@ -198,38 +198,109 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = posrequestrq.Envelope{
-			XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
-			XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
-			XmlnsM0: "http://schemas.compassplus.com/two/1.0/fimi_types.xsd",
-			Body: posrequestrq.RespBody{
-				POSRequestRp: posrequestrq.POSRequestRp{
-					Response: posrequestrq.Response{
-						Product:      unmBody.SoapRq.Req.Product,
-						ResponseAttr: "1",
-						TranId:       unmBody.SoapRq.Req.ThisTranId,
-						Ver:          "16.37",
+		switch unmBody.SoapRq.Req.TranCode {
+		case posrequestrq.Credit:
+			resp = posrequestrq.Envelope{
+				XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
+				XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
+				XmlnsM0: "http://schemas.compassplus.com/two/1.0/fimi_types.xsd",
+				Body: posrequestrq.RespBody{
+					POSRequestRp: posrequestrq.POSRequestRp{
+						Response: posrequestrq.Response{
+							Product:      unmBody.SoapRq.Req.Product,
+							ResponseAttr: "1",
+							TranId:       unmBody.SoapRq.Req.ThisTranId,
+							Ver:          "16.37",
 
-						AccountCurrency:      unmBody.SoapRq.Req.Currency,
-						ApprovalCode:         unmBody.SoapRq.ApprovalCode,
-						AuthRespCode:         unmBody.SoapRq.Req.RespCode,
-						AuthRespCodeCategory: "0",
-						AvailBalance:         "",
-						BalanceCurrency:      "",
-						BonusDebt:            "",
-						CVxOK:                "-1",
-						Currency:             unmBody.SoapRq.Req.Currency,
-						Fee:                  "",
-						FromAcct:             unmBody.SoapRq.Req.FromAccount,
-						IssuerFee:            "",
-						LedgerBalance:        "",
-						MaskBalances:         "",
-						RelatedTran:          posrequestrq.RelatedTran{},
-						ThisTranId:           unmBody.SoapRq.Req.ThisTranId,
-						ToAcct:               unmBody.SoapRq.Req.ToAccount,
+							AccountCurrency:      unmBody.SoapRq.Req.Currency,
+							ApprovalCode:         unmBody.SoapRq.ApprovalCode,
+							AuthRespCode:         unmBody.SoapRq.Req.RespCode,
+							AuthRespCodeCategory: "0",
+							AvailBalance:         "",
+							BalanceCurrency:      "",
+							BonusDebt:            "",
+							CVxOK:                "-1",
+							Currency:             unmBody.SoapRq.Req.Currency,
+							Fee:                  "",
+							FromAcct:             unmBody.SoapRq.Req.FromAccount,
+							IssuerFee:            "",
+							LedgerBalance:        "",
+							MaskBalances:         "",
+							RelatedTran:          posrequestrq.RelatedTran{},
+							ThisTranId:           unmBody.SoapRq.Req.ThisTranId,
+							ToAcct:               unmBody.SoapRq.Req.ToAccount,
+						},
 					},
 				},
-			},
+			}
+		case posrequestrq.Debit:
+			resp = posrequestrq.Envelope{
+				XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
+				XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
+				XmlnsM0: "http://schemas.compassplus.com/two/1.0/fimi_types.xsd",
+				Body: posrequestrq.RespBody{
+					POSRequestRp: posrequestrq.POSRequestRp{
+						Response: posrequestrq.Response{
+							Product:      unmBody.SoapRq.Req.Product,
+							ResponseAttr: "1",
+							TranId:       unmBody.SoapRq.Req.ThisTranId,
+							Ver:          "16.37",
+
+							AccountCurrency:      unmBody.SoapRq.Req.Currency,
+							ApprovalCode:         unmBody.SoapRq.ApprovalCode,
+							AuthRespCode:         unmBody.SoapRq.Req.RespCode,
+							AuthRespCodeCategory: "0",
+							AvailBalance:         "",
+							BalanceCurrency:      "",
+							BonusDebt:            "",
+							CVxOK:                "-1",
+							Currency:             unmBody.SoapRq.Req.Currency,
+							Fee:                  "",
+							FromAcct:             unmBody.SoapRq.Req.FromAccount,
+							IssuerFee:            "",
+							LedgerBalance:        "",
+							MaskBalances:         "",
+							RelatedTran:          posrequestrq.RelatedTran{},
+							ThisTranId:           unmBody.SoapRq.Req.ThisTranId,
+							ToAcct:               unmBody.SoapRq.Req.ToAccount,
+						},
+					},
+				},
+			}
+		default:
+			resp = posrequestrq.Envelope{
+				XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
+				XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
+				XmlnsM0: "http://schemas.compassplus.com/two/1.0/fimi_types.xsd",
+				Body: posrequestrq.RespBody{
+					POSRequestRp: posrequestrq.POSRequestRp{
+						Response: posrequestrq.Response{
+							Product:      unmBody.SoapRq.Req.Product,
+							ResponseAttr: "1",
+							TranId:       unmBody.SoapRq.Req.ThisTranId,
+							Ver:          "16.37",
+
+							AccountCurrency:      unmBody.SoapRq.Req.Currency,
+							ApprovalCode:         unmBody.SoapRq.ApprovalCode,
+							AuthRespCode:         unmBody.SoapRq.Req.RespCode,
+							AuthRespCodeCategory: "0",
+							AvailBalance:         "",
+							BalanceCurrency:      "",
+							BonusDebt:            "",
+							CVxOK:                "-1",
+							Currency:             unmBody.SoapRq.Req.Currency,
+							Fee:                  "",
+							FromAcct:             unmBody.SoapRq.Req.FromAccount,
+							IssuerFee:            "",
+							LedgerBalance:        "",
+							MaskBalances:         "",
+							RelatedTran:          posrequestrq.RelatedTran{},
+							ThisTranId:           unmBody.SoapRq.Req.ThisTranId,
+							ToAcct:               unmBody.SoapRq.Req.ToAccount,
+						},
+					},
+				},
+			}
 		}
 	case utils.UpdateCard2AcctLinkRq:
 		var unmBody relinkpreissuedcards.SoapEnvelope
