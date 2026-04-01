@@ -8,7 +8,7 @@ import (
 // Root - корневой элемент XML
 type Root struct {
 	XMLName xml.Name `xml:"ROOT"`
-	Record  []Record `xml:"RECORD"`
+	Records []Record `xml:"RECORD"`
 }
 
 func (r Root) GetReqType() string {
@@ -46,7 +46,7 @@ type Record struct {
 
 	// Резидентство
 	Resident   string `xml:"RESIDENT"`
-	CountryRes string `xml:"COUNTRYRES"`
+	CountryRes int    `xml:"COUNTRYRES"`
 	ExtID      string `xml:"EXTID"`
 	PCode      string `xml:"PCODE"`
 	BRPart     string `xml:"BRPART"`
