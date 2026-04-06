@@ -2,6 +2,7 @@ package posrequestrq
 
 import (
 	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"strconv"
 )
 
@@ -89,6 +90,7 @@ func (req Request) GetMBR() string {
 }
 
 func (req Request) GetExpDate() string {
+	logger.Infof("req: %+v", req)
 	return utils.GetExpFromTrack(req.Track2)
 }
 
@@ -97,6 +99,9 @@ func (req Request) GetAccount() string {
 }
 
 func (req Request) GetCurrency() string {
+	if len(req.Currency) == 0 {
+		return utils.TJSCurrency
+	}
 	return req.Currency
 }
 

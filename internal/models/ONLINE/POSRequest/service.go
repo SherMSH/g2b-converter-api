@@ -8,11 +8,18 @@ import (
 )
 
 func PosReq(body *Body) error {
+	//Basic checkups
+	if len(body.SoapRq.Req.ToAccount) == 0 {
+		logger.Errorf("PosReq error: Mandatory field 'ToAccount' is missing")
+		return fmt.Errorf("Mandatory field 'ToAccount' is missing")
+	}
+
 	ectxNum, err := service.InitiateTransaction()
 	if err != nil {
 		logger.Errorf("POS req {InitiateTransaction} error: %v", err)
 		return err
 	}
+	logger.Infof("PosReq info: %+v", body.SoapRq.Req)
 	trn, atr, err := service.AuthorizeTransaction(body.SoapRq.Req, *ectxNum)
 	if err != nil {
 		logger.Errorf("POS req {AuthorizeTransaction} error: %v", err)

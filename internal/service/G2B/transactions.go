@@ -14,8 +14,8 @@ import (
 // Нужен до вызова AuthorizeTransaction и ReverseTransaction.
 func InitiateTransaction() (*string, error) {
 	var (
-		req     d8corp.InitTxReq
-		resp    d8corp.CommonResp
+		req d8corp.InitTxReq
+		// resp    d8corp.CommonResp
 		ectxNum d8corp.InitTransactionResp
 	)
 	jsonReq, err := json.Marshal(req)
@@ -30,12 +30,7 @@ func InitiateTransaction() (*string, error) {
 	}
 	logger.Infof("[SERVICE] D8 G2b initiateTransaction resp status: %v, body: %v", status, string(data))
 
-	err = json.Unmarshal(data, &resp)
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b initiateTransaction RESP marshaling err: %v", err)
-		return nil, err
-	}
-	err = json.Unmarshal(resp.Data, &ectxNum)
+	err = json.Unmarshal(data, &ectxNum)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b initiateTransaction DATA marshaling err: %v", err)
 		return nil, err
@@ -57,6 +52,8 @@ func InitiateTransaction() (*string, error) {
 func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp.TrnData, *d8corp.CommonResp, error) {
 	resp := &d8corp.CommonResp{}
 	trnData := &d8corp.TrnData{}
+	logger.Infof("AuthorizeTransaction req ExpDate: %s", input.GetExpDate())
+
 	req := d8corp.AuthTxReq{
 		CardKey: d8corp.CardKey{
 			Pan:        input.GetPan(),
@@ -72,6 +69,7 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 		MessageFunction:    0,    //0-Request, 2-Advice
 		RecipientAccount:   input.GetRecipientAcc(),
 		DestinationAccType: "00",
+		BusinessAppId:      "TBI", //TBI - Financial Institution offered Bank-Initiated P2P Money Transfer
 	}
 
 	jsonReq, err := json.Marshal(req)

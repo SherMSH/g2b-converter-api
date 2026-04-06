@@ -87,8 +87,8 @@ func GetExpFromTrack(trck2 string) string {
 	if len(data) < 2 {
 		return ""
 	}
-	if len(data[2]) <= 4 {
-		return data[2]
+	if len(data[1]) <= 4 {
+		return data[1]
 	}
-	return data[2][:4]
+	return data[1][:4]
 }

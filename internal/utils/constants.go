@@ -153,3 +153,5 @@ const (
 	Refund  TxnType = "REFUND"
 	PreAuth TxnType = "PREAUTH"
 )
+
+const TJSCurrency = "972"
