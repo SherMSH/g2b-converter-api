@@ -10,7 +10,7 @@ type MdiFile struct {
 }
 
 type MdiRecordDetails struct {
-	IssRectype            string              `json:"ISS_RECTYPE"` // {"MERCHANT", "CARD, "ACCOUNT", "CUSTOMER", "POS"}
+	IssRectype            string              `json:"ISS_RECTYPE"` // {"MERCHANT", "CARD, "ACCOUNT", "CUSTOMER", "POS", "CDRNOTIF"}
 	IssRecaction          utils.Action        `json:"ISS_RECACTION"`
 	IssRecnum             int                 `json:"ISS_RECNUM"`
 	IssCompanyRegnr       utils.CompanyRegNum `json:"ISS_COMPANY_REGNR"`
@@ -45,6 +45,9 @@ type MdiRecordDetails struct {
 	DbCustomerLastName    string              `json:"DB_CUSTOMER_LAASTNAME,omitempty"`
 	DbCustomerDateBirth   string              `json:"DB_CUSTOMER_DATE_BIRTH,omitempty"` //format YYYYMMDD
 	DbCustomerHomeCountry int                 `json:"DB_CUSTOMER_HOME_COUNTRY,omitempty"`
+
+	DbCdNotifSvcTyp string `json:"DB_CDNOTIF_SVCTYP,omitempty"` //SMSGEN - Generic SMS notifications; SMSTXN - Transaction notifications by SMS
+	DbCdNotifTarget string `json:"DB_CDNOTIF_TARGET,omitempty"` //mobile phone, e-mail or ect.
 }
 
 type HeaderRecord struct {

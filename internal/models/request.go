@@ -1,6 +1,7 @@
 package models
 
 import (
+	models "converterapi/internal/models/OFFLINE"
 	"converterapi/internal/utils"
 	"encoding/xml"
 	"reflect"
@@ -30,4 +31,9 @@ type TrnInputIface interface {
 	GetCurrency() string
 	GetRecipientAcc() string
 	GetTerminal() string
+}
+
+type MDIface interface {
+	GetRecords() []models.MRecord
+	GetRecordsCount() int
 }

@@ -8,12 +8,10 @@ import (
 	"converterapi/pkg/logger"
 	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 )
 
-func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
+func AddCardNotificationG2b(input models.MDIface) (resp interface{}, err error) {
 	var (
 		recDetails d8corp.MdiFile
 	)
@@ -25,7 +23,7 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 		IssRecaction:    "IMPORT",
 		CFilename:       filename, //"G2BISS-20060102-150405.JSON"
 		IssSourcesys:    "LK",
-		IssCompanyRegnr: "COMPANY1",
+		IssCompanyRegnr: "ARVD",
 		IssTimestamp:    "20230906120000123",
 	}
 
@@ -34,37 +32,14 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 		if i != 0 {
 			separator = json.RawMessage(",")
 		}
-
-		var firstSecret, firstName, lastName string
-		if len(v.SecretInfo.Items) != 0 {
-			firstSecret = v.SecretInfo.Items[0].Value
-		}
-		names := strings.Split(v.LatFIO, " ")
-		if len(names) > 1 {
-			lastName = names[0]
-			firstName = names[1]
-		}
-		prior, _ := strconv.Atoi(v.MakePrior)
 		record := d8corp.MdiRecordDetails{
-			IssRectype:           "CARD",
-			IssRecaction:         "ADD",
-			IssRecnum:            recNums.NextVal(),
-			IssCompanyRegnr:      "ARVD",
-			IssCompanyRegnrAcc:   "ARVD",
-			IssImpPvki:           1,
-			DbCustomerCustcode:   firstSecret,
-			DbCdproductCdproduct: "CD01",
-			DbAccountAccnum:      v.Account,
-			DbAccountCurrcode:    v.CurrencyNo,
-			KlLkeyAlias:          "93919",
-			DbCardaCommCat:       "COM03",
-			DbCardaEnroll3ds:     "1",
-			DbCardaLimitCat:      "LIM01",
-			DbCardEmbossname:     v.LatFIO,
-			DbCardFirstname:      firstName,
-			DbCardLastname:       lastName,
-			DbCardMaidenname:     firstName,
-			DbCrdaccPriority:     prior,
+			IssRectype:      "CDRNOTIF",
+			IssRecaction:    "ADD",
+			IssRecnum:       recNums.NextVal(),
+			IssCompanyRegnr: "ARVD",
+			KlLkeyAlias:     "",
+			DbCdNotifSvcTyp: "SMSGEN",
+			DbCdNotifTarget: v.Address,
 		}
 		jsonRec, err := json.Marshal(record)
 		if err != nil {

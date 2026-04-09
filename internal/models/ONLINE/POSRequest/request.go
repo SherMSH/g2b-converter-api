@@ -3,7 +3,6 @@ package posrequestrq
 import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
-	"strconv"
 )
 
 type Body struct {
@@ -42,11 +41,11 @@ type Request struct {
 
 	PAN string `xml:"PAN" json:"pan"`
 
-	FromAccount  string `xml:"FromAccount" json:"from_account"`
-	FromAcctType string `xml:"FromAcctType" json:"from_acct_type"`
-	ToAccount    string `xml:"ToAccount" json:"to_account"`
-	ToAcctType   string `xml:"ToAcctType" json:"to_acct_type"`
-	Amount       string `xml:"Amount" json:"amount"`
+	FromAccount  string  `xml:"FromAccount" json:"from_account"`
+	FromAcctType string  `xml:"FromAcctType" json:"from_acct_type"`
+	ToAccount    string  `xml:"ToAccount" json:"to_account"`
+	ToAcctType   string  `xml:"ToAcctType" json:"to_acct_type"`
+	Amount       float64 `xml:"Amount" json:"amount"`
 
 	CVV       string `xml:"CVV" json:"cvv"`
 	CVV2      string `xml:"CVV2" json:"cvv2"`
@@ -114,6 +113,5 @@ func (req Request) GetTerminal() string {
 }
 
 func (req Request) GetAmount() float64 {
-	amt, _ := strconv.ParseFloat(req.Amount, 64)
-	return amt
+	return req.Amount
 }

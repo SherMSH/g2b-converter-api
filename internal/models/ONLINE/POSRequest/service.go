@@ -9,6 +9,10 @@ import (
 
 func PosReq(body *Body) error {
 	//Basic checkups
+	if body.SoapRq.Req.Amount <= 0. {
+		logger.Errorf("PosReq error: Wrong 'Amount' field value")
+		return fmt.Errorf("PosReq error: Wrong 'Amount' field value")
+	}
 	if len(body.SoapRq.Req.ToAccount) == 0 {
 		logger.Errorf("PosReq error: Mandatory field 'ToAccount' is missing")
 		return fmt.Errorf("Mandatory field 'ToAccount' is missing")
@@ -30,9 +34,11 @@ func PosReq(body *Body) error {
 	body.SoapRq.ApprovalCode = trn.ApprovalCode
 
 	if atr.Status.Code != "0" {
-		return fmt.Errorf("bad response status code: %+v", atr)
+		logger.Errorf("bad response status code: %+v", atr.Status)
+		return fmt.Errorf("%s", atr.Status.Message)
 	}
 	if trn.TransactionResponse.RspCode == string(utils.AdviceLogNotProceed) {
+		logger.Errorf("bad response tx status {Skipped}")
 		return fmt.Errorf("bad response tx status {Skipped}")
 	}
 	return nil

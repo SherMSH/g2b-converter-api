@@ -3,9 +3,9 @@ package d8corp
 import "encoding/json"
 
 type CommonResp struct {
-	Data   []byte `json:"data"`
-	Paging Paging `json:"paging"`
-	Status Status `json:"status"`
+	Data   json.RawMessage `json:"data"`
+	Paging Paging          `json:"paging"`
+	Status Status          `json:"status"`
 }
 
 type Paging struct {
@@ -14,11 +14,11 @@ type Paging struct {
 }
 
 type Status struct {
-	Code        string          `json:"code"`
-	RspCode     string          `json:"rspcode"`
-	Message     json.RawMessage `json:"message"`
-	ReasonClass int             `json:"reasonClass"`
-	SessionId   string          `json:"sessionId"`
+	Code        string `json:"code"`
+	RspCode     string `json:"rspcode"`
+	Message     string `json:"message"`
+	ReasonClass int    `json:"reasonClass"`
+	SessionId   string `json:"sessionId"`
 }
 
 type InitTransactionResp struct {
