@@ -24,6 +24,7 @@ type MdiRecordDetails struct {
 	DbAccountCurrcode     string              `json:"DB_ACCOUNT_CURRCODE,omitempty"`
 	DbCrdaccPriority      int                 `json:"DB_CRDACC_PRIORITY,omitempty"`
 	KlLkeyAlias           string              `json:"KL_LKEY_ALIAS,omitempty"` //`В случае ISS_RECTYPE<>CARD в вызове сообщения должно присутствовать либо KL_LKEY_ALIAS, либо KL_LKEY_CLR. В случае ISS_RECTYPE=CARD в вызове сообщения должно присутствовать одно из следующих полей/комбинаций полей (приоритет учитывается): 1. DB_CARDA_ID (если поле доступно в текущем типе файла) или 2. KL_LKEY_CLR + DB_CARDA_EXPDATE + необязательно: KL_LKEY_SEQNO или 3. KL_LKEY_ALIAS + DB_CARDA_EXPDATE + необязательно: KL_LKEY_SEQNO`
+	KlLKeyClr             string              `json:"KL_LKEY_CLR,omitempty"`   // Payment instrument clear value
 	KlLkeySeqno           int                 `json:"KL_LKEY_SEQNO,omitempty"`
 	DbCardaExpdate        int                 `json:"DB_CARDA_EXPDATE,omitempty"`
 	DbCardaStatcode       string              `json:"DB_CARDA_STATCODE,omitempty"`

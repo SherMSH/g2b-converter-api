@@ -31,6 +31,7 @@ type TrnInputIface interface {
 	GetCurrency() string
 	GetRecipientAcc() string
 	GetTerminal() string
+	GetAcceptorID() string
 }
 
 type MDIface interface {

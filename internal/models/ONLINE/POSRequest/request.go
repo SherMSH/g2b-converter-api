@@ -72,9 +72,9 @@ const (
 func (req Request) GetTxnType() utils.TxnType {
 	switch req.TranCode {
 	case Credit:
-		return utils.C2A
+		return utils.Sales
 	case Debit:
-		return utils.A2C
+		return utils.Deposit
 	default:
 		return utils.Sales
 	}
@@ -114,4 +114,8 @@ func (req Request) GetTerminal() string {
 
 func (req Request) GetAmount() float64 {
 	return req.Amount
+}
+
+func (req Request) GetAcceptorID() string {
+	return req.ToAccount
 }

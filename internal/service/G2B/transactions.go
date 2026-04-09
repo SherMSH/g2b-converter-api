@@ -64,12 +64,11 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 		TxnAmount:          input.GetAmount(),
 		TxnCurrency:        input.GetCurrency(),
 		TermCode:           input.GetTerminal(),
-		CrdacptID:          "MRC00001",
+		CrdacptID:          input.GetAcceptorID(),
 		CrdacptBus:         5999, //Card Acceptor Business Code
 		MessageFunction:    0,    //0-Request, 2-Advice
-		RecipientAccount:   input.GetRecipientAcc(),
 		DestinationAccType: "00",
-		BusinessAppId:      "TBI", //TBI - Financial Institution offered Bank-Initiated P2P Money Transfer
+		// BusinessAppId:      "TBI", //TBI - Financial Institution offered Bank-Initiated P2P Money Transfer
 	}
 
 	jsonReq, err := json.Marshal(req)

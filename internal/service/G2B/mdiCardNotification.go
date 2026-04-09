@@ -14,6 +14,7 @@ import (
 func AddCardNotificationG2b(input models.MDIface) (resp interface{}, err error) {
 	var (
 		recDetails d8corp.MdiFile
+		result     interface{}
 	)
 	recNums := utils.NewSequence()
 
@@ -38,7 +39,8 @@ func AddCardNotificationG2b(input models.MDIface) (resp interface{}, err error) 
 			IssRecnum:       recNums.NextVal(),
 			IssCompanyRegnr: "ARVD",
 			KlLkeyAlias:     "",
-			DbCdNotifSvcTyp: "SMSGEN",
+			KlLKeyClr:       v.PAN,
+			DbCdNotifSvcTyp: "SMSTXN",
 			DbCdNotifTarget: v.Address,
 		}
 		jsonRec, err := json.Marshal(record)
@@ -95,5 +97,7 @@ func AddCardNotificationG2b(input models.MDIface) (resp interface{}, err error) 
 		return nil, err
 	}
 	logger.Infof("[SERVICE] D8 G2b ADDCARD resp status: %v, body: %v", status, string(data))
+
+	json.Unmarshal(data, &result)
 	return data, nil
 }

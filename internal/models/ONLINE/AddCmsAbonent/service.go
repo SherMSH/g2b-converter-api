@@ -14,6 +14,7 @@ func Svc(b *Body) error {
 
 	root := models.Root{}
 	record := models.MRecord{
+		PAN:     b.SoapRq.Req.PAN,
 		Address: b.SoapRq.Req.AltMessaging.Row[0].Address,
 	}
 	root.Records = append(root.Records, record)
