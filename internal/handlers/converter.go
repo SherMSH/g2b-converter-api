@@ -93,6 +93,12 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
+		err = unmBody.Call()
+		if err != nil {
+			logger.Errorf("addcmsabonent g2b svc call err: %s", err.Error())
+			sendSoapFault(c, 500, err.Error(), "Service error")
+			return
+		}
 		resp = unmBody
 	case utils.AddPersonCMSAbonentRq:
 		var unmBody addpersoncmsabonent.Body
