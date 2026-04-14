@@ -93,20 +93,20 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 
 	headerJSON, err := json.Marshal(header)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b CreateCustomersAndAccounts req marshaling err: %v", err)
 		return nil, err
 	}
 
 	cardJSON, err := json.Marshal(recDetails)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b CreateCustomersAndAccounts req marshaling err: %v", err)
 		return nil, err
 	}
 	logger.Infof("json ADDCARD: %v", string(cardJSON))
 
 	footerJSON, err := json.Marshal(footer)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b CreateCustomersAndAccounts req marshaling err: %v", err)
 		return nil, err
 	}
 
@@ -119,7 +119,7 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 	}
 	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b CreateCustomersAndAccounts req marshaling err: %v", err)
 		return nil, err
 	}
 

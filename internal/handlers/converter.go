@@ -126,7 +126,15 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody
+
+		err = unmBody.Call()
+		if err != nil {
+			logger.Errorf("getaccinfo g2b svc call err: %s", err.Error())
+			sendSoapFault(c, 500, err.Error(), "Service error")
+			return
+		}
+		resp = getaccinfo.Envelope{}
+
 	case utils.GetAcctStatementRq:
 		var unmBody getacctstatement.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)

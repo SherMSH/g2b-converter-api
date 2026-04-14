@@ -12,6 +12,10 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
+func (sb Body) Call() error {
+	return nil
+}
+
 // SoapRq соответствует элементу fimi:GetAcctInfoRq
 type SoapRq struct {
 	Req Request `xml:"Request" json:"Request"`
