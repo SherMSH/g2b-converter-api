@@ -4,7 +4,7 @@ variables:
 
 stages:
   - build
-  - deploy
+  # - deploy
 
 build:
   stage: build
@@ -19,10 +19,10 @@ build:
     - main
     - dev
 
-deploy:
-  stage: deploy
-  tags:
-    -
-  script:
-    - docker compose pull
-    - docker compose up -d 
+# deploy:
+#   stage: deploy
+#   tags:
+#     -
+#   script:
+#     - docker compose pull
+#     - docker compose up -d 
