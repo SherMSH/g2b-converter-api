@@ -24,5 +24,6 @@ deploy:
   tags:
     - g2b-runner
   script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker compose pull
     - docker compose up -d 
