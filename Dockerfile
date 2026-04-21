@@ -3,8 +3,11 @@ FROM gitlab.humo.tj:5050/devops/nexus-repository/nexus-repository-alpine:latest
 # Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /app
 
-# Копируем скомпилированную программу и конфигурацию из стадии сборки.
-COPY converterApi .
+COPY go.mod go.sum ./
+RUN go mod download -x
 
-# Открываем порт для приложения
-EXPOSE 8086
+COPY . .
+
+RUN go build -o converterApi main.go
+
+CMD ["./converterApi"]
