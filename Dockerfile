@@ -22,5 +22,6 @@ FROM hub.docker.humo.lab/nexus-repository-alpine
 WORKDIR /app
 
 COPY --from=builder /app/converterApi .
+COPU --from=builder /internal/config/config.json .
 
 CMD ["./converterApi"]
