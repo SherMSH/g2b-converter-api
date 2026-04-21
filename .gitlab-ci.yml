@@ -2,6 +2,10 @@ variables:
   IMAGE_NAME: "$CI_REGISTRY_IMAGE/g2b$CI_COMMIT_REF_SLUG" 
   TAG_LATEST: ":latest"
 
+stages:
+  - build
+  - deploy
+
 build:
   stage: build
   tags:
@@ -14,3 +18,11 @@ build:
   only:
     - main
     - dev
+
+deploy:
+  stage: deploy
+  tags:
+    -
+  script:
+    - docker compose pull
+    - docker compose up -d 
