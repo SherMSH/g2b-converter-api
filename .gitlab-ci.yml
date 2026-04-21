@@ -1,5 +1,5 @@
 variables:
-  IMAGE_NAME: "$CI_REGISTRY_IMAGE/ispc-$CI_COMMIT_REF_SLUG" 
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE/g2b$CI_COMMIT_REF_SLUG" 
   TAG_LATEST: ":latest"
 
 build:
