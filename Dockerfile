@@ -6,6 +6,8 @@ ARG CI_JOB_TOKEN
 WORKDIR /app
 
 COPY . .
+RUN go mod tidy
+
 COPY go.mod go.sum ./
 RUN go env -w GOPRIVATE=gitlab.humo.tj
 

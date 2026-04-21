@@ -1,6 +1,6 @@
 module converterapi
 
-go 1.26.0
+go 1.25.0
 
 require github.com/rs/zerolog v1.34.0
 
