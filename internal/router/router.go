@@ -17,6 +17,7 @@ func Init(h *handlers.Handler) *gin.Engine {
 
 	soap := router.Group("/g2b")
 	soap.Use(middlewares.SOAPLogger())
+	soap.Use(middlewares.CheckApiKey())
 	soap.POST("/d8convert", handlers.D8Converter)
 
 	// json := router.Group("/json")
