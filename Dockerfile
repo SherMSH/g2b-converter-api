@@ -1,5 +1,4 @@
-FROM hub.docker.humo/nexus-repository/nexus-repository-alpine:latest
-
+FROM hub.docker.humo.lab/nexus-repository-alpine
 # Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /app
 
