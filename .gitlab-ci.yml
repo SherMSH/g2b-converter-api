@@ -1,0 +1,57 @@
+default:
+  tags:
+    -  test-runner-on-tst-srv 
+variables:
+  TAG_LATEST: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:latest
+  TAG_COMMIT: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
+
+stages:
+  - Build
+  - Publish
+  - Deploy
+
+before_script:
+  - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  - go env -w GOPROXY=http://nexus.humo.lab/repository/proxy.golang.org/ | go env -w 'GOSUMDB=sum.golang.org http://nexus.humo.lab/repository/sum.golang.org/'
+  - go env -w GOPRIVATE=gitlab.humo.tj
+
+build:
+  stage: Build
+#  when: manual
+  only:
+    - dev
+    - main
+  script:
+    - go clean -modcache
+    - go mod download -x
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o converterApi
+    - docker login -u $PULL_USER -p $PULL_TOKEN gitlab.humo.tj:5050
+    - docker build -t $TAG_LATEST -t $TAG_COMMIT .
+
+
+publish:
+  stage: Publish
+#  when: manual
+  only:
+    - dev
+    - main
+  script:
+    - docker push $TAG_COMMIT
+    - docker push $TAG_LATEST
+
+deploy:
+  stage: Deploy
+#  when: manual
+  environment:
+    name: test
+  only:
+    - dev
+  script:
+    - cd /srv/docker
+    - docker compose pull converter-api
+    - docker compose down converter-api
+    # - echo VAULT_ADDRESS=$VAULT_ADDRESS > .env_api
+    # - echo VAULT_AUTH_ROLE_ID=$VAULT_AUTH_ROLE_ID >> .env_api
+    # - echo VAULT_AUTH_SECRET_ID=$VAULT_AUTH_SECRET_ID >> .env_api
+    # - echo VAULT_SECRET_PATH=$VAULT_SECRET_PATH >> .env_api
+    - docker compose up -d converter-api
