@@ -10,6 +10,11 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
+func (b *Body) Call() (err error) {
+	err = Svc(b)
+	return
+}
+
 // SoapRq соответствует элементу AddCMSAbonentRq
 type SoapRq struct {
 	Req Request `xml:"Request" json:"request"`

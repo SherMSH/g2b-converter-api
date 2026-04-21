@@ -8,24 +8,22 @@
         "client_timeout_seconds": 30,
         "debug_mode": true,
         "api_key": "converter_api_test",
-        "processing": "tranzaxis"
+        "processing": "tranzaxis",
+        "storage": {
+            "basepath":"C:/Users/MustafokulovSh/Documents/d8-partnerapi_docs/Examples/OffLine",
+            "in":"/in",
+            "out":"/out"
+        }
     },
-    "envelope": {
-        "soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
-        "tw": "http://schemas.tranzaxis.com/tran.wsdl",
-        "tran": "http://schemas.tranzaxis.com/tran.xsd",
-        "iss": "http://schemas.tranzaxis.com/issueadmin.xsd",
-        "sub": "http://schemas.tranzaxis.com/subjects-admin.xsd",
-        "com": "http://schemas.tranzaxis.com/common-types.xsd",
-        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-        "tran1": "http://schemas.tranzaxis.com/tran-common.xsd",
-        "con": "http://schemas.tranzaxis.com/contracts-admin.xsd",
-        "con1": "http://schemas.tranzaxis.com/contracts-notify-admin.xsd",
-        "con2": "http://schemas.tranzaxis.com/contracts-notify.xsd",
-        "tokensAdmin": "http://schemas.tranzaxis.com/tokens-admin.xsd",
-        "tcmn": "http://schemas.tranzaxis.com/tran-common.xsd",
-        "getRsTag": "declare namespace tran='http://schemas.tranzaxis.com/tran.xsd'; declare namespace tran1='http://schemas.tranzaxis.com/tran-common.xsd'; tran:CustInfo/tran1:Item/tran1:Attribute/tran1:IntVal",
-        "setTag": "declare namespace tran='http://schemas.tranzaxis.com/tran.xsd'; tran:Specific/tran:Admin/tran:Contract/@Id",
-        "networkRid": "HMO"
+    "jobs": {
+        "conv_scanner": {
+            "is_on": true,
+            "interval_seconds": 60
+        }
+    },
+    "processing": {
+        "address": "http://d8-tprocweb1.humo.lab",
+        "token": ""
     }
+
 }

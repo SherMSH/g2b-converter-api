@@ -1,6 +1,8 @@
 package models
 
 import (
+	models "converterapi/internal/models/OFFLINE"
+	"converterapi/internal/utils"
 	"encoding/xml"
 	"reflect"
 )
@@ -17,4 +19,22 @@ type XmlBody struct {
 
 type SoapBody interface {
 	GetBodyType() reflect.Type
+}
+
+type TrnInputIface interface {
+	GetTxnType() utils.TxnType
+	GetPan() string
+	GetMBR() string
+	GetExpDate() string
+	GetAccount() string
+	GetAmount() float64
+	GetCurrency() string
+	GetRecipientAcc() string
+	GetTerminal() string
+	GetAcceptorID() string
+}
+
+type MDIface interface {
+	GetRecords() []models.MRecord
+	GetRecordsCount() int
 }
