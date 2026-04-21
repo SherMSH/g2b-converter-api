@@ -1,12 +1,25 @@
-FROM hub.docker.humo.lab/nexus-repository-alpine
-# Устанавливаем рабочую директорию внутри контейнера
+# Build stage
+
+FROM hub.docker.humo.lab/nexus-repository-golang-alpine3.21 AS builder
+ARG CI_JOB_TOKEN
+
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download -x
-
 COPY . .
+COPY go.mod go.sum ./
+RUN go env -w GOPRIVATE=gitlab.humo.tj
 
-RUN go build -o converterApi main.go
+RUN go mod download
+
+RUN go build -o converterApi cmd/main.go
+
+# Run stage
+
+FROM hub.docker.humo.lab/nexus-repository-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/converterApi .
+COPY --from=builder /app/files /app/files
 
 CMD ["./converterApi"]
