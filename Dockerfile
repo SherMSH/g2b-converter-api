@@ -1,4 +1,4 @@
-FROM gitlab.humo.tj:5050/devops/nexus-repository/nexus-repository-alpine:latest
+FROM hub.docker.humo.lab/nexus-repository/nexus-repository-alpine:latest
 
 # Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /app
