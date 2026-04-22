@@ -2,14 +2,46 @@ package middlewares
 
 import (
 	"bytes"
+	"converterapi/internal/config"
 	"converterapi/pkg/logger"
 	"converterapi/pkg/prometheus"
+	"errors"
 	"io"
+	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+func CheckApiKey() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var key = config.Config.App.ApiKey
+
+		reqToken := c.GetHeader("Authorization")
+		if reqToken == "" {
+			logger.Warnf("empty API key")
+			c.XML(http.StatusUnauthorized, errors.New("secret API key is needed"))
+			c.Abort()
+			return
+		}
+		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
+		splitToken := strings.TrimPrefix(key, "Bearer ")
+
+		if config.Config.App.DebugMode && len(key) > 5 {
+			logger.Infof("--------interchange API key-------- %v***", key[:5])
+		}
+
+		if reqToken != splitToken {
+			logger.Warnf("wrong API key!")
+			c.XML(http.StatusUnauthorized, errors.New("secret key is not valid"))
+			c.Abort()
+			return
+		}
+
+	}
+}
 
 func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {

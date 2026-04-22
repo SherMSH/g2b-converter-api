@@ -2,15 +2,15 @@
     "app": {
         "server": {
             "name": "Converter API",
-            "host": "localhost",
+            "host": "192.168.186.9",
             "port":"8086"
         },
         "client_timeout_seconds": 30,
         "debug_mode": true,
-        "api_key": "converter_api_test",
-        "processing": "tranzaxis",
+        "api_key": "kFTu+r!AAFNQ",
+        "processing": "d8",
         "storage": {
-            "basepath":"C:/Users/MustafokulovSh/Documents/d8-partnerapi_docs/Examples/OffLine",
+            "basepath":"C:/Users/Public/Documents/d8-partnerapi_docs/Examples/OffLine",
             "in":"/in",
             "out":"/out"
         }

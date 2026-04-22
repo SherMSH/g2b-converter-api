@@ -17,9 +17,15 @@ func Init(h *handlers.Handler) *gin.Engine {
 
 	soap := router.Group("/g2b")
 	soap.Use(middlewares.SOAPLogger())
-	soap.POST("/d8convert", handlers.D8Converter)
+	soap.Use(middlewares.CheckApiKey())
+	{
+		soap.GET("/ping", ping)
+		soap.POST("/d8convert", handlers.D8Converter)
+	}
 
-	// json := router.Group("/json")
-	// json.POST("/convert2xml")
 	return router
+}
+
+func ping(c *gin.Context) {
+	c.JSON(200, gin.H{"message": "Pong!"})
 }
