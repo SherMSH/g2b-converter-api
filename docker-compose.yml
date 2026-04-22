@@ -1,0 +1,13 @@
+services:
+  g2bmain:
+    container_name: g2bconverterapi
+    image: gitlab.humo.tj:5050/mustafokulovsh/g2b-converter-api/g2bmain:latest
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+    networks:
+      - default_net
+
+networks:
+  default_net:
+    external: true
