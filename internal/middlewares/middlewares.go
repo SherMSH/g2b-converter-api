@@ -21,7 +21,7 @@ func CheckApiKey() gin.HandlerFunc {
 
 		reqToken := c.GetHeader("Authorization")
 		if reqToken == "" {
-			c.GetHeader("X-API-Key")
+			reqToken = c.GetHeader("X-API-Key")
 		}
 		if reqToken == "" {
 			logger.Warnf("empty API key")
