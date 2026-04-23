@@ -2,7 +2,7 @@
     "app": {
         "server": {
             "name": "Converter API",
-            "host": "192.168.186.9",
+            "host": "0.0.0.0",
             "port":"8086"
         },
         "client_timeout_seconds": 30,
