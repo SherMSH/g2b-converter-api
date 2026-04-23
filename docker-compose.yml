@@ -3,8 +3,11 @@ services:
     container_name: g2bconverterapi
     image: gitlab.humo.tj:5050/mustafokulovsh/g2b-converter-api/g2bmain:latest
     ports:
-      - "8086:8086"
+      - "127.0.0.1:8086:8086"
     restart: unless-stopped
+    volumes:
+      - /srv/g2b/logs:/app/logs
+    command: sh -c './converterApi >> /app/logs/app.log 2>&1'
     networks:
       - default_net
 
