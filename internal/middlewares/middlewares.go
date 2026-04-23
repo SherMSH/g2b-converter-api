@@ -21,6 +21,9 @@ func CheckApiKey() gin.HandlerFunc {
 
 		reqToken := c.GetHeader("Authorization")
 		if reqToken == "" {
+			reqToken = c.GetHeader("X-API-Key")
+		}
+		if reqToken == "" {
 			logger.Warnf("empty API key")
 			c.XML(http.StatusUnauthorized, errors.New("secret API key is needed"))
 			c.Abort()
@@ -29,13 +32,13 @@ func CheckApiKey() gin.HandlerFunc {
 		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
 		splitToken := strings.TrimPrefix(key, "Bearer ")
 
-		if config.Config.App.DebugMode && len(key) > 5 {
+		if len(key) > 5 {
 			logger.Infof("--------interchange API key-------- %v***", key[:5])
 		}
 
 		if reqToken != splitToken {
 			logger.Warnf("wrong API key!")
-			c.XML(http.StatusUnauthorized, errors.New("secret key is not valid"))
+			c.XML(http.StatusUnauthorized, "secret key is not valid")
 			c.Abort()
 			return
 		}
