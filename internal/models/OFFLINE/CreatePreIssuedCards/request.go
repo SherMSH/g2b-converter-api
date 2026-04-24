@@ -26,7 +26,7 @@ func (r Root) GetRecordsCount() int {
 }
 
 func (r Root) Call() error {
-	resp, err := service.AddCardG2b(r)
+	resp, err := service.AddPreissiedCardG2b(r)
 	logger.Infof("AddCard Mdi call resp: %v", resp)
 	return err
 
