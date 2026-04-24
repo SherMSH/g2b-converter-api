@@ -198,12 +198,12 @@ func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
 	// 	return nil, err
 	// }
 
-	cardJSON, err := json.Marshal(recDetails)
+	mdiDataJSON, err := json.Marshal(recDetails)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling err: %v", err)
 		return nil, err
 	}
-	logger.Infof("json ADDCARD: %v", string(cardJSON))
+	logger.Infof("json ADDCARD (preissued): %v", string(mdiDataJSON))
 
 	// footerJSON, err := json.Marshal(footer)
 	// if err != nil {
@@ -218,11 +218,11 @@ func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
 	// 		footerJSON,
 	// 	},
 	// }
-	mdiDataJSON, err := json.Marshal(cardJSON)
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling err: %v", err)
-		return nil, err
-	}
+	// mdiDataJSON, err := json.Marshal(cardJSON)
+	// if err != nil {
+	// 	logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling err: %v", err)
+	// 	return nil, err
+	// }
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
 	if err != nil {
