@@ -17,7 +17,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
-	"time"
 )
 
 func ConvScanner() {
@@ -39,14 +38,14 @@ func ConvScanner() {
 			continue
 		}
 		sourcePath := config.Config.App.Storage.Basepath + config.Config.App.Storage.In + "/" + string(v)
-		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + time.Now().Format("2006_01_02T15_04_05Z07_00") + string(v)
+		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + string(v) // + time.Now().Format("2006_01_02T15_04_05Z07_00")
 		storage.MoveFile(sourcePath, destPath)
 	}
 }
 
 func unmarshalFromFile(ort utils.OfflineReqType) (service.G2bServiceIface, error) {
 	source := config.Config.App.Storage.Basepath + config.Config.App.Storage.In + "/" + string(ort)
-	data, err := storage.DownloadFile(source)
+	data, err := storage.LoadFile(source)
 	if err != nil {
 		return nil, err
 	}
