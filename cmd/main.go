@@ -36,7 +36,7 @@ func main() {
 				logger.Infof("Exiting the application")
 				return
 			}
-			logger.Warnf("Application run err: %v", err)
+			logger.Fatalf("Application run err: %v", err)
 		}
 	}()
 

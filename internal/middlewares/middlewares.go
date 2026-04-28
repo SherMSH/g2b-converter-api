@@ -97,7 +97,7 @@ func SOAPLogger() gin.HandlerFunc {
 		// Восстанавливаем тело для дальнейшего использования
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
-		logger.Infof("Incoming SOAP request: %s", string(body))
+		logger.Infof("Incoming request: %s", string(body))
 		c.Next()
 	}
 }

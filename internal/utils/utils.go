@@ -62,7 +62,7 @@ func SendRequest(method, uri string, jsonBody []byte, headers map[string]string)
 		req.Header.Set(k, v)
 	}
 	// req.Close = true
-	logger.Infof("url: %v, headers: %v, body: %v", req.URL, req.Header, string(jsonBody))
+	logger.Infof("url: %v, headers: %v, body length: %v", req.URL, req.Header, len(jsonBody))
 
 	resps, err := client.Do(req)
 	if err != nil {
