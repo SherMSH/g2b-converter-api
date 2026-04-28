@@ -14,6 +14,7 @@ func Init(h *handlers.Handler) *gin.Engine {
 	router.Use(middlewares.Prometheus())
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.StaticFile("/favicon.ico", "./internal/app/files/favicon.ico")
+	router.MaxMultipartMemory = 10 << 20 // 10 MiB
 
 	soap := router.Group("/g2b")
 	soap.Use(middlewares.SOAPLogger())
@@ -21,8 +22,9 @@ func Init(h *handlers.Handler) *gin.Engine {
 	{
 		soap.GET("/ping", ping)
 		soap.POST("/d8convert", handlers.D8Converter)
+		soap.PUT("/convFile", handlers.PutConvFile)
+		soap.GET("/convFile", handlers.GetConvFile)
 	}
-
 	return router
 }
 
