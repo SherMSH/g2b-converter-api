@@ -23,7 +23,7 @@ func Init(h *handlers.Handler) *gin.Engine {
 		soap.GET("/ping", ping)
 		soap.POST("/d8convert", handlers.D8Converter)
 		soap.PUT("/convFile", handlers.PutConvFile)
-		soap.GET("/convFile", handlers.GetConvFile)
+		soap.GET("/convFile/:filename", handlers.GetConvFile)
 	}
 	return router
 }

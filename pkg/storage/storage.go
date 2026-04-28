@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func DownloadFile(path string) ([]byte, error) {
+func LoadFile(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, err
 	}

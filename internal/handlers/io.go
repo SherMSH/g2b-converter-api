@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"converterapi/internal/config"
+	"converterapi/pkg/logger"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +40,7 @@ func PutConvFile(c *gin.Context) {
 		return
 	}
 	mimeType := http.DetectContentType(buffer)
-	if mimeType != "application/xml" {
+	if mimeType != "text/xml; charset=utf-8" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":         "Тип файла не поддерживается",
 			"detected_type": mimeType,
@@ -80,10 +83,58 @@ func PutConvFile(c *gin.Context) {
 func GetConvFile(c *gin.Context) {
 	// Получаем имя файла из параметра URL
 	filename := c.Param("filename")
-
+	logger.Infof("Uploading file: %s", filename)
+	filename = filepath.Clean(filename)
+	if strings.Contains(filename, "..") || len(filename) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Некорректное имя файла",
+		})
+		return
+	}
 	// Путь к файлу
 	filePath := filepath.Join(config.Config.App.Storage.Basepath, config.Config.App.Storage.Out, filename)
+	// Открываем файл
+	file, err := os.Open(filePath)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Файл не найден",
+		})
+		return
+	}
+	defer file.Close()
 
-	// Отправляем файл клиенту
-	c.File(filePath)
+	// Получаем информацию о файле
+	stat, err := file.Stat()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Ошибка при получении информации о файле",
+		})
+		return
+	}
+
+	// Устанавливаем заголовки
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Length", fmt.Sprintf("%d", stat.Size()))
+
+	// Потоковая передача файла
+	c.Stream(func(w io.Writer) bool {
+		// Копируем файл в ответ по частям
+		buffer := make([]byte, 8192) // 8KB буфер
+		for {
+			n, err := file.Read(buffer)
+			if n > 0 {
+				if _, writeErr := w.Write(buffer[:n]); writeErr != nil {
+					return false
+				}
+			}
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return false
+			}
+		}
+		return false
+	})
 }
