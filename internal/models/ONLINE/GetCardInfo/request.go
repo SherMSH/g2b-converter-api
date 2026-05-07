@@ -12,9 +12,9 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
-func (sb *Body) Call() error {
-	err := Svc(sb)
-	return err
+func (sb *Body) Call() (interface{}, error) {
+	rsp, err := Svc(sb)
+	return rsp, err
 }
 
 // SoapRq соответствует элементу GetCardInfoRq

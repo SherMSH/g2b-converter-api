@@ -138,12 +138,12 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		err := unmBody.Call()
+		cardInfoResp, err := unmBody.Call()
 		if err != nil {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody
+		resp = cardInfoResp
 	case utils.GetCardStatementRq:
 		var unmBody getcardstatement.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
