@@ -2,6 +2,17 @@ package d8corp
 
 import "converterapi/internal/utils"
 
+type GetCardInfoReq struct {
+	CardKey                 CardKey `json:"cardKey"`
+	ReqCardBasicInfo        bool    `json:"reqCardBasicInfo"`
+	ReqCardAccounts         bool    `json:"reqCardAccounts"`
+	ReqCardLimits           bool    `josn:"reqCardLimits"`
+	ReqCardAccountLimits    bool    `json:"reqCardAccountLimits"`
+	ReqCardAuthRestrictions bool    `json:"reqCardAuthRestrictions"`
+	ReqCardTransactions     bool    `json:"reqCardTransactions"`
+	CardTransactionCount    int     `json:"cardTransactionCount"`
+}
+
 type InitTxReq struct {
 }
 
@@ -51,7 +62,8 @@ type ChkTxStatusReq struct {
 }
 
 type CardKey struct {
-	Pan        string `json:"pan"`
+	Lkey       string `json:"lkey,omitempty"`
+	Pan        string `json:"pan,omitempty"`
 	ExpiryDate string `json:"expiryDate"`
 }
 
