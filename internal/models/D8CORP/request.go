@@ -2,6 +2,12 @@ package d8corp
 
 import "converterapi/internal/utils"
 
+type SetPinReq struct {
+	CardKey        CardKey `json:"cardKey"`
+	PinKeyUnderRSA string  `json:"pinKeyUnderRSA"`
+	PinBlock       string  `json:"pinBlock"`
+	PinBlockType   string  `json:"pinBlockType"`
+}
 type GetCardInfoReq struct {
 	CardKey                 CardKey `json:"cardKey"`
 	ReqCardBasicInfo        bool    `json:"reqCardBasicInfo"`
