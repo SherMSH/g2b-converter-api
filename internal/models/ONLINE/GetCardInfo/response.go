@@ -15,9 +15,13 @@ type RespBody struct {
 }
 
 type GetCardInfoRp struct {
-	Product  string `xml:"Product,attr"`
-	Response string `xml:"Response,attr"`
-	Ver      string `xml:"Ver,attr"`
+	Response Response `xml:"m1:Response"`
+}
+
+type Response struct {
+	Product      string `xml:"Product,attr"`
+	ResponseAttr string `xml:"Response,attr"`
+	Ver          string `xml:"Ver,attr"`
 
 	Accounts                Accounts           `xml:"Accounts"`
 	Acct2CardAttachType     string             `xml:"Acct2CardAttachType"`

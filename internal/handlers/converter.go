@@ -96,7 +96,7 @@ func D8Converter(c *gin.Context) {
 		err = unmBody.Call()
 		if err != nil {
 			logger.Errorf("addcmsabonent g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 500, err.Error(), "Service error")
+			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 		resp = unmBody
@@ -111,7 +111,7 @@ func D8Converter(c *gin.Context) {
 		err = unmBody.Call()
 		if err != nil {
 			logger.Errorf("addcmsabonent g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 500, err.Error(), "Service error")
+			sendSoapFault(c, 400, "client", "Service error: "+err.Error())
 			return
 		}
 		resp = unmBody
@@ -126,7 +126,7 @@ func D8Converter(c *gin.Context) {
 		err = unmBody.Call()
 		if err != nil {
 			logger.Errorf("addcmsabonent g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 500, err.Error(), "Service error")
+			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 		resp = unmBody
@@ -139,13 +139,13 @@ func D8Converter(c *gin.Context) {
 			return
 		}
 
-		err = unmBody.Call()
+		rp, err := unmBody.Call()
 		if err != nil {
 			logger.Errorf("getaccinfo g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 500, err.Error(), "Service error")
+			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
-		resp = getaccinfo.Envelope{}
+		resp = rp
 
 	case utils.GetAcctStatementRq:
 		var unmBody getacctstatement.Body
@@ -155,7 +155,14 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody
+		rp, err := unmBody.Call()
+		if err != nil {
+			logger.Errorf("getacctstatement g2b svc call err: %s", err.Error())
+			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			return
+		}
+		resp = rp
+
 	case utils.GetCardInfoRq:
 		var unmBody getcardinfo.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -166,7 +173,7 @@ func D8Converter(c *gin.Context) {
 		}
 		cardInfoResp, err := unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error:"+err.Error())
+			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 		resp = cardInfoResp
@@ -178,7 +185,12 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody
+		rp, err := unmBody.Call()
+		if err != nil {
+			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			return
+		}
+		resp = rp
 
 	case utils.GetCVVRq:
 		var unmBody getcvv.Body
