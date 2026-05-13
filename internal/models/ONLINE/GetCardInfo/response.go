@@ -56,8 +56,8 @@ type Response struct {
 }
 
 type Accounts struct {
-	XMLName xml.Name   `xml:"Accounts"`
-	Row     AccountRow `xml:"Row"`
+	XMLName xml.Name     `xml:"Accounts"`
+	Row     []AccountRow `xml:"Row"`
 }
 
 type AccountRow struct {
