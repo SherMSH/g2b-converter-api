@@ -2,11 +2,22 @@ package getcardinfo
 
 import "encoding/xml"
 
-type Response struct {
-	XMLName  xml.Name `xml:"Response"`
-	Product  string   `xml:"Product,attr"`
-	Response string   `xml:"Response,attr"`
-	Ver      string   `xml:"Ver,attr"`
+type Envelope struct {
+	XMLName xml.Name `xml:"s:Envelope"`
+	XmlnsS  string   `xml:"xmlns:s,attr"`
+	XmlnsM1 string   `xml:"xmlns:m1,attr"`
+	XmlnsM0 string   `xml:"xmlns:m0,attr"`
+	Body    RespBody `xml:"s:Body"`
+}
+
+type RespBody struct {
+	GetCardInfoRp GetCardInfoRp `xml:"m1:GetCardInfoRp"`
+}
+
+type GetCardInfoRp struct {
+	Product  string `xml:"Product,attr"`
+	Response string `xml:"Response,attr"`
+	Ver      string `xml:"Ver,attr"`
 
 	Accounts                Accounts           `xml:"Accounts"`
 	Acct2CardAttachType     string             `xml:"Acct2CardAttachType"`
