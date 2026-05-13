@@ -10,28 +10,37 @@ func Svc(sb *Body) (resp *Response, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	resp = new(Response)
 	resp.Product = sb.SoapRq.Req.Product
 	resp.Response = "1"
 	resp.Ver = sb.SoapRq.Req.Ver
 
+	var accs []AccountRow
+
+	if cardInfo.CardAccounts != nil {
+		accrow := AccountRow{
+			AcctNo:        cardInfo.CardAccounts[0].AccountNumber,
+			Status:        cardInfo.CardAccounts[0].StatCode,
+			LedgerBalance: "",
+			AvailBalance:  fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal),
+			Currency:      cardInfo.CardAccounts[0].Currency,
+			Type:          cardInfo.CardAccounts[0].TypeCode,
+			AccountStatus: cardInfo.CardAccounts[0].StatCode,
+		}
+		accs = append(accs, accrow)
+	}
+
 	resp.Accounts = Accounts{
-		Row: AccountRow{
-			AcctNo:        string(cardInfo.CardAccounts[0].AcctNo),
-			Status:        "3",
-			LedgerBalance: "0",
-			AvailBalance:  "0",
-			Currency:      "",
-			Type:          "1",
-			AccountStatus: "3",
-		},
+		Row: accs,
 	}
 	resp.Acct2CardAttachType = "0"
 	resp.CNSDisabled = "1"
 	resp.CardAllowedEMVScript = ""
 	resp.CardProfiles = CardProfiles{
 		Row: CardProfileRow{
-			Id:    fmt.Sprint(cardInfo.Lkey.LkeyId),
-			Title: cardInfo.Title,
+			Id:    fmt.Sprint(cardInfo.CardBasicInfo.Lkey.LkeyId),
+			Title: cardInfo.CardBasicInfo.Title,
 		},
 	}
 	resp.ContactlessStatus = "0"
@@ -42,9 +51,9 @@ func Svc(sb *Body) (resp *Response, err error) {
 	resp.ECStatus = "0"
 	resp.ECUseDecoupledAuth = "0"
 	resp.EMVOptionsCheckDisabled = "0"
-	resp.ExpDate = cardInfo.ExpDate
+	resp.ExpDate = cardInfo.CardBasicInfo.ExpiryDate
 	resp.FoundMBR = "0"
-	resp.FoundPAN = cardInfo.Lkey.MaskedPan
+	resp.FoundPAN = cardInfo.CardBasicInfo.Lkey.MaskedPan
 	resp.IB_Registered = "0"
 	resp.InstName = "ARVD"
 	resp.IssueTechnology = "0"
@@ -61,9 +70,9 @@ func Svc(sb *Body) (resp *Response, err error) {
 	}
 	resp.MaskBalances = "0"
 	resp.MaskPVV = "0"
-	resp.NameOnCard = cardInfo.EmbossName
+	resp.NameOnCard = cardInfo.CardBasicInfo.EmbossName
 	resp.PINVerifyType = ""
-	resp.PVV = cardInfo.PVV
+	resp.PVV = cardInfo.CardBasicInfo.Pvv
 	resp.PasswordFlag = ""
 
 	resp.PersonConfidential = PersonConfidential{
@@ -75,9 +84,9 @@ func Svc(sb *Body) (resp *Response, err error) {
 			IsAllowedTB:  "0",
 		},
 	}
-	resp.PersonExtId = cardInfo.CustomerCode
-	resp.PersonFIO = cardInfo.LastName + " " + cardInfo.FirstName
-	resp.PersonId = cardInfo.CustomerCode
+	resp.PersonExtId = cardInfo.CardBasicInfo.CustomerCode
+	resp.PersonFIO = cardInfo.CardBasicInfo.LastName + " " + cardInfo.CardBasicInfo.FirstName
+	resp.PersonId = cardInfo.CardBasicInfo.CustomerCode
 	resp.PersonVIP = "0"
 	resp.RequiredPasswordVersion = "1"
 	resp.RiskControlDisabled = "0"
@@ -85,6 +94,5 @@ func Svc(sb *Body) (resp *Response, err error) {
 	resp.Status = "1"
 	resp.TmpECStatus = "-1"
 	resp.Type = "1"
-
 	return resp, nil
 }

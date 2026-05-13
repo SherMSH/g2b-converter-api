@@ -47,7 +47,7 @@ func GetCardInfo(pan, expdate string) (cardInfo *d8corp.CardInfoData, err error)
 	}
 	err = json.Unmarshal(resp.Data, &cardInfo)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b GetCardInfo RESP marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b GetCardInfo marshaling err: %v", err)
 		return nil, err
 	}
 	if cardInfo == nil {
