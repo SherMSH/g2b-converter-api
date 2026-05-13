@@ -12,7 +12,7 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
-func (sb *Body) Call() (interface{}, error) {
+func (sb *Body) Call() (*Envelope, error) {
 	rsp, err := Svc(sb)
 	return rsp, err
 }
