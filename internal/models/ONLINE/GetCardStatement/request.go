@@ -10,6 +10,10 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
+func (sb *Body) Call() (*Envelope, error) {
+	return Svc(sb)
+}
+
 // SoapRq соответствует элементу GetCardStatementRq
 type SoapRq struct {
 	Req Request `xml:"Request" json:"request"`
@@ -22,9 +26,10 @@ type Request struct {
 	Clerk    string `xml:"Clerk,attr" json:"clerk"`
 	Password string `xml:"Password,attr" json:"password"`
 
-	Count string `xml:"Count" json:"count"`
-	MBR   string `xml:"MBR" json:"mbr"`
-	PAN   string `xml:"PAN" json:"pan"`
+	Count          string `xml:"Count" json:"count"`
+	MBR            string `xml:"MBR" json:"mbr"`
+	PAN            string `xml:"PAN" json:"pan"`
+	ExpirationDate string `xml:"ExpirationDate" json:"expiration_date"` // в оригинале отсутствует
 
 	FromTime string `xml:"FromTime" json:"from_time"`
 	ToTime   string `xml:"ToTime" json:"to_time"`

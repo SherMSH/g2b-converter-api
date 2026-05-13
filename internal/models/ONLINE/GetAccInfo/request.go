@@ -12,8 +12,8 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
-func (sb Body) Call() error {
-	return nil
+func (sb *Body) Call() (*Envelope, error) {
+	return Svc(sb)
 }
 
 // SoapRq соответствует элементу fimi:GetAcctInfoRq
