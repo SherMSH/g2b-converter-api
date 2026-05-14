@@ -12,10 +12,10 @@ type Envelope struct {
 }
 
 type RespBody struct {
-	GetAcctStatementRq GetAcctStatementRq `xml:"m1:GetAcctStatementRq"`
+	GetAcctStatementRp GetAcctStatementRp `xml:"m1:GetAcctStatementRp"`
 }
 
-type GetAcctStatementRq struct {
+type GetAcctStatementRp struct {
 	Response Response `xml:"m1:Response"`
 }
 
