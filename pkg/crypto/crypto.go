@@ -1,0 +1,5 @@
+package crypto
+
+func Init() {
+
+}

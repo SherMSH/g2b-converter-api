@@ -9,10 +9,9 @@ import (
 )
 
 type PinChangeReq struct {
-	Pan     string `json:"Pan"`
-	ExpDate string `json:"ExpDate"`
-	Pin     string `json:"Pin"`
-	NewPin  string `json:"NewPin"`
+	PAN        string `json:"pan"`
+	ExpiryDate string `json:"expiryDate"`
+	PIN        string `json:"pin"`
 }
 
 func PinChange(c *gin.Context) {
@@ -26,7 +25,7 @@ func PinChange(c *gin.Context) {
 		return
 	}
 
-	if err := service.SetPinG2b(req.Pan, req.ExpDate); err != nil {
+	if err := service.SetPinG2b(req.PAN, req.ExpiryDate); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
