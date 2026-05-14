@@ -10,7 +10,7 @@
         "api_key": "kFTu+r!AAFNQ",
         "processing": "d8",
         "storage": {
-            "basepath":"C:/Users/Public/Documents/d8-partnerapi_docs/Examples/OffLine",
+            "basepath":"/app/files/d8-partnerapi_docs/Examples/OffLine",
             "in":"/in",
             "out":"/out"
         }
