@@ -63,7 +63,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.InstName = "ARVD"
 	resp.IssueTechnology = "0"
 	resp.LastATMUsed = ""
-	resp.LastChangeStatusTime = ""
+	resp.LastChangeStatusTime = cardInfo.CardBasicInfo.StatChangeTime
 	resp.LastPOSUsed = ""
 	resp.LastPVVChangeTime = ""
 	resp.LastRefreshTime = ""
@@ -79,15 +79,18 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.PINVerifyType = ""
 	resp.PVV = cardInfo.CardBasicInfo.Pvv
 	resp.PasswordFlag = ""
+	resp.UseUdCVV2 = fmt.Sprintf("%d", cardInfo.CardBasicInfo.Cvv2Type)
 
-	resp.PersonConfidential = PersonConfidential{
-		Row: ConfidentialRow{
-			What:         "",
-			Value:        "",
-			IsAllowedCST: "0",
-			IsAllowedADS: "0",
-			IsAllowedTB:  "0",
-		},
+	if cardInfo.CardNotifications != nil {
+		resp.PersonConfidential = PersonConfidential{
+			Row: ConfidentialRow{
+				What:         "phone",
+				Value:        cardInfo.CardNotifications[0].NotificationTarget,
+				IsAllowedCST: "0",
+				IsAllowedADS: "0",
+				IsAllowedTB:  "0",
+			},
+		}
 	}
 	resp.PersonExtId = cardInfo.CardBasicInfo.CustomerCode
 	resp.PersonFIO = cardInfo.CardBasicInfo.LastName + " " + cardInfo.CardBasicInfo.FirstName
@@ -96,9 +99,9 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.RequiredPasswordVersion = "1"
 	resp.RiskControlDisabled = "0"
 	resp.RiskLevel = "1"
-	resp.Status = "1"
+	resp.Status = cardInfo.CardBasicInfo.StatCode
 	resp.TmpECStatus = "-1"
-	resp.Type = "1"
+	resp.Type = fmt.Sprintf("%d", cardInfo.CardBasicInfo.ProductType)
 
 	soapResp.Body = RespBody{
 		GetCardInfoRp: GetCardInfoRp{

@@ -1,7 +1,7 @@
 package getacctstatement
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	// accStatement, err := service.accStatement()
+	// accStatement, err := service.GetCardInfo()
 	// if err != nil {
 	// 	return nil, err
 	// }
@@ -25,7 +25,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	}
 
 	soapResp.Body = RespBody{
-		GetAcctStatementRq: GetAcctStatementRq{
+		GetAcctStatementRp: GetAcctStatementRp{
 			Response: resp,
 		},
 	}

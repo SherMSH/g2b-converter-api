@@ -98,8 +98,7 @@ type CardProfileRow struct {
 }
 
 type PersonConfidential struct {
-	XMLName xml.Name        `xml:"PersonConfidential"`
-	Row     ConfidentialRow `xml:"Row"`
+	Row ConfidentialRow `xml:"Row"`
 }
 
 type ConfidentialRow struct {

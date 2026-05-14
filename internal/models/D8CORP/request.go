@@ -10,13 +10,13 @@ type SetPinReq struct {
 }
 type GetCardInfoReq struct {
 	CardKey                 CardKey `json:"cardKey"`
-	ReqCardBasicInfo        bool    `json:"reqCardBasicInfo"`
-	ReqCardAccounts         bool    `json:"reqCardAccounts"`
-	ReqCardLimits           bool    `josn:"reqCardLimits"`
-	ReqCardAccountLimits    bool    `json:"reqCardAccountLimits"`
-	ReqCardAuthRestrictions bool    `json:"reqCardAuthRestrictions"`
-	ReqCardTransactions     bool    `json:"reqCardTransactions"`
-	CardTransactionCount    int     `json:"cardTransactionCount"`
+	ReqCardBasicInfo        bool    `json:"reqCardBasicInfo,omitempty"`
+	ReqCardAccounts         bool    `json:"reqCardAccounts,omitempty"`
+	ReqCardLimits           bool    `josn:"reqCardLimits,omitempty"`
+	ReqCardAccountLimits    bool    `json:"reqCardAccountLimits,omitempty"`
+	ReqCardAuthRestrictions bool    `json:"reqCardAuthRestrictions,omitempty"`
+	ReqCardTransactions     bool    `json:"reqCardTransactions,omitempty"`
+	CardTransactionCount    int     `json:"cardTransactionCount,omitempty"`
 }
 
 type InitTxReq struct {

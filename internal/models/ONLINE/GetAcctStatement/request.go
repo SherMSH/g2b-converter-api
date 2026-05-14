@@ -36,6 +36,9 @@ type Request struct {
 	PersonId   string `xml:"PersonId" json:"person_id"`
 	AccountUID string `xml:"AccountUID" json:"account_uid"`
 
+	PAN            string `xml:"PAN" json:"pan"`
+	ExpirationDate string `xml:"ExpirationDate" json:"expiration_date"`
+
 	FromTime string `xml:"FromTime" json:"from_time"`
 	ToTime   string `xml:"ToTime" json:"to_time"`
 	Language string `xml:"Language" json:"language"`
