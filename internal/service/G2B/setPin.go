@@ -4,20 +4,42 @@ import (
 	"converterapi/internal/config"
 	d8corp "converterapi/internal/models/D8CORP"
 	"converterapi/internal/utils"
+	"converterapi/pkg/crypto"
 	"converterapi/pkg/logger"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 )
 
-func SetPinG2b(pan, expDate string) error {
+func SetPinG2b(pan, pin, expDate string) error {
 	var resp *d8corp.CommonResp
+
+	pinBlockBuilder := crypto.NewPinBlockBuilder()
+	pinblock0, err := pinBlockBuilder.BuildFormat0(pan, pin)
+	if err != nil {
+		return err
+	}
+
+	pinBlockEncrypter := crypto.NewTripleDESEncrypter()
+	pinBlock, err := pinBlockEncrypter.EncryptECB(crypto.RandomZPK, pinblock0)
+	if err != nil {
+		return err
+	}
+
+	pubKey := new(rsa.PublicKey)
+	pinBlockRSAEncrypter := crypto.NewRSAZPKEncrypter(pubKey)
+
+	pinBlockUnderRSA, err := pinBlockRSAEncrypter.Encrypt(pinBlock)
+	if err != nil {
+		return err
+	}
 	req := d8corp.SetPinReq{
 		CardKey: d8corp.CardKey{
 			Pan:        pan,
 			ExpiryDate: expDate,
 		},
-		PinKeyUnderRSA: "",
-		PinBlock:       "",
+		PinKeyUnderRSA: string(pinBlockUnderRSA),
+		PinBlock:       string(pinBlock),
 		PinBlockType:   "0",
 	}
 
@@ -42,13 +64,13 @@ func SetPinG2b(pan, expDate string) error {
 		logger.Errorf("[SERVICE] D8 G2b setPIN RESP status %s", resp.Status.Code)
 		return fmt.Errorf("%s", resp.Status.RspCode)
 	}
-	// err = json.Unmarshal(resp.Data, &cardInfo)
+	// err = json.Unmarshal(resp.Data, &respData)
 	// if err != nil {
-	// 	logger.Errorf("[SERVICE] D8 G2b setPIN RESP marshaling err: %v", err)
+	// 	logger.Errorf("[SERVICE] D8 G2b setPIN RESP data marshaling err: %v", err)
 	// 	return err
 	// }
-	// if cardInfo == nil {
-	// 	logger.Errorf("[SERVICE] D8 G2b setPIN RESP is empty")
+	// if respData == nil {
+	// 	logger.Errorf("[SERVICE] D8 G2b setPIN RESP data is empty")
 	// 	return fmt.Errorf("no data")
 	// }
 	return nil

@@ -25,7 +25,7 @@ func PinChange(c *gin.Context) {
 		return
 	}
 
-	if err := service.SetPinG2b(req.PAN, req.ExpiryDate); err != nil {
+	if err := service.SetPinG2b(req.PAN, req.PIN, req.ExpiryDate); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
