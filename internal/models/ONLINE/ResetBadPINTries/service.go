@@ -1,9 +1,9 @@
-package getcvv
+package resetbadpintries
 
 import service "converterapi/internal/service/G2B"
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	cvvData, err := service.GetCVVG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpDate)
+	err = service.ResetCardPINTriesG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
 	if err != nil {
 		return nil, err
 	}
@@ -13,15 +13,6 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	soapResp.XmlnsM1 = "http://schemas.compassplus.com/two/1.0/fimi.xsd"
 	soapResp.XmlnsS = "http://www.w3.org/2003/05/soap-envelope"
 
-	resp := Response{}
-	resp.Product = sb.SoapRq.Req.Product
-	resp.ResponseAttr = "1"
-	resp.Ver = sb.SoapRq.Req.Ver
-
-	resp.CVV = cvvData.CVV2
-	resp.CardVerificationType = cvvData.CVV2Type
-	resp.StrCVV = cvvData.CVV2
-
-	soapResp.Body.GetCVVRp.Response = resp
+	soapResp.Body.ResetBadPINTriesRp.Response = Response{}
 	return
 }

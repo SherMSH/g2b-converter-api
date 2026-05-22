@@ -10,6 +10,10 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
+func (sb *Body) Call() (*Envelope, error) {
+	return Svc(sb)
+}
+
 // SoapRq соответствует элементу GetAcctInfoRq
 type SoapRq struct {
 	Req Request `xml:"Request" json:"request"`
@@ -23,11 +27,12 @@ type Request struct {
 	Password string `xml:"Password,attr" json:"password"`
 	Echo     string `xml:"Echo,attr" json:"echo"`
 
-	MBR          string `xml:"MBR" json:"mbr"`
-	PAN          string `xml:"PAN" json:"pan"`
-	Status       string `xml:"Status" json:"status"`
-	ChangeReason string `xml:"ChangeReason" json:"change_reason"`
-	NeedNotify   string `xml:"NeedNotify" json:"need_notify"`
+	MBR            string `xml:"MBR" json:"mbr"`
+	PAN            string `xml:"PAN" json:"pan"`
+	ExpirationDate string `xml:"ExpirationDate" json:"expiration_date"`
+	Status         string `xml:"Status" json:"status"`
+	ChangeReason   string `xml:"ChangeReason" json:"change_reason"`
+	NeedNotify     string `xml:"NeedNotify" json:"need_notify"`
 
 	PersonId      string `xml:"PersonId" json:"person_id"`
 	CardUID       string `xml:"CardUID" json:"card_uid"`
