@@ -1,0 +1,52 @@
+package service
+
+import (
+	"converterapi/internal/config"
+	d8corp "converterapi/internal/models/D8CORP"
+	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
+	"encoding/json"
+	"fmt"
+)
+
+func GetCVVG2b(pan, expdate string) (cvvData *d8corp.CVVData, err error) {
+	var resp *d8corp.CommonResp
+	req := d8corp.GetCVVReq{
+		CardKey: d8corp.CardKey{
+			Pan:        pan,
+			ExpiryDate: expdate,
+		},
+	}
+	jsonReq, err := json.Marshal(req)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GetCardInfo REQ marshaling err: %v", err)
+		return nil, fmt.Errorf("[SERVICE] D8 G2b GetCVV2 REQ marshaling err")
+	}
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/getCVV2", jsonReq, utils.D8HeadersMap)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GetCVV2 request sending err: %v", err)
+		return nil, err
+	}
+	logger.Infof("[SERVICE] D8 G2b GetCVV2 resp status: %v, body: %v", status, string(data))
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GetCVV2 RESP marshaling err: %v", err)
+		return nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b GetCVV2 RESP status %s", resp.Status.Code)
+		return nil, fmt.Errorf("%s", resp.Status.RspCode)
+	}
+
+	err = json.Unmarshal(resp.Data, &cvvData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GetCardInfo marshaling err: %v", err)
+		return nil, err
+	}
+	if cvvData == nil {
+		logger.Errorf("[SERVICE] D8 G2b GetCardInfo RESP is empty")
+		return nil, fmt.Errorf("no data")
+	}
+	return cvvData, nil
+}

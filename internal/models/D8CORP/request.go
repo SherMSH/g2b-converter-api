@@ -19,6 +19,14 @@ type GetCardInfoReq struct {
 	CardTransactionCount    int     `json:"cardTransactionCount,omitempty"`
 }
 
+type GetCVVReq struct {
+	CardKey     CardKey  `json:"cardKey"`
+	RsaKeyBlock KeyBlock `json:"rsaKeyBlock,omitempty"`
+}
+
+type KeyBlock struct {
+}
+
 type InitTxReq struct {
 }
 

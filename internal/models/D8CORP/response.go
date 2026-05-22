@@ -227,3 +227,11 @@ type CardNotification struct {
 	NotificationTarget string `json:"notificationTarget"`
 	ServiceType        string `json:"serviceType"`
 }
+
+type CVVData struct {
+	Lkey          Lkey   `json:"lkey"`
+	CVV2          string `json:"cvv2"`
+	CVV2Type      string `json:"cvv2Type"`
+	CVV2Expiry    string `json:"cvv2Expiry"`
+	EncryptedData string `json:"encryptedData"`
+}
