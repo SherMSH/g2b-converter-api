@@ -24,15 +24,10 @@ func PosReq(body *Body) error {
 		return err
 	}
 	logger.Infof("PosReq info: %+v", body.SoapRq.Req)
-	trn, atr, err := service.AuthorizeTransaction(body.SoapRq.Req, *ectxNum)
+	trn, err := service.AuthorizeTransaction(body.SoapRq.Req, *ectxNum)
 	if err != nil {
 		logger.Errorf("POS req {AuthorizeTransaction} error: %v", err)
 		return err
-	}
-
-	if atr.Status.Code != "0" {
-		logger.Errorf("bad response status code: %+v", atr.Status)
-		return fmt.Errorf("%s", atr.Status.Message)
 	}
 	if trn != nil {
 		body.SoapRq.Req.ThisTranId = fmt.Sprintf("%v", trn.TransactionResponse.TlId)

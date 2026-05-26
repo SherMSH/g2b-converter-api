@@ -49,7 +49,7 @@ func InitiateTransaction() (*string, error) {
 // вызвав "GetTransactionStatus".
 // При определенных обстоятельствах возможна ситуация, когда ответное сообщение теряется, но система обработки не знает об этом,
 // и транзакция успешно завершается как в системе обработки, так и в системе эмитента карты.
-func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp.TrnData, *d8corp.CommonResp, error) {
+func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp.TrnData, error) {
 	resp := &d8corp.CommonResp{}
 	trnData := &d8corp.TrnData{}
 	logger.Infof("AuthorizeTransaction req ExpDate: %s", input.GetExpDate())
@@ -74,31 +74,35 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err: %v", err)
-		return nil, nil, fmt.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err")
+		return nil, fmt.Errorf("[SERVICE] D8 G2b authorizeTransaction REQ marshaling err")
 	}
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/authorizeTransaction", jsonReq, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction request sending err: %v", err)
-		return nil, nil, err
+		return nil, err
 	}
 	logger.Infof("[SERVICE] D8 G2b authorizeTransaction resp status: %v, body: %v", status, string(data))
 
 	err = json.Unmarshal(data, resp)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction RESP marshaling err: %v", err)
-		return nil, nil, err
+		return nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("bad response status code: %+v", resp.Status)
+		return nil, fmt.Errorf("%s - %s", resp.Status.Code, resp.Status.Message)
 	}
 	err = json.Unmarshal(resp.Data, trnData)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction DATA marshaling err: %v", err)
-		return nil, nil, err
+		return nil, err
 	}
 	if len(trnData.TransactionResponse.EcTxRefno) == 0 {
-		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction err: empty response")
-		return nil, nil, err
+		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction err: empty trnData response")
+		return nil, fmt.Errorf("D8 G2b authorizeTransaction err: empty trnData response")
 	}
-	return trnData, resp, nil
+	return trnData, nil
 }
 
 func GetTransactionStatus(tlId int, ecTxRefNo string) (*d8corp.CommonResp, error) {
