@@ -29,13 +29,15 @@ func PosReq(body *Body) error {
 		logger.Errorf("POS req {AuthorizeTransaction} error: %v", err)
 		return err
 	}
-	body.SoapRq.Req.ThisTranId = fmt.Sprintf("%v", trn.TransactionResponse.TlId)
-	body.SoapRq.Req.RespCode = trn.TransactionResponse.RspCode
-	body.SoapRq.ApprovalCode = trn.ApprovalCode
 
 	if atr.Status.Code != "0" {
 		logger.Errorf("bad response status code: %+v", atr.Status)
 		return fmt.Errorf("%s", atr.Status.Message)
+	}
+	if trn != nil {
+		body.SoapRq.Req.ThisTranId = fmt.Sprintf("%v", trn.TransactionResponse.TlId)
+		body.SoapRq.Req.RespCode = trn.TransactionResponse.RspCode
+		body.SoapRq.ApprovalCode = trn.ApprovalCode
 	}
 	if trn.TransactionResponse.RspCode == string(utils.AdviceLogNotProceed) {
 		logger.Errorf("bad response tx status {Skipped}")
