@@ -15,6 +15,10 @@ type SoapRq struct {
 	Req Request `xml:"Request" json:"request"`
 }
 
+func (sb *Body) Call() (*Envelope, error) {
+	return Svc(sb)
+}
+
 // Request соответствует элементу Request
 type Request struct {
 	Ver      string `xml:"Ver,attr" json:"ver"`
@@ -23,10 +27,11 @@ type Request struct {
 	Password string `xml:"Password,attr" json:"password"`
 	Echo     string `xml:"Echo,attr" json:"echo"`
 
-	IsInet       string `xml:"IsInet" json:"is_net"`
-	MBR          string `xml:"MBR" json:"mbr"`
-	PAN          string `xml:"PAN" json:"pan"`
-	ChangeReason string `xml:"ChangeReason" json:"change_reason"`
+	IsInet         string `xml:"IsInet" json:"is_net"`
+	MBR            string `xml:"MBR" json:"mbr"`
+	PAN            string `xml:"PAN" json:"pan"`
+	ChangeReason   string `xml:"ChangeReason" json:"change_reason"`
+	ExpirationDate string `xml:"ExpirationDate" json:"expiration_date"`
 
 	PersonId string `xml:"PersonId" json:"person_id"`
 	CardUID  string `xml:"CardUID" json:"card_uid"`

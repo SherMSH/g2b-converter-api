@@ -10,9 +10,8 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
-func (sb *Body) Call() (err error) {
-	err = Svc(sb)
-	return
+func (sb *Body) Call() (*Envelope, error) {
+	return Svc(sb)
 }
 
 // SoapRq соответствует элементу AddCMSAbonentRq

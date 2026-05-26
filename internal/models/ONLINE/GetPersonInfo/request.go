@@ -10,6 +10,10 @@ func (sb Body) GetBodyType() reflect.Type {
 	return reflect.TypeOf(sb)
 }
 
+func (sb *Body) Call() (*Envelope, error) {
+	return Svc(sb)
+}
+
 // SoapRq соответствует элементу GetAcctInfoRq
 type SoapRq struct {
 	Req Request `xml:"Request" json:"request"`
@@ -17,6 +21,7 @@ type SoapRq struct {
 
 // Request соответствует элементу Request
 type Request struct {
+	Echo     string `xml:"Echo,attr" json:"echo"`
 	Ver      string `xml:"Ver,attr" json:"ver"`
 	Product  string `xml:"Product,attr" json:"product"`
 	Clerk    string `xml:"Clerk,attr" json:"clerk"`

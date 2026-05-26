@@ -6,6 +6,7 @@ import (
 	"converterapi/internal/config"
 	"converterapi/internal/jobs"
 	"converterapi/internal/utils"
+	"converterapi/pkg/crypto"
 	"converterapi/pkg/logger"
 	"net/http"
 	"os"
@@ -18,6 +19,7 @@ func init() {
 	config.Setup("internal/config/config.json")
 	logger.Init()
 	utils.Init()
+	crypto.Init()
 }
 
 // @title CONVERTER API-MAIN
@@ -53,9 +55,6 @@ func main() {
 	}
 	<-ctx.Done()
 }
-
-// TODO:
-// docker
 
 func beforeQuit() {
 	logger.Infof("[MAIN] Work has stopped!")

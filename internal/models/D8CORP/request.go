@@ -2,11 +2,18 @@ package d8corp
 
 import "converterapi/internal/utils"
 
+type SetCardStatusReq struct {
+	CardKey      CardKey `json:"cardKey"`
+	NewStatCode  string  `json:"newStatCode"`
+	Reason       string  `json:"reason"`
+	Force        bool    `json:"force,omitempty"`
+	ExternalUser string  `json:"externalUser,omitempty"`
+}
 type SetPinReq struct {
 	CardKey        CardKey `json:"cardKey"`
 	PinKeyUnderRSA string  `json:"pinKeyUnderRSA"`
-	PinBlock       string  `json:"pinBlock"`
-	PinBlockType   string  `json:"pinBlockType"`
+	PinBlock       string  `json:"pinBlock,omitempty"`
+	PinBlockType   string  `json:"pinBlockType,omitempty"`
 }
 type GetCardInfoReq struct {
 	CardKey                 CardKey `json:"cardKey"`
@@ -17,6 +24,14 @@ type GetCardInfoReq struct {
 	ReqCardAuthRestrictions bool    `json:"reqCardAuthRestrictions,omitempty"`
 	ReqCardTransactions     bool    `json:"reqCardTransactions,omitempty"`
 	CardTransactionCount    int     `json:"cardTransactionCount,omitempty"`
+}
+
+type GetCVVReq struct {
+	CardKey     CardKey  `json:"cardKey"`
+	RsaKeyBlock KeyBlock `json:"rsaKeyBlock,omitempty"`
+}
+
+type KeyBlock struct {
 }
 
 type InitTxReq struct {

@@ -27,7 +27,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		operDate, _ := time.ParseInLocation("20060102", v.BusDate, time.Local)
 		tranTime, _ := time.ParseInLocation("20060102150405", v.When_created, time.Local)
 		row := Row{
-			FrontId:             fmt.Sprintf("%v", v.AccountNumber),
+			FrontId:             fmt.Sprintf("%v", v.TlId),
 			Origin:              fmt.Sprintf("%d", i),
 			Type:                "1",
 			OperCode:            fmt.Sprintf("%d", v.Txncode),
@@ -48,7 +48,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			ApprovalCode:        fmt.Sprintf("%.6d", v.Stan/1000000),
 			CurrencyISOCode:     v.TxnCurrency,
 			OrigCurrencyISOCode: v.Curbill,
-			SeqNo:               fmt.Sprintf("%v", v.TlId),
+			SeqNo:               fmt.Sprintf("%v", i),
 			OrigTime:            tranTime.Format("2006-01-02T15:04:05"),
 			TermCountry:         v.CrdactplocCountry,
 			TermCity:            v.CrdactplocCity,
