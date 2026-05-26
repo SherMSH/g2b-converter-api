@@ -26,6 +26,15 @@ type GetCardInfoReq struct {
 	CardTransactionCount    int     `json:"cardTransactionCount,omitempty"`
 }
 
+type GetCardTrnHistoryReq struct {
+	CardKey       CardKey      `json:"cardKey"`
+	DateUTCFrom   string       `json:"dateUTCFrom"`
+	DateUTCTo     string       `json:"dateUTCTo"`
+	DateLocalFrom string       `json:"dateLocalFrom"`
+	DateLocalTo   string       `json:"dateLocalTo"`
+	PagingParams  PagingParams `json:"paging"`
+}
+
 type GetCVVReq struct {
 	CardKey CardKey `json:"cardKey"`
 	// RsaKeyBlock KeyBlock `json:"rsaKeyBlock,omitempty"`
@@ -85,7 +94,7 @@ type ChkTxStatusReq struct {
 type CardKey struct {
 	Lkey       string `json:"lkey,omitempty"`
 	Pan        string `json:"pan,omitempty"`
-	ExpiryDate string `json:"expiryDate"`
+	ExpiryDate string `json:"expiryDate,omitempty"`
 }
 
 type ReverceTxReq struct {
@@ -94,4 +103,9 @@ type ReverceTxReq struct {
 	ReasonCode        int     `json:"reasonCode"`
 	ReversalAmount    float64 `json:"reversalAmount"`
 	TxnCurrency       string  `json:"txnCurrency"`
+}
+
+type PagingParams struct {
+	Size            int `json:"size"`
+	LastRetrievedId int `json:"lastRetrievedId"`
 }

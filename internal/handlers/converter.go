@@ -247,7 +247,7 @@ func D8Converter(c *gin.Context) {
 		}
 		err := unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 500, "Client", err.Error())
+			sendSoapFault(c, 400, "Client", err.Error())
 			return
 		}
 		switch unmBody.SoapRq.Req.TranCode {
