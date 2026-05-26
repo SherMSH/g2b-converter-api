@@ -192,5 +192,5 @@ func ReverseTransaction(input models.TrnInputIface, ecTxRefNo, originalEcTxRefno
 }
 
 func GetTransactionInfoG2b() error {
-	return fmt.Errorf("Service unavailable")
+	return nil
 }

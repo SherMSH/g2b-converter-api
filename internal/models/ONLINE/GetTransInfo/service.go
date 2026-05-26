@@ -3,7 +3,7 @@ package gettransinfo
 import service "converterapi/internal/service/G2B"
 
 func Svc(b *Body) (soapResp *Envelope, err error) {
-	_ = service.GetTransactionInfoG2b()
+	err = service.GetTransactionInfoG2b()
 	if err != nil {
 		return nil, err
 	}
@@ -14,7 +14,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 	soapResp.XmlnsS = "http://www.w3.org/2003/05/soap-envelope"
 
 	tranListArr := []TranListRow{
-		TranListRow{
+		{
 			TranNumber: b.SoapRq.Req.TranNumber,
 			PAN:        b.SoapRq.Req.PAN,
 			TermName:   b.SoapRq.Req.TermName,

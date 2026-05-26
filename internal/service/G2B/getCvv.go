@@ -1,7 +1,6 @@
 package service
 
 import (
-	"converterapi/internal/config"
 	d8corp "converterapi/internal/models/D8CORP"
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
@@ -22,7 +21,7 @@ func GetCVVG2b(pan, expdate string) (cvvData *d8corp.CVVData, err error) {
 		logger.Errorf("[SERVICE] D8 G2b GetCardInfo REQ marshaling err: %v", err)
 		return nil, fmt.Errorf("[SERVICE] D8 G2b GetCVV2 REQ marshaling err")
 	}
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/getCVV2", jsonReq, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", "http://d8-prod-proc-web1.humo.lab"+"/xapi/miss/1.0/getCVV2", jsonReq, utils.D8HeadersMap) // "перенапрвление в прод (HSM)"
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b GetCVV2 request sending err: %v", err)
 		return nil, err
