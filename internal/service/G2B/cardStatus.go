@@ -39,7 +39,7 @@ func SetCardStatusG2b(pan, expDate, newStatus, reason string) (err error) {
 	}
 	if resp.Status.Code != "0" {
 		logger.Errorf("[SERVICE] D8 G2b setCardStatus RESP status %s", resp.Status.Code)
-		return fmt.Errorf("%s", resp.Status.RspCode)
+		return fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 	return
 }
