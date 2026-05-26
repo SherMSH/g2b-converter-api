@@ -1,6 +1,9 @@
 package getcvv
 
-import service "converterapi/internal/service/G2B"
+import (
+	service "converterapi/internal/service/G2B"
+	"fmt"
+)
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	cvvData, err := service.GetCVVG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpDate)
@@ -19,7 +22,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Ver = sb.SoapRq.Req.Ver
 
 	resp.CVV = cvvData.CVV2
-	resp.CardVerificationType = cvvData.CVV2Type
+	resp.CardVerificationType = fmt.Sprintf("%d", cvvData.CVV2Type)
 	resp.StrCVV = cvvData.CVV2
 
 	soapResp.Body.GetCVVRp.Response = resp

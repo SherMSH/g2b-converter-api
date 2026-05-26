@@ -43,7 +43,7 @@ func GetCardInfo(pan, expdate string) (cardInfo *d8corp.CardInfoData, err error)
 	}
 	if resp.Status.Code != "0" {
 		logger.Errorf("[SERVICE] D8 G2b GetCardInfo RESP status %s", resp.Status.Code)
-		return nil, fmt.Errorf("%s", resp.Status.RspCode)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 	err = json.Unmarshal(resp.Data, &cardInfo)
 	if err != nil {
@@ -84,7 +84,7 @@ func GetCardBasicInfo(pan, expdate string) (cardInfo *d8corp.CardInfoData, err e
 	}
 	if resp.Status.Code != "0" {
 		logger.Errorf("[SERVICE] D8 G2b GetCardBasicInfo RESP status %s", resp.Status.Code)
-		return nil, fmt.Errorf("%s", resp.Status.RspCode)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 	err = json.Unmarshal(resp.Data, &cardInfo)
 	if err != nil {

@@ -27,8 +27,8 @@ type GetCardInfoReq struct {
 }
 
 type GetCVVReq struct {
-	CardKey     CardKey  `json:"cardKey"`
-	RsaKeyBlock KeyBlock `json:"rsaKeyBlock,omitempty"`
+	CardKey CardKey `json:"cardKey"`
+	// RsaKeyBlock KeyBlock `json:"rsaKeyBlock,omitempty"`
 }
 
 type KeyBlock struct {

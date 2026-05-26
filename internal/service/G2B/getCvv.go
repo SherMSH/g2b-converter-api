@@ -18,9 +18,10 @@ func GetCVVG2b(pan, expdate string) (cvvData *d8corp.CVVData, err error) {
 	}
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b GetCardInfo REQ marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b GetCVVG2b REQ marshaling err: %v", err)
 		return nil, fmt.Errorf("[SERVICE] D8 G2b GetCVV2 REQ marshaling err")
 	}
+	logger.Infof("[SERVICE] D8 G2b GetCVV2 REQ %v", string(jsonReq))
 	data, status, err := utils.SendRequest("POST", "http://d8-prod-proc-web1.humo.lab"+"/xapi/miss/1.0/getCVV2", jsonReq, utils.D8HeadersMap) // "перенапрвление в прод (HSM)"
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b GetCVV2 request sending err: %v", err)
@@ -35,7 +36,7 @@ func GetCVVG2b(pan, expdate string) (cvvData *d8corp.CVVData, err error) {
 	}
 	if resp.Status.Code != "0" {
 		logger.Errorf("[SERVICE] D8 G2b GetCVV2 RESP status %s", resp.Status.Code)
-		return nil, fmt.Errorf("%s", resp.Status.RspCode)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 
 	err = json.Unmarshal(resp.Data, &cvvData)

@@ -62,7 +62,7 @@ func SetPinG2b(pan, pin, expDate string) error {
 	}
 	if resp.Status.Code != "0" {
 		logger.Errorf("[SERVICE] D8 G2b setPIN RESP status %s", resp.Status.Code)
-		return fmt.Errorf("%s", resp.Status.RspCode)
+		return fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 	// err = json.Unmarshal(resp.Data, &respData)
 	// if err != nil {
@@ -104,7 +104,7 @@ func ResetCardPINTriesG2b(pan, expDate string) (err error) {
 	}
 	if resp.Status.Code != "0" {
 		logger.Errorf("[SERVICE] D8 G2b resetCardPINTries RESP status %s", resp.Status.Code)
-		return fmt.Errorf("%s", resp.Status.RspCode)
+		return fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 	return
 }
