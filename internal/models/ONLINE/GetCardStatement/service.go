@@ -2,12 +2,23 @@ package getcardstatement
 
 import (
 	service "converterapi/internal/service/G2B"
+	"converterapi/pkg/logger"
 	"fmt"
+	"strconv"
 	"time"
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	cardInfo, err := service.GetCardInfo(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
+	from, to := getFormatedTime(sb.SoapRq.Req.FromTime, sb.SoapRq.Req.ToTime)
+	size := 10
+	if len(sb.SoapRq.Req.Count) > 0 {
+		size, err = strconv.Atoi(sb.SoapRq.Req.Count)
+		if err != nil {
+			logger.Errorf("[SERVICE] getcardstatement req error: wrong Count param")
+			err = nil
+		}
+	}
+	cardInfo, err := service.GetCardTransactionHistory(sb.SoapRq.Req.PAN, from, to, size)
 	if err != nil {
 		return nil, err
 	}
@@ -19,6 +30,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 
 	resp := Response{}
 	resp.Product = sb.SoapRq.Req.Product
+	resp.Echo = sb.SoapRq.Req.Echo
 	resp.ResponseAttr = "1"
 	resp.Ver = sb.SoapRq.Req.Ver
 
@@ -38,7 +50,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			TranTime:            tranTime.Format("2006-01-02T15:04:05"),
 			OrigAmount:          fmt.Sprintf("%.2f", v.Amtbill),
 			OrigCurrency:        v.Curbill,
-			PAN:                 v.Lkey.MaskedPan,
+			PAN:                 v.Lkey.Pan,
 			MBR:                 "0",
 			TermClass:           v.TermType,
 			TermName:            fmt.Sprintf("%s %s", v.CrdacptID, v.TermCode),
@@ -67,4 +79,19 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		},
 	}
 	return soapResp, nil
+}
+
+func getFormatedTime(reqFrom, reqTo string) (from, to string) {
+	tFrom, err := time.ParseInLocation("2006-01-02T15:04:05", reqFrom, time.Local)
+	if err != nil {
+		return "", ""
+	}
+	tTo, err := time.ParseInLocation("2006-01-02T15:04:05", reqTo, time.Local)
+	if err != nil {
+		return "", ""
+	}
+
+	from = tFrom.Format("20060102150405")
+	to = tTo.Format("20060102150405")
+	return
 }

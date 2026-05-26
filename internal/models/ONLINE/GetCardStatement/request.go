@@ -23,6 +23,7 @@ type SoapRq struct {
 type Request struct {
 	Ver      string `xml:"Ver,attr" json:"ver"`
 	Product  string `xml:"Product,attr" json:"product"`
+	Echo     string `xml:"Echo,attr" json:"echo"`
 	Clerk    string `xml:"Clerk,attr" json:"clerk"`
 	Password string `xml:"Password,attr" json:"password"`
 
