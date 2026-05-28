@@ -23,8 +23,6 @@ FROM hub.docker.humo.lab/nexus-repository-alpine
 WORKDIR /app
 
 COPY --from=builder /app/converterApi .
-# Исправленный путь: берем из /app/...
-#COPY --from=builder /app/internal/config/config.json .
 COPY --from=builder /app/internal/config/config.json ./internal/config/config.json
 
 CMD ["./converterApi"]
