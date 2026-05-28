@@ -415,7 +415,11 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody
+		resp, err = unmBody.Call()
+		if err != nil {
+			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			return
+		}
 	default:
 		logger.Errorf("Unknown XML body")
 		sendSoapFault(c, 400, "Client", "Unknown XML body")
