@@ -196,7 +196,7 @@ func ReverseTransaction(input models.TrnInputIface, ecTxRefNo, originalEcTxRefno
 	return resp, nil
 }
 
-func GetTransactionDetailsG2b(reqTrnId string) (trnData *d8corp.Transaction, err error) {
+func GetTransactionDetailsG2b(reqTrnId, ecRefNo string) (trnData *d8corp.Transaction, err error) {
 	var resp *d8corp.CommonResp
 	tlId, err := strconv.Atoi(reqTrnId)
 	if err != nil {
@@ -204,7 +204,8 @@ func GetTransactionDetailsG2b(reqTrnId string) (trnData *d8corp.Transaction, err
 		return nil, fmt.Errorf("wrong GetTransInfoRq Id param")
 	}
 	req := d8corp.ChkTxStatusReq{
-		TlId: tlId,
+		TlId:      tlId,
+		EcTxRefno: ecRefNo,
 	}
 	jsonReq, err := json.Marshal(req)
 	if err != nil {

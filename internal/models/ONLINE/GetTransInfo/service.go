@@ -8,7 +8,7 @@ import (
 )
 
 func Svc(b *Body) (soapResp *Envelope, err error) {
-	trn, err := service.GetTransactionDetailsG2b(b.SoapRq.Req.Id)
+	trn, err := service.GetTransactionDetailsG2b(b.SoapRq.Req.Id, b.SoapRq.Req.TranNumber)
 	if err != nil {
 		return nil, err
 	}
