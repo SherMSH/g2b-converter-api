@@ -44,20 +44,21 @@ type TranListRow struct {
 	DraftCapture         string `xml:"m0:DraftCapture"`
 	FromAcct             string `xml:"m0:FromAcct"`
 	Amount               string `xml:"m0:Amount"`
+	Amount2              string `xml:"m0:Amount2"`
 	Fee                  string `xml:"m0:Fee"`
-	Issuer               string `xml:"m0:IssuerFee"`
+	IssuerFee            string `xml:"m0:IssuerFee"`
 	Currency             string `xml:"m0:Currency"`
 	PAN                  string `xml:"m0:PAN"`
-	Card                 string `xml:"m0:CardMember"`
-	Resp                 string `xml:"m0:RespCode"`
-	Retain               string `xml:"m0:RetainCard"`
-	Approval             string `xml:"m0:ApprovalCode"`
+	CardMember           string `xml:"m0:CardMember"`
+	RespCode             string `xml:"m0:RespCode"`
+	RetainCard           string `xml:"m0:RetainCard"`
+	ApprovalCode         string `xml:"m0:ApprovalCode"`
 	LedgerBalance        string `xml:"m0:LedgerBalance"`
 	AvailBalance         string `xml:"m0:AvailBalance"`
 	BalanceCurrencyAcct  string `xml:"m0:BalanceCurrencyAcct"`
 	CurrencyAcct         string `xml:"m0:CurrencyAcct"`
 	AmountAcct           string `xml:"m0:AmountAcct"`
-	Exchange             string `xml:"m0:ExchangeRateAcct"`
+	ExchangeRateAcct     string `xml:"m0:ExchangeRateAcct"`
 	RevRequestId         string `xml:"m0:RevRequestId"`
 	Error                string `xml:"m0:Error"`
 	OrigType             string `xml:"m0:OrigType"`
@@ -71,18 +72,18 @@ type TranListRow struct {
 	TermCity             string `xml:"m0:TermCity"`
 	TermOwner            string `xml:"m0:TermOwner"`
 	Track2               string `xml:"m0:Track2"`
-	Auth                 string `xml:"m0:AuthFIName"`
+	AuthFIName           string `xml:"m0:AuthFIName"`
 	RevActualAmount      string `xml:"m0:RevActualAmount"`
 	TranNumber           string `xml:"m0:TranNumber"`
 	POSCondition         string `xml:"m0:POSCondition"`
-	POSEntry             string `xml:"m0:POSEntryMode"`
-	From                 string `xml:"m0:FromAcctType"`
-	To                   string `xml:"m0:ToAcctType"`
+	POSEntryMode         string `xml:"m0:POSEntryMode"`
+	FromAcctType         string `xml:"m0:FromAcctType"`
+	ToAcctType           string `xml:"m0:ToAcctType"`
 	CNSent               string `xml:"m0:CNSent"`
-	Overdraft            string `xml:"m0:OverdraftLimit"`
-	Tmp                  string `xml:"m0:TmpOverdraft"`
-	Prev                 string `xml:"m0:PrevTran"`
-	Orig                 string `xml:"m0:OrigTime"`
+	OverdraftLimit       string `xml:"m0:OverdraftLimit"`
+	TmpOverdraft         string `xml:"m0:TmpOverdraft"`
+	PrevTran             string `xml:"m0:PrevTran"`
+	OrigTime             string `xml:"m0:OrigTime"`
 	DebitHold            string `xml:"m0:DebitHold"`
 	CreditHold           string `xml:"m0:CreditHold"`
 	Bonus                string `xml:"m0:Bonus"`

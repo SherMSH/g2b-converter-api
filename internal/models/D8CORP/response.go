@@ -235,3 +235,77 @@ type CVVData struct {
 	CVV2Expiry    string `json:"cvv2Expiry"`
 	EncryptedData string `json:"encryptedData"`
 }
+
+type Transaction struct {
+	Details TransactionDetails `json:"transaction"`
+}
+type TransactionDetails struct {
+	TlId                    int                     `json:"tlId"`
+	EcTxRefno               string                  `json:"ecTxRefno"`
+	Stan                    int                     `json:"stan"`
+	Stanorg                 int                     `json:"stanorg"`
+	Rrn                     string                  `json:"rrn"`
+	Termtype                string                  `json:"termtype"`
+	Issrtcode               string                  `json:"issrtcode"`
+	Acqrtcode               string                  `json:"acqrtcode"`
+	Lkey                    Lkey                    `json:"lkey"`
+	DateExp                 string                  `json:"dateExp"`
+	CrdacptBus              int                     `json:"crdacptBus"`
+	CrdacptID               string                  `json:"crdacptID"`
+	TermCode                string                  `json:"termCode"`
+	Aiid                    string                  `json:"aiid"`
+	DateLocal               string                  `json:"dateLocal"`
+	TimeLocal               string                  `json:"timeLocal"`
+	Msgcls                  string                  `json:"msgcls"`
+	Msgfn                   string                  `json:"msgfn"`
+	Txnsrc                  string                  `json:"txnsrc"`
+	FnCode                  int                     `json:"fnCode"`
+	TxnCode                 int                     `json:"txnCode"`
+	TxStatus                int                     `json:"txStatus"`
+	Rspsrc                  string                  `json:"rspsrc"`
+	TxnAmount               float64                 `json:"txnAmount"`
+	TxnCurrency             string                  `json:"txnCurrency"`
+	ActionCode              string                  `json:"actionCode"`
+	RspCode                 string                  `json:"rspCode"`
+	Aprvlcode               string                  `json:"aprvlcode"`
+	Dateset                 string                  `json:"dateset"`
+	Busdate                 string                  `json:"busdate"`
+	Afe                     string                  `json:"afe"`
+	Ife                     string                  `json:"ife"`
+	Curbill                 string                  `json:"curbill"`
+	Amtbill                 float64                 `json:"amtbill"`
+	Ratebill                float64                 `json:"ratebill"`
+	Amtbillbal              float64                 `json:"amtbillbal"`
+	Scheme                  string                  `json:"scheme"`
+	CrdacptlocName          string                  `json:"crdacptlocName"`
+	CrdacptlocStreet        string                  `json:"crdacptlocStreet"`
+	CrdacptlocCity          string                  `json:"crdacptlocCity"`
+	CrdacptlocPostcode      string                  `json:"crdacptlocPostcode"`
+	CrdacptlocRegion        string                  `json:"crdacptlocRegion"`
+	CrdacptlocCountry       string                  `json:"crdacptlocCountry"`
+	Merchcountryorg         string                  `json:"merchcountryorg"`
+	Bingrp                  string                  `json:"bingrp"`
+	MerchantPhysicalAddress MerchantPhysicalAddress `json:"merchantPhysicalAddress"`
+	TerminalPhysicalAddress TerminalPhysicalAddress `json:"terminalPhysicalAddress"`
+	DestinationAccountType  string                  `json:"destinationAccountType"`
+}
+
+type MerchantPhysicalAddress struct {
+	LocationName  string `json:"locationName"`
+	PostalCode    string `json:"postalCode"`
+	Country       string `json:"country"`
+	ContactPhone1 string `json:"contactPhone1"`
+	Url           string `json:"url"`
+}
+
+type TerminalPhysicalAddress struct {
+	LocationName   string `json:"locationName"`
+	Address1       string `json:"address1"`
+	City           string `json:"city"`
+	Region         string `json:"region"`
+	PostalCode     string `json:"postalCode"`
+	Country        string `json:"country"`
+	ContactPhone1  string `json:"contactPhone1"`
+	Url            string `json:"url"`
+	AdditionalInfo string `json:"additionalInfo"`
+}

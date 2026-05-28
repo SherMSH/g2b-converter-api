@@ -8,6 +8,7 @@ import (
 	"converterapi/pkg/logger"
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
 // InitiateTransaction инициирует транзакцию и сгенерирует новый номер ссылки на транзакцию электронной коммерции (ecTxRefno).
@@ -195,6 +196,44 @@ func ReverseTransaction(input models.TrnInputIface, ecTxRefNo, originalEcTxRefno
 	return resp, nil
 }
 
-func GetTransactionInfoG2b() error {
-	return nil
+func GetTransactionDetailsG2b(reqTrnId string) (trnData *d8corp.Transaction, err error) {
+	var resp *d8corp.CommonResp
+	tlId, err := strconv.Atoi(reqTrnId)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GetTransactionDetailsG2b REQ err: %v", err)
+		return nil, fmt.Errorf("wrong GetTransInfoRq Id param")
+	}
+	req := d8corp.ChkTxStatusReq{
+		TlId: tlId,
+	}
+	jsonReq, err := json.Marshal(req)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GetTransactionDetailsG2b REQ marshaling err: %v", err)
+		return nil, fmt.Errorf("[SERVICE] D8 G2b GetTransactionDetailsG2b REQ marshaling err")
+	}
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/getTransactionDetails", jsonReq, utils.D8HeadersMap)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b getTransactionDetails request sending err: %v", err)
+		return nil, err
+	}
+	logger.Infof("[SERVICE] D8 G2b getTransactionDetails resp status: %v, body: %v", status, string(data))
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b getTransactionDetails RESP marshaling err: %v", err)
+		return nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b getTransactionDetails RESP status %s", resp.Status.Code)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
+	}
+	err = json.Unmarshal(resp.Data, &trnData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b getTransactionDetails marshaling err: %v", err)
+		return nil, err
+	}
+	if trnData == nil {
+		logger.Errorf("[SERVICE] D8 G2b getTransactionDetails RESP is empty")
+		return nil, fmt.Errorf("no data")
+	}
+	return trnData, nil
 }
