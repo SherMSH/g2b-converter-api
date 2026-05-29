@@ -6,7 +6,6 @@ import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -16,23 +15,7 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 		recDetails d8corp.MdiFile
 	)
 	recNums := utils.NewSequence()
-
-	filename := fmt.Sprintf("G2BISS-%v.JSON", time.Now().Local().Format("20060102-150405"))
-	header := d8corp.HeaderRecord{
-		IssRectype:      "HEADER",
-		IssRecaction:    "IMPORT",
-		CFilename:       filename, //"G2BISS-20060102-150405.JSON"
-		IssSourcesys:    "LK",
-		IssCompanyRegnr: "COMPANY1",
-		IssTimestamp:    "20230906120000123",
-	}
-
-	for i, v := range input.Records {
-		separator := make([]byte, 0)
-		if i != 0 {
-			separator = json.RawMessage(",")
-		}
-
+	for _, v := range input.Records {
 		var firstSecret, firstName, lastName string
 		if len(v.SecretInfo.Items) != 0 {
 			firstSecret = v.SecretInfo.Items[0].Value
@@ -72,49 +55,25 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 			logger.Errorf("[SERVICE] D8 G2b add customer req marshaling record err: %v", err)
 			return nil, err
 		}
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec)
 
-		recDetails.MdiRecords = append(recDetails.MdiRecords, separator)
 		jsonRec, err = json.Marshal(accountRec)
 		if err != nil {
 			logger.Errorf("[SERVICE] D8 G2b add account req marshaling record err: %v", err)
 			return nil, err
 		}
-
-		recDetails.MdiRecords = append(recDetails.MdiRecords, separator)
 		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec)
 	}
-
-	footer := d8corp.FooterRecord{
-		IssRectype:   "FOOTER",
-		IssRecaction: "IMPORT",
-		CFilename:    filename,
-		IssReccnt:    2 * len(input.Records),
-	}
-
-	headerJSON, err := json.Marshal(header)
+	reqJSON, err := json.Marshal(recDetails)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b CreateCustomersAndAccounts req marshaling err: %v", err)
 		return nil, err
 	}
-
-	cardJSON, err := json.Marshal(recDetails)
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b CreateCustomersAndAccounts req marshaling err: %v", err)
-		return nil, err
-	}
-	logger.Infof("json ADDCARD: %v", string(cardJSON))
-
-	footerJSON, err := json.Marshal(footer)
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b CreateCustomersAndAccounts req marshaling err: %v", err)
-		return nil, err
-	}
+	logger.Infof("json ADD CUSTOMER and ACCOUNT: %v", string(reqJSON))
 
 	mdiFile := d8corp.MdiFile{
 		MdiRecords: []json.RawMessage{
-			headerJSON,
-			cardJSON,
-			footerJSON,
+			reqJSON,
 		},
 	}
 	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
@@ -125,10 +84,10 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD request sending err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b ADD CUSTOMER and ACCOUNT request sending err: %v", err)
 		return nil, err
 	}
-	logger.Infof("[SERVICE] D8 G2b ADDCARD resp status: %v, body: %v", status, string(data))
+	logger.Infof("[SERVICE] D8 G2b ADD CUSTOMER and ACCOUNT resp status: %v, body: %v", status, string(data))
 	return data, nil
 }
 

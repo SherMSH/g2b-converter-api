@@ -2,6 +2,7 @@ package createcustomerandaccount
 
 import (
 	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"encoding/xml"
 )
 
@@ -16,7 +17,9 @@ func (r Root) GetReqType() string {
 }
 
 func (r Root) Call() error {
-	return nil
+	resp, err := CreateCustomersAndAccountsG2b(r)
+	logger.Infof("AddCustomer and Account Mdi call resp: %v", resp)
+	return err
 }
 
 // Record - основная запись с данными клиента

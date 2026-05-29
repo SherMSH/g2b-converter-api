@@ -115,6 +115,7 @@ type MRecord struct {
 	CRDProdID    string     `xml:"CRDPRODID"`
 	PAN          string     `xml:"PAN"`
 	MBR          string     `xml:"MBR"`
+	AcctNumber   string     `xml:"-"`
 }
 
 // SecretInfo - элемент с секретной информацией (список item-ов)
