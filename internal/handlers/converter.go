@@ -236,7 +236,11 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody
+		resp, err = unmBody.Call()
+		if err != nil {
+			sendSoapFault(c, 400, "Client", err.Error())
+			return
+		}
 	case utils.POSRequestRq:
 		var unmBody posrequestrq.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -362,7 +366,11 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody.Body
+		resp, err = unmBody.Body.Call()
+		if err != nil {
+			sendSoapFault(c, 400, "Client", err.Error())
+			return
+		}
 	case utils.RemoveCMSAbonentRq:
 		var unmBody removecmsabonent.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -371,7 +379,11 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody
+		resp, err = unmBody.Call()
+		if err != nil {
+			sendSoapFault(c, 400, "Client", err.Error())
+			return
+		}
 	case utils.RemovePersonCMSAbonentRq:
 		var unmBody removepersoncmsabonent.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -380,7 +392,11 @@ func D8Converter(c *gin.Context) {
 			sendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
-		resp = unmBody
+		resp, err = unmBody.Call()
+		if err != nil {
+			sendSoapFault(c, 400, "Client", err.Error())
+			return
+		}
 	case utils.ResetBadPINTriesRq:
 		var unmBody resetbadpintries.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
@@ -426,7 +442,7 @@ func D8Converter(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Type", "application/json; charset=utf-8")
+	c.Header("Content-Type", "application/xml; charset=utf-8")
 	c.XML(http.StatusOK, resp)
 }
 

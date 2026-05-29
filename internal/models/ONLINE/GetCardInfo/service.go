@@ -17,6 +17,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	soapResp.XmlnsS = "http://www.w3.org/2003/05/soap-envelope"
 
 	resp := Response{}
+	resp.Echo = sb.SoapRq.Req.Echo
 	resp.Product = sb.SoapRq.Req.Product
 	resp.ResponseAttr = "1"
 	resp.Ver = sb.SoapRq.Req.Ver

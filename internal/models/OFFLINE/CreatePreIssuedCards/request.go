@@ -29,7 +29,6 @@ func (r Root) Call() error {
 	resp, err := service.AddPreissiedCardG2b(r)
 	logger.Infof("AddCard Mdi call resp: %v", resp)
 	return err
-
 }
 
 // Record - основная запись с данными клиента
