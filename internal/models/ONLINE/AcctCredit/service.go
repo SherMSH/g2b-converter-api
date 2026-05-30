@@ -1,7 +1,20 @@
 package acctcredit
 
-import "fmt"
+func Svc(b *Body) (soapResp *Envelope, err error) {
+	soapResp = new(Envelope)
+	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
+	soapResp.XmlnsM1 = "http://schemas.compassplus.com/two/1.0/fimi.xsd"
+	soapResp.XmlnsS = "http://www.w3.org/2003/05/soap-envelope"
 
-func Svc(sb *Body) (soapResp *Envelope, err error) {
-	return nil, fmt.Errorf("Service unavailable")
+	soapResp.Body.AcctCreditRp.Response = Response{
+		Product:      b.SoapRq.Req.Product,
+		ResponseAttr: "1",
+		TranId:       "",
+		Ver:          "1.0",
+
+		ApprovalCode:  "0F6754",
+		AvailBalance:  123.34,
+		LedgerBalance: 0.00,
+	}
+	return
 }
