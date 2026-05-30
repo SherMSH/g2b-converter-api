@@ -1,6 +1,10 @@
 package getacctstatement
 
-import service "converterapi/internal/service/G2B"
+import (
+	service "converterapi/internal/service/G2B"
+	"fmt"
+	"strconv"
+)
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	err = service.GetAcctInfoG2b()
@@ -21,10 +25,40 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		Ver:          "1.0",
 	}
 	rows := make([]Row, 0)
-	rows = append(rows, Row{})
 
-	resp.Statement = Statement{
-		Rows: rows,
+	rows = append(rows, Row{
+		FrontId:      "167",
+		Origin:       "XAPI/00005GSLZE4o2Ddn2iCG7KrtMmnxg5Va",
+		Type:         "0",
+		OperCode:     "00",
+		Description:  "*Dushanbe RRP XAPI/00005GSLZE4o2Ddn2iCG7KrtMmnxg5Va",
+		Amount:       "1.0",
+		OperDate:     "2026-05-26T00:00:00",
+		TranTime:     "2026-05-26T09:37:54",
+		OrigAmount:   "1.0",
+		OrigCurrency: "972",
+		PAN:          "5058270310000020",
+		MBR:          "0",
+		TermClass:    "M",
+		TermName:     "Test001",
+		TermSIC:      "5999",
+		TermLocation: "*Dushanbe RRP",
+		// ApprovalCode:        "",
+		// SeqNo:               "",
+		TermCountry:         "762",
+		TermCity:            "Dushanbe",
+		OnlineIssuerFee:     "0",
+		OrigTime:            "2026-05-26T14:37:54",
+		Currency:            "972",
+		TermRetailerName:    "",
+		CurrencyISOCode:     "972",
+		OrigCurrencyISOCode: "972",
+	})
+
+	k, _ := strconv.Atoi(sb.SoapRq.Req.Count)
+	for i := 0; i <= k; i++ {
+		resp.Statement.Rows = append(resp.Statement.Rows, rows[0])
+		resp.Statement.Rows[i].SeqNo = fmt.Sprintf("%d", i+1)
 	}
 
 	soapResp.Body = RespBody{
