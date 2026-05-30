@@ -1,10 +1,29 @@
 package updateperson
 
+import (
+	models "converterapi/internal/models/OFFLINE"
+	service "converterapi/internal/service/G2B"
+)
+
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	// cardInfo, err := service.GetCardInfo(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
-	// if err != nil {
-	// 	return nil, err
-	// }
+
+	root := models.Root{
+		Records: []models.MRecord{
+			{
+				Id:         sb.SoapRq.Req.Id,
+				FirstName:  sb.SoapRq.Req.FirstName,
+				LastName:   sb.SoapRq.Req.LastName,
+				MiddleName: sb.SoapRq.Req.MiddleName,
+				Birthday:   sb.SoapRq.Req.Birthday,
+				CntrLive:   sb.SoapRq.Req.ResidentCountry,
+			},
+		},
+	}
+
+	_, err = service.UpdateCustomerG2b(root)
+	if err != nil {
+		return nil, err
+	}
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
 	soapResp.XmlnsM1 = "http://schemas.compassplus.com/two/1.0/fimi.xsd"

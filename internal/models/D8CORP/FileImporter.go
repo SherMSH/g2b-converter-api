@@ -14,6 +14,7 @@ type MdiRecordDetails struct {
 	IssRecaction          utils.Action        `json:"ISS_RECACTION"`
 	IssRecnum             int                 `json:"ISS_RECNUM"`
 	IssCompanyRegnr       utils.CompanyRegNum `json:"ISS_COMPANY_REGNR"`
+	IssCompanyRegnrNew    utils.CompanyRegNum `json:"ISS_COMPANY_REGNR_NEW,omitempty"`
 	IssCompanyRegnrAcc    string              `json:"ISS_COMPANY_REGNR_ACC,omitempty"`
 	IssImpPvki            int                 `json:"ISS_IMP_PVKI,omitempty"` //PVKI used for PVV validation (should be values 0..6). Field required in case if ISS_GEN_PIN=3.
 	DbCustomerCustcode    string              `json:"DB_CUSTOMER_CUSTCODE"`
