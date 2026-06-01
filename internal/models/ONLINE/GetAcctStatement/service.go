@@ -12,8 +12,15 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if err != nil {
 		return nil, err
 	}
-	dateFrom, ert := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.FromTime, time.Local)
-	dateTo, ert := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.ToTime, time.Local)
+	dateFrom, errPrsFrom := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.FromTime, time.Local)
+	if errPrsFrom != nil {
+		dateFrom = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+	}
+	dateTo, errPrsTo := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.ToTime, time.Local)
+	if errPrsTo != nil {
+		dateTo = time.Date(2038, 01, 19, 3, 14, 7, 0, time.UTC)
+	}
+
 	trnTime := time.Date(2026, 5, 26, 9, 37, 54, 0, time.Local)
 
 	soapResp = new(Envelope)
@@ -61,7 +68,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 
 	k, _ := strconv.Atoi(sb.SoapRq.Req.Count)
 	for i := 0; i < k; i++ {
-		if trnTime.After(dateFrom) && trnTime.Before(dateTo) || ert != nil {
+		if trnTime.After(dateFrom) && trnTime.Before(dateTo) {
 			resp.Statement.Rows = append(resp.Statement.Rows, rows[0])
 			resp.Statement.Rows[i].SeqNo = fmt.Sprintf("%d", i+1)
 		}
