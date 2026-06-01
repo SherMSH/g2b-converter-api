@@ -4,6 +4,7 @@ import (
 	service "converterapi/internal/service/G2B"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
@@ -11,6 +12,9 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if err != nil {
 		return nil, err
 	}
+	dateFrom, _ := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.FromTime, time.Local)
+	dateTo, _ := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.ToTime, time.Local)
+	trnTime := time.Date(2026, 5, 26, 9, 37, 54, 0, time.Local)
 
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
@@ -56,9 +60,11 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	})
 
 	k, _ := strconv.Atoi(sb.SoapRq.Req.Count)
-	for i := 0; i <= k; i++ {
-		resp.Statement.Rows = append(resp.Statement.Rows, rows[0])
-		resp.Statement.Rows[i].SeqNo = fmt.Sprintf("%d", i+1)
+	for i := 0; i < k; i++ {
+		if trnTime.After(dateFrom) && trnTime.Before(dateTo) {
+			resp.Statement.Rows = append(resp.Statement.Rows, rows[0])
+			resp.Statement.Rows[i].SeqNo = fmt.Sprintf("%d", i+1)
+		}
 	}
 
 	soapResp.Body = RespBody{
