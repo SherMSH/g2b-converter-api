@@ -26,6 +26,10 @@ func Init(h *handlers.Handler) *gin.Engine {
 		soap.GET("/convFile/:filename", handlers.GetConvFile)
 
 		soap.POST("/PinChange", handlers.PinChange)
+
+		d8procweb := soap.Group("/d8-proc-web")
+		d8procweb.Use(middlewares.D8ProcWebAuth())
+		d8procweb.POST("/d8convert")
 	}
 	return router
 }

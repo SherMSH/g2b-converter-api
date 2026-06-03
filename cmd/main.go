@@ -7,6 +7,7 @@ import (
 	"converterapi/internal/jobs"
 	"converterapi/internal/utils"
 	"converterapi/pkg/crypto"
+	d8procweb "converterapi/pkg/d8-proc-web"
 	"converterapi/pkg/logger"
 	"net/http"
 	"os"
@@ -20,6 +21,7 @@ func init() {
 	logger.Init()
 	utils.Init()
 	crypto.Init()
+	d8procweb.Init()
 }
 
 // @title CONVERTER API-MAIN

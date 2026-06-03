@@ -3,9 +3,11 @@ package middlewares
 import (
 	"bytes"
 	"converterapi/internal/config"
+	d8procweb "converterapi/pkg/d8-proc-web"
 	"converterapi/pkg/logger"
 	"converterapi/pkg/prometheus"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -99,5 +101,21 @@ func SOAPLogger() gin.HandlerFunc {
 
 		logger.Infof("Incoming request: %s", string(body))
 		c.Next()
+	}
+}
+
+func D8ProcWebAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		resp, err := d8procweb.Signin()
+		if err != nil {
+			c.AbortWithError(500, err)
+			return
+		}
+		if resp.StatusCode != 200 {
+			c.AbortWithError(resp.StatusCode, fmt.Errorf("status %v", resp.Status))
+			return
+		}
+		c.Next()
+		resp, err = d8procweb.Signout()
 	}
 }
