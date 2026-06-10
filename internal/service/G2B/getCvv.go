@@ -1,6 +1,7 @@
 package service
 
 import (
+	"converterapi/internal/config"
 	d8corp "converterapi/internal/models/D8CORP"
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
@@ -9,6 +10,12 @@ import (
 )
 
 func GetCVVG2b(pan, expdate string) (cvvData *d8corp.CVVData, err error) {
+	if config.Config.App.DebugMode {
+		return &d8corp.CVVData{
+			CVV2:     "000",
+			CVV2Type: 1,
+		}, nil
+	}
 	var resp *d8corp.CommonResp
 	req := d8corp.GetCVVReq{
 		CardKey: d8corp.CardKey{

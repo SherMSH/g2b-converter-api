@@ -92,3 +92,7 @@ func GetExpFromTrack(trck2 string) string {
 	}
 	return data[1][:4]
 }
+
+func GenerateTimestampID() int64 {
+	return time.Now().UnixNano()
+}
