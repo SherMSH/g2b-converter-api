@@ -2,6 +2,7 @@ package getcardinfo
 
 import (
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"fmt"
 )
 
@@ -21,6 +22,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Product = sb.SoapRq.Req.Product
 	resp.ResponseAttr = "1"
 	resp.Ver = sb.SoapRq.Req.Ver
+	resp.TranId = utils.GenerateTimestampID()
 
 	var accs []AccountRow
 

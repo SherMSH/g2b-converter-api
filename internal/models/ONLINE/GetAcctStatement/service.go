@@ -1,6 +1,9 @@
 package getacctstatement
 
-import service "converterapi/internal/service/G2B"
+import (
+	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
+)
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	err = service.GetAcctInfoG2b()
@@ -17,7 +20,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		Echo:         sb.SoapRq.Req.Echo,
 		Product:      sb.SoapRq.Req.Product,
 		ResponseAttr: "1",
-		TranId:       "",
+		TranId:       utils.GenerateTimestampID(),
 		Ver:          "1.0",
 	}
 	rows := make([]Row, 0)

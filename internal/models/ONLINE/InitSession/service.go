@@ -13,6 +13,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		Product:      sb.SoapRq.Req.Product,
 		ResponseAttr: "1",
 		Ver:          sb.SoapRq.Req.Ver,
+		// NextChallenge: utils.GenerateTimestampID(),
 
 		Id:              "",
 		NeedCAPAuth:     "0",

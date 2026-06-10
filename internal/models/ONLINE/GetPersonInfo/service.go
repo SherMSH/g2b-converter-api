@@ -1,6 +1,9 @@
 package getpersoninfo
 
-import service "converterapi/internal/service/G2B"
+import (
+	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
+)
 
 func Svc(b *Body) (soapResp *Envelope, err error) {
 	err = service.GetCustomerInfoG2b()
@@ -16,7 +19,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		Echo:         b.SoapRq.Req.Echo,
 		Product:      b.SoapRq.Req.Product,
 		ResponseAttr: "1",
-		TranId:       "",
+		TranId:       utils.GenerateTimestampID(),
 		Ver:          "1.0",
 	}
 	return

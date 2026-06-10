@@ -3,6 +3,7 @@ package removecmsabonent
 import (
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 )
 
@@ -32,6 +33,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Product = sb.SoapRq.Req.Product
 	resp.ResponseAttr = "1"
 	resp.Ver = sb.SoapRq.Req.Ver
+	resp.TranId = utils.GenerateTimestampID()
 
 	soapResp.Body = RespBody{
 		RemoveCMSAbonentRp: RemoveCMSAbonentRp{

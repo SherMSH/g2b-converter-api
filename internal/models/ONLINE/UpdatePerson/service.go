@@ -1,5 +1,7 @@
 package updateperson
 
+import "converterapi/internal/utils"
+
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	// cardInfo, err := service.GetCardInfo(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
 	// if err != nil {
@@ -14,6 +16,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Product = sb.SoapRq.Req.Product
 	resp.ResponseAttr = "1"
 	resp.Ver = sb.SoapRq.Req.Ver
+	resp.TranId = utils.GenerateTimestampID()
 
 	soapResp.Body = RespBody{
 		UpdatePersonRp: UpdatePersonRp{

@@ -265,7 +265,7 @@ func D8Converter(c *gin.Context) {
 						Response: posrequestrq.Response{
 							Product:      unmBody.SoapRq.Req.Product,
 							ResponseAttr: "1",
-							TranId:       unmBody.SoapRq.Req.ThisTranId,
+							TranId:       utils.GenerateTimestampID(),
 							Ver:          "16.37",
 
 							AccountCurrency:      unmBody.SoapRq.Req.Currency,
@@ -299,7 +299,7 @@ func D8Converter(c *gin.Context) {
 						Response: posrequestrq.Response{
 							Product:      unmBody.SoapRq.Req.Product,
 							ResponseAttr: "1",
-							TranId:       unmBody.SoapRq.Req.ThisTranId,
+							TranId:       utils.GenerateTimestampID(),
 							Ver:          "16.37",
 
 							AccountCurrency:      unmBody.SoapRq.Req.Currency,
@@ -333,7 +333,7 @@ func D8Converter(c *gin.Context) {
 						Response: posrequestrq.Response{
 							Product:      unmBody.SoapRq.Req.Product,
 							ResponseAttr: "1",
-							TranId:       unmBody.SoapRq.Req.ThisTranId,
+							TranId:       utils.GenerateTimestampID(),
 							Ver:          "16.37",
 
 							AccountCurrency:      unmBody.SoapRq.Req.Currency,

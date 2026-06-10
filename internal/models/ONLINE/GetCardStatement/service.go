@@ -2,6 +2,7 @@ package getcardstatement
 
 import (
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
 	"strconv"
@@ -33,6 +34,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Echo = sb.SoapRq.Req.Echo
 	resp.ResponseAttr = "1"
 	resp.Ver = sb.SoapRq.Req.Ver
+	resp.TranId = utils.GenerateTimestampID()
 
 	rows := make([]Row, 0)
 	for i, v := range cardInfo.CardTransactions {

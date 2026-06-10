@@ -2,6 +2,8 @@ package utils
 
 import (
 	"converterapi/pkg/logger"
+	"crypto/rand"
+	"encoding/binary"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -93,6 +95,22 @@ func GetExpFromTrack(trck2 string) string {
 	return data[1][:4]
 }
 
-func GenerateTimestampID() int64 {
-	return time.Now().UnixNano()
+func GenerateTimestampID() string {
+	return fmt.Sprintf("%d", time.Now().UnixNano())
+}
+
+func GenerateCompositeID() int64 {
+	timestamp := time.Now().UnixMilli()
+	randomPart := GenerateRandomInt63()
+	return (timestamp << 22) | (randomPart & 0x3FFFFF)
+}
+
+func GenerateRandomInt63() int64 {
+	var buf [8]byte
+	_, err := rand.Read(buf[:])
+	if err != nil {
+		// fallback
+		return time.Now().UnixNano()
+	}
+	return int64(binary.BigEndian.Uint64(buf[:]) & 0x7FFFFFFFFFFFFFFF)
 }

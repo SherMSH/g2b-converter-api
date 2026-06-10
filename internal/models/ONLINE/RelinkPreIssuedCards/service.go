@@ -3,6 +3,7 @@ package relinkpreissuedcards
 import (
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
@@ -51,7 +52,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		Product:      sb.UpdateCard2AccLink.Req.Product,
 		ResponseAttr: "1",
 		Ver:          sb.UpdateCard2AccLink.Req.Ver,
-		TranId:       "",
+		TranId:       utils.GenerateTimestampID(),
 	}
 
 	soapResp.Body = RespBody{
