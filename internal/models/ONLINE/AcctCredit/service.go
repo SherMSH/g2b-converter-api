@@ -3,10 +3,6 @@ package acctcredit
 import "converterapi/internal/utils"
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	// cardInfo, err := service.GetCardInfo(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
 	soapResp.XmlnsM1 = "http://schemas.compassplus.com/two/1.0/fimi.xsd"
