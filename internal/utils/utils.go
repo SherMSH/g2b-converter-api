@@ -81,6 +81,22 @@ func SendRequest(method, uri string, jsonBody []byte, headers map[string]string)
 	return body, status, nil
 }
 
+func ConvertExpDate(d8expdate string) string {
+	t, err := time.Parse("20060102", d8expdate)
+	if err != nil {
+		return ""
+	}
+	return t.Format("2006-01-02T15:04:05")
+}
+
+func ConvertD8Tmstmp(d8expdate string) string {
+	t, err := time.Parse("20060102150405.000", d8expdate)
+	if err != nil {
+		return ""
+	}
+	return t.Format("2006-01-02T15:04:05.000Z")
+}
+
 func GetExpFromTrack(trck2 string) string {
 	if !strings.Contains(trck2, "=") {
 		return ""
