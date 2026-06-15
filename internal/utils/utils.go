@@ -90,11 +90,14 @@ func ConvertExpDate(d8expdate string) string {
 }
 
 func ConvertD8Tmstmp(d8expdate string) string {
-	t, err := time.Parse("20060102150405.000", d8expdate)
+	if len(d8expdate) < 14 {
+		return ""
+	}
+	t, err := time.Parse("20060102150405", d8expdate[:14])
 	if err != nil {
 		return ""
 	}
-	return t.Format("2006-01-02T15:04:05.000Z")
+	return t.Format("2006-01-02T15:04:05")
 }
 
 func GetExpFromTrack(trck2 string) string {

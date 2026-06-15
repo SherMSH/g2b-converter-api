@@ -24,3 +24,12 @@ var CardTypes = map[int]string{
 	-1: "2", //	TelebankID;
 	-2: "3", //	виртуальная
 }
+
+var Currencies = map[string]string{
+	"":    "unknown",
+	"972": "TJS",
+	"978": "EUR",
+	"840": "USD",
+	"156": "CNY",
+	"643": "RUB",
+}
