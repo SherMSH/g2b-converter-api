@@ -33,19 +33,8 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			LedgerBalance: fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal+cardInfo.CardAccounts[0].BlkAmt),
 			AvailBalance:  fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal),
 			Currency:      cardInfo.CardAccounts[0].Currency,
-			Type:          "1", //cardInfo.CardAccounts[0].TypeCode,
-			// 1 – Checking (Расчётный / Текущий счёт)
-			// 11 – Savings (Сберегательный / Накопительный счёт)
-			// 31 – Credit (Кредитный счёт)
-			// 91 – Bonus (Бонусный / Кешбэк-счёт)
-			AccountStatus: "3", //cardInfo.CardAccounts[0].StatCode,
-			// 0 – Inactive account;
-			// 1 – Open;
-			// 2 – Deposit only;
-			// 3 – Open primary account;
-			// 4 – Deposit only primary account;
-			// 5 – Information only;
-			// 9 – Closed
+			Type:          utils.AccountTypes[cardInfo.CardAccounts[0].TypeCode],
+			AccountStatus: utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode],
 		}
 		accs = append(accs, accrow)
 	}
@@ -87,10 +76,10 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.LastPVVChangeTime = ""
 	resp.LastRefreshTime = ""
 
-	lcar := len(cardInfo.CardAuthRestrictions)
+	lcar := len(cardInfo.CardTransactions)
 	if lcar > 0 {
-		resp.LastTranId = fmt.Sprint(cardInfo.CardAuthRestrictions[lcar-1].TlId)
-		resp.LastTranTime = cardInfo.CardAuthRestrictions[lcar-1].When_created
+		resp.LastTranId = fmt.Sprint(cardInfo.CardTransactions[lcar-1].TlId)
+		resp.LastTranTime = cardInfo.CardTransactions[lcar-1].When_created
 	}
 	resp.MaskBalances = "0"
 	resp.MaskPVV = "0"
@@ -112,7 +101,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		}
 	}
 	resp.PersonExtId = cardInfo.CardBasicInfo.CustomerCode
-	resp.PersonFIO = cardInfo.CardBasicInfo.LastName + " " + cardInfo.CardBasicInfo.FirstName
+	resp.PersonFIO = fmt.Sprintf("%v %v", cardInfo.CardBasicInfo.LastName, cardInfo.CardBasicInfo.FirstName)
 	resp.PersonId = cardInfo.CardBasicInfo.CustomerCode
 	resp.PersonVIP = "0"
 	resp.RequiredPasswordVersion = "1"
@@ -120,10 +109,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.RiskLevel = "1"
 	resp.Status = "1" //cardInfo.CardBasicInfo.StatCode
 	resp.TmpECStatus = "-1"
-	resp.Type = "1" //fmt.Sprintf("%d", cardInfo.CardBasicInfo.ProductType)
-	// 	1-пластиковая;
-	//	2-TelebankID;
-	//	3-виртуальная
+	resp.Type = utils.CardTypes[cardInfo.CardBasicInfo.ProductType]
 	soapResp.Body = RespBody{
 		GetCardInfoRp: GetCardInfoRp{
 			Response: resp,
