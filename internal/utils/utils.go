@@ -10,6 +10,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
 )
 
 func Init() {
@@ -132,4 +135,19 @@ func GenerateRandomInt63() int64 {
 		return time.Now().UnixNano()
 	}
 	return int64(binary.BigEndian.Uint64(buf[:]) & 0x7FFFFFFFFFFFFFFF)
+}
+
+// Функция для восстановления испорченной кириллицы
+func FixCyrillic(mangled string) string {
+	var result string
+	encoder := charmap.Windows1251.NewEncoder()
+	win1251, _, err := transform.String(encoder, mangled)
+	if err != nil {
+		decoder := charmap.Windows1251.NewDecoder()
+		result, _, err = transform.String(decoder, win1251)
+		if err != nil {
+			return mangled // возвращаем как есть в случае ошибки
+		}
+	}
+	return result
 }

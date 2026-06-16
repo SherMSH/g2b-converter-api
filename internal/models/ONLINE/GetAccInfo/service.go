@@ -40,7 +40,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			},
 		},
 		CreditHold:            "0",
-		Currency:              "972",
+		Currency:              "TJS",
 		DebitHold:             "0",
 		DropTmpOverOnRefresh:  "0",
 		ExtendedAccountNumber: sb.SoapRq.Req.Account,

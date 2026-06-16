@@ -24,15 +24,18 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Ver = sb.SoapRq.Req.Ver
 	resp.TranId = utils.GenerateTimestampID()
 
-	var accs []AccountRow
+	var (
+		accs []AccountRow
+		nums string
+	)
 
 	if cardInfo.CardAccounts != nil {
 		accrow := AccountRow{
 			AcctNo:        cardInfo.CardAccounts[0].AccountNumber,
-			Status:        cardInfo.CardAccounts[0].StatCode,
+			Status:        utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode],
 			LedgerBalance: fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal+cardInfo.CardAccounts[0].BlkAmt),
 			AvailBalance:  fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal),
-			Currency:      cardInfo.CardAccounts[0].Currency,
+			Currency:      utils.Currencies[cardInfo.CardAccounts[0].Currency],
 			Type:          utils.AccountTypes[cardInfo.CardAccounts[0].TypeCode],
 			AccountStatus: utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode],
 		}
@@ -90,6 +93,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.UseUdCVV2 = fmt.Sprintf("%d", cardInfo.CardBasicInfo.Cvv2Type)
 
 	if cardInfo.CardNotifications != nil {
+		nums = cardInfo.CardNotifications[0].NotificationTarget
 		resp.PersonConfidential = PersonConfidential{
 			Row: ConfidentialRow{
 				What:         "phone",
@@ -101,7 +105,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		}
 	}
 	resp.PersonExtId = cardInfo.CardBasicInfo.CustomerCode
-	resp.PersonFIO = fmt.Sprintf("%v %v", cardInfo.CardBasicInfo.LastName, cardInfo.CardBasicInfo.FirstName)
+	resp.PersonFIO = fmt.Sprintf("%v %v", nums, cardInfo.CardBasicInfo.EmbossName)
 	resp.PersonId = cardInfo.CardBasicInfo.CustomerCode
 	resp.PersonVIP = "0"
 	resp.RequiredPasswordVersion = "1"
