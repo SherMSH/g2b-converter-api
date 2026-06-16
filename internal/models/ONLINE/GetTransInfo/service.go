@@ -23,7 +23,10 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		logger.Errorf("[SERVICE] gettransinfo time parsing err: %v", err)
 		err = nil
 	}
-
+	var rspCode string = "0"
+	if trn.Details.RspCode == "00" {
+		rspCode = "1"
+	}
 	tranListArr := []TranListRow{
 		{
 			Id:                   fmt.Sprintf("%d", trn.Details.TlId),
@@ -43,7 +46,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 			Currency:             trn.Details.TxnCurrency,
 			PAN:                  trn.Details.Lkey.Pan,
 			CardMember:           "0",
-			RespCode:             trn.Details.RspCode,
+			RespCode:             rspCode,
 			RetainCard:           "0",
 			ApprovalCode:         trn.Details.Aprvlcode,
 			LedgerBalance:        fmt.Sprintf("%.2f", trn.Details.Amtbillbal),
@@ -61,21 +64,21 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 			TermSIC:              fmt.Sprintf("%d", trn.Details.CrdacptBus),
 			TermSICName:          trn.Details.TerminalPhysicalAddress.AdditionalInfo,
 			TermCountry:          trn.Details.CrdacptlocCountry,
-			TermCountryName:      "",
+			TermCountryName:      "TAJIKISTAN",
 			TermCity:             trn.Details.CrdacptlocCity,
 			TermOwner:            trn.Details.CrdacptID,
-			Track2:               trn.Details.Lkey.MaskedPan + "=" + trn.Details.DateExp,
+			Track2:               trn.Details.Lkey.Pan + "=" + trn.Details.DateExp,
 			AuthFIName:           trn.Details.Issrtcode,
 			RevActualAmount:      fmt.Sprintf("%.2f", trn.Details.Amtbill),
 			TranNumber:           trn.Details.EcTxRefno,
 			POSCondition:         "0",
-			POSEntryMode:         "0",
+			POSEntryMode:         "000",
 			FromAcctType:         "1",
 			ToAcctType:           trn.Details.DestinationAccountType,
 			CNSent:               "1",
 			OverdraftLimit:       "0",
 			TmpOverdraft:         "0",
-			PrevTran:             "",
+			PrevTran:             fmt.Sprintf("%d", trn.Details.TlId),
 			OrigTime:             tstamp.Format("2006-01-02T15:04:05"),
 			DebitHold:            "0",
 			CreditHold:           "0",

@@ -2,6 +2,7 @@ package getaccinfo
 
 import (
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"fmt"
 )
 
@@ -23,7 +24,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		Echo:         sb.SoapRq.Req.Echo,
 		Product:      sb.SoapRq.Req.Product,
 		ResponseAttr: "1",
-		TranId:       "",
+		TranId:       utils.GenerateTimestampID(),
 		Ver:          "1.0",
 
 		Avail: "0",
@@ -39,7 +40,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			},
 		},
 		CreditHold:            "0",
-		Currency:              "972",
+		Currency:              "TJS",
 		DebitHold:             "0",
 		DropTmpOverOnRefresh:  "0",
 		ExtendedAccountNumber: sb.SoapRq.Req.Account,

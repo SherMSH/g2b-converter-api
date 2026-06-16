@@ -3,6 +3,7 @@ package addcmsabonent
 import (
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
 )
@@ -34,7 +35,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		Echo:         b.SoapRq.Req.Echo,
 		Product:      b.SoapRq.Req.Product,
 		ResponseAttr: "1",
-		TranId:       "",
+		TranId:       utils.GenerateTimestampID(),
 		Ver:          "1.0",
 	}
 

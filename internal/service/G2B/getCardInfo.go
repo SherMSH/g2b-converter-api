@@ -22,6 +22,7 @@ func GetCardInfo(pan, expdate string) (cardInfo *d8corp.CardInfoData, err error)
 		ReqCardAccountLimits:    true,
 		ReqCardAuthRestrictions: true,
 		ReqCardTransactions:     true,
+		ReqCardNotifications:    true,
 		CardTransactionCount:    3,
 	}
 	jsonReq, err := json.Marshal(req)

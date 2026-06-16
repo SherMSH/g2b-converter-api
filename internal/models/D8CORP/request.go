@@ -23,6 +23,7 @@ type GetCardInfoReq struct {
 	ReqCardAccountLimits    bool    `json:"reqCardAccountLimits,omitempty"`
 	ReqCardAuthRestrictions bool    `json:"reqCardAuthRestrictions,omitempty"`
 	ReqCardTransactions     bool    `json:"reqCardTransactions,omitempty"`
+	ReqCardNotifications    bool    `json:"reqCardNotifications,omitempty"`
 	CardTransactionCount    int     `json:"cardTransactionCount,omitempty"`
 }
 
