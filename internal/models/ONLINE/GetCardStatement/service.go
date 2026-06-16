@@ -2,6 +2,7 @@ package getcardstatement
 
 import (
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
 	"strconv"
@@ -33,11 +34,12 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Echo = sb.SoapRq.Req.Echo
 	resp.ResponseAttr = "1"
 	resp.Ver = sb.SoapRq.Req.Ver
+	resp.TranId = utils.GenerateTimestampID()
 
 	rows := make([]Row, 0)
 	for i, v := range cardInfo.CardTransactions {
 		operDate, _ := time.ParseInLocation("20060102", v.BusDate, time.Local)
-		tranTime, _ := time.ParseInLocation("20060102150405", v.When_created, time.Local)
+		tranTime, _ := time.ParseInLocation("20060102150405", v.When_created[:14], time.Local)
 		row := Row{
 			FrontId:             fmt.Sprintf("%v", v.TlId),
 			Origin:              fmt.Sprintf("%d", i),
@@ -45,11 +47,11 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			OperCode:            fmt.Sprintf("%d", v.Txncode),
 			Description:         "",
 			Amount:              fmt.Sprintf("%.2f", v.TxnAmount),
-			Currency:            v.TxnCurrency,
+			Currency:            utils.Currencies[v.TxnCurrency],
 			OperDate:            operDate.Format("2006-01-02"),
 			TranTime:            tranTime.Format("2006-01-02T15:04:05"),
 			OrigAmount:          fmt.Sprintf("%.2f", v.Amtbill),
-			OrigCurrency:        v.Curbill,
+			OrigCurrency:        utils.Currencies[v.Curbill],
 			PAN:                 v.Lkey.Pan,
 			MBR:                 "0",
 			TermClass:           v.TermType,

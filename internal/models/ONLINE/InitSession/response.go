@@ -22,7 +22,6 @@ type Response struct {
 	Echo          string `xml:"Echo,attr"`
 	Product       string `xml:"Product,attr"`
 	ResponseAttr  string `xml:"Response,attr"`
-	TranId        string `xml:"TranId,attr"`
 	Ver           string `xml:"Ver,attr"`
 	NextChallenge string `xml:"NextChallenge,attr"`
 

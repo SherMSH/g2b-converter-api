@@ -2,6 +2,8 @@ package utils
 
 import (
 	"converterapi/pkg/logger"
+	"crypto/rand"
+	"encoding/binary"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -79,6 +81,25 @@ func SendRequest(method, uri string, jsonBody []byte, headers map[string]string)
 	return body, status, nil
 }
 
+func ConvertExpDate(d8expdate string) string {
+	t, err := time.Parse("20060102", d8expdate)
+	if err != nil {
+		return ""
+	}
+	return t.Format("2006-01-02T15:04:05")
+}
+
+func ConvertD8Tmstmp(d8expdate string) string {
+	if len(d8expdate) < 14 {
+		return ""
+	}
+	t, err := time.Parse("20060102150405", d8expdate[:14])
+	if err != nil {
+		return ""
+	}
+	return t.Format("2006-01-02T15:04:05")
+}
+
 func GetExpFromTrack(trck2 string) string {
 	if !strings.Contains(trck2, "=") {
 		return ""
@@ -91,4 +112,24 @@ func GetExpFromTrack(trck2 string) string {
 		return data[1]
 	}
 	return data[1][:4]
+}
+
+func GenerateTimestampID() string {
+	return fmt.Sprintf("%d", time.Now().UnixNano())
+}
+
+func GenerateCompositeID() int64 {
+	timestamp := time.Now().UnixMilli()
+	randomPart := GenerateRandomInt63()
+	return (timestamp << 22) | (randomPart & 0x3FFFFF)
+}
+
+func GenerateRandomInt63() int64 {
+	var buf [8]byte
+	_, err := rand.Read(buf[:])
+	if err != nil {
+		// fallback
+		return time.Now().UnixNano()
+	}
+	return int64(binary.BigEndian.Uint64(buf[:]) & 0x7FFFFFFFFFFFFFFF)
 }

@@ -2,6 +2,7 @@ package getcardinfo
 
 import (
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"fmt"
 )
 
@@ -21,6 +22,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Product = sb.SoapRq.Req.Product
 	resp.ResponseAttr = "1"
 	resp.Ver = sb.SoapRq.Req.Ver
+	resp.TranId = utils.GenerateTimestampID()
 
 	var accs []AccountRow
 
@@ -28,11 +30,11 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		accrow := AccountRow{
 			AcctNo:        cardInfo.CardAccounts[0].AccountNumber,
 			Status:        cardInfo.CardAccounts[0].StatCode,
-			LedgerBalance: "",
+			LedgerBalance: fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal+cardInfo.CardAccounts[0].BlkAmt),
 			AvailBalance:  fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal),
 			Currency:      cardInfo.CardAccounts[0].Currency,
-			Type:          cardInfo.CardAccounts[0].TypeCode,
-			AccountStatus: cardInfo.CardAccounts[0].StatCode,
+			Type:          utils.AccountTypes[cardInfo.CardAccounts[0].TypeCode],
+			AccountStatus: utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode],
 		}
 		accs = append(accs, accrow)
 	}
@@ -40,7 +42,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.Accounts = Accounts{
 		Row: accs,
 	}
-	resp.Acct2CardAttachType = "0"
+	resp.Acct2CardAttachType = "1"
 	resp.CNSDisabled = "1"
 	resp.CardAllowedEMVScript = ""
 	resp.CardProfiles = CardProfiles{
@@ -54,32 +56,37 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.ECNeedDynPwdAuth = "0"
 	resp.ECNeedStaticAuth = "0"
 	resp.ECNeedTokenAuth = "0"
-	resp.ECStatus = "0"
+	resp.ECStatus = "-1"
+	resp.ECUseCardSettingsAuth = "0"
 	resp.ECUseDecoupledAuth = "0"
 	resp.EMVOptionsCheckDisabled = "0"
-	resp.ExpDate = cardInfo.CardBasicInfo.ExpiryDate
+	resp.ExpDate = utils.ConvertExpDate(cardInfo.CardBasicInfo.ExpiryDate)
 	resp.FoundMBR = "0"
-	resp.FoundPAN = cardInfo.CardBasicInfo.Lkey.MaskedPan
+	resp.FoundPAN = cardInfo.CardBasicInfo.Lkey.Pan
 	resp.IB_Registered = "0"
 	resp.InstName = "ARVD"
-	resp.IssueTechnology = "0"
-	resp.LastATMUsed = ""
-	resp.LastChangeStatusTime = cardInfo.CardBasicInfo.StatChangeTime
-	resp.LastPOSUsed = ""
+	resp.IssueTechnology = "1"
+	if len(cardInfo.CardTransactions) != 0 {
+		resp.LastATMUsed = utils.ConvertD8Tmstmp(cardInfo.CardTransactions[0].Tstamp_insert)
+	}
+	resp.LastChangeStatusTime = utils.ConvertD8Tmstmp(cardInfo.CardBasicInfo.StatChangeTime)
+	if len(cardInfo.CardTransactions) != 0 {
+		resp.LastPOSUsed = utils.ConvertD8Tmstmp(cardInfo.CardTransactions[0].Tstamp_insert)
+	}
 	resp.LastPVVChangeTime = ""
 	resp.LastRefreshTime = ""
 
-	lcar := len(cardInfo.CardAuthRestrictions)
+	lcar := len(cardInfo.CardTransactions)
 	if lcar > 0 {
-		resp.LastTranId = fmt.Sprint(cardInfo.CardAuthRestrictions[lcar-1].TlId)
-		resp.LastTranTime = cardInfo.CardAuthRestrictions[lcar-1].When_created
+		resp.LastTranId = fmt.Sprint(cardInfo.CardTransactions[lcar-1].TlId)
+		resp.LastTranTime = cardInfo.CardTransactions[lcar-1].When_created
 	}
 	resp.MaskBalances = "0"
 	resp.MaskPVV = "0"
 	resp.NameOnCard = cardInfo.CardBasicInfo.EmbossName
 	resp.PINVerifyType = ""
 	resp.PVV = cardInfo.CardBasicInfo.Pvv
-	resp.PasswordFlag = ""
+	resp.PasswordFlag = "0"
 	resp.UseUdCVV2 = fmt.Sprintf("%d", cardInfo.CardBasicInfo.Cvv2Type)
 
 	if cardInfo.CardNotifications != nil {
@@ -94,16 +101,15 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		}
 	}
 	resp.PersonExtId = cardInfo.CardBasicInfo.CustomerCode
-	resp.PersonFIO = cardInfo.CardBasicInfo.LastName + " " + cardInfo.CardBasicInfo.FirstName
+	resp.PersonFIO = fmt.Sprintf("%v %v", cardInfo.CardBasicInfo.LastName, cardInfo.CardBasicInfo.FirstName)
 	resp.PersonId = cardInfo.CardBasicInfo.CustomerCode
 	resp.PersonVIP = "0"
 	resp.RequiredPasswordVersion = "1"
 	resp.RiskControlDisabled = "0"
 	resp.RiskLevel = "1"
-	resp.Status = cardInfo.CardBasicInfo.StatCode
+	resp.Status = "1" //cardInfo.CardBasicInfo.StatCode
 	resp.TmpECStatus = "-1"
-	resp.Type = fmt.Sprintf("%d", cardInfo.CardBasicInfo.ProductType)
-
+	resp.Type = utils.CardTypes[cardInfo.CardBasicInfo.ProductType]
 	soapResp.Body = RespBody{
 		GetCardInfoRp: GetCardInfoRp{
 			Response: resp,
