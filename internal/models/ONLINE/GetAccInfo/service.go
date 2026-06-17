@@ -10,7 +10,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if len(sb.SoapRq.Req.Account) < 16 {
 		return nil, fmt.Errorf("wrong mandatory field `fimi1:Account`")
 	}
-	err = service.GetAcctInfoG2b()
+	err = service.GetAcctInfoG2b(sb.SoapRq.Req.Account)
 	if err != nil {
 		return nil, err
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	err = service.GetAcctInfoG2b()
+	err = service.GetAcctInfoG2b(sb.SoapRq.Req.Account)
 	if err != nil {
 		return nil, err
 	}
