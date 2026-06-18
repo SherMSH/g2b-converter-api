@@ -44,6 +44,22 @@ var CardStatuses = map[string]string{
 	"20": "1",  //  ATM Operator card -> Open (активна, как ATM оператора)
 }
 
+// ReverseCardStatuses - обратный маппинг: TWO код -> список внешних кодов
+var ReverseCardStatuses = map[string][]string{
+	"0":  {"01", "02", "03", "04"}, // Not active
+	"1":  {"00", "20"},             // Open
+	"2":  {"12"},                   // Lost
+	"3":  {"13"},                   // Stolen
+	"4":  {"10", "16"},             // Restricted
+	"5":  {},                       // VIP (нет прямого маппинга)
+	"6":  {},                       // Open Domestic (нет прямого маппинга)
+	"8":  {},                       // Compromised (нет прямого маппинга)
+	"9":  {"14", "15"},             // Closed
+	"10": {},                       // Referral (нет прямого маппинга)
+	"12": {},                       // Declared (нет прямого маппинга)
+	"15": {"11"},                   // Expired
+}
+
 var Currencies = map[string]string{
 	"":    "unknown",
 	"972": "TJS",
