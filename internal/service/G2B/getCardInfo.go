@@ -58,14 +58,20 @@ func GetCardInfo(pan, expdate string) (cardInfo *d8corp.CardInfoData, err error)
 	return cardInfo, nil
 }
 
-func GetCardBasicInfo(pan, expdate string) (cardInfo *d8corp.CardInfoData, err error) {
-	var resp *d8corp.CommonResp
-	req := d8corp.GetCardInfoReq{
+func GetCardBasicInfo(lkeyId int, pan, expdate string) (cardInfo *d8corp.CardInfoData, err error) {
+	var (
+		resp *d8corp.CommonResp
+		req  d8corp.GetCardInfoReq
+	)
+
+	req = d8corp.GetCardInfoReq{
 		CardKey: d8corp.CardKey{
+			Lkey:       lkeyId,
 			Pan:        pan,
 			ExpiryDate: expdate,
 		},
 	}
+
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b GetCardBasicInfo REQ marshaling err: %v", err)

@@ -10,11 +10,31 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if len(sb.SoapRq.Req.Account) < 16 {
 		return nil, fmt.Errorf("wrong mandatory field `fimi1:Account`")
 	}
-	err = service.GetAcctInfoG2b(sb.SoapRq.Req.Account)
+	foundAcc, err := service.GetAcctInfoG2b(sb.SoapRq.Req.Account)
 	if err != nil {
 		return nil, err
 	}
-
+	cards, err := service.GetCardsListG2b(foundAcc.Custcode, foundAcc.Currcode)
+	if err != nil {
+		return nil, err
+	}
+	var cardRows []CardRow
+	for _, v := range cards {
+		var cardPan string
+		switch v.PAN {
+		case "":
+			cardPan = v.LkeyDisplay
+		default:
+			cardPan = v.PAN
+		}
+		cardRows = append(cardRows, CardRow{
+			PAN:    cardPan,
+			MBR:    "0",
+			Status: utils.CardStatuses[v.StatCode],
+			Type:   utils.CardTypes[v.ProductType],
+		},
+		)
+	}
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
 	soapResp.XmlnsM1 = "http://schemas.compassplus.com/two/1.0/fimi.xsd"
@@ -27,40 +47,31 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		TranId:       utils.GenerateTimestampID(),
 		Ver:          "1.0",
 
-		Avail: "0",
-		Bonus: "0",
-		Cards: Rows{
-			[]CardRow{
-				{
-					PAN:    "5058270530000016",
-					MBR:    "0",
-					Status: "11",
-					Type:   "0",
-				},
-			},
-		},
+		Avail:                 fmt.Sprintf("%.2f", foundAcc.AvlBal),
+		Bonus:                 fmt.Sprintf("%.2f", foundAcc.Balincr),
+		Cards:                 Rows{Rows: cardRows},
 		CreditHold:            "0",
-		Currency:              "TJS",
+		Currency:              utils.Currencies[foundAcc.Currcode],
 		DebitHold:             "0",
 		DropTmpOverOnRefresh:  "0",
-		ExtendedAccountNumber: sb.SoapRq.Req.Account,
-		FoundAccount:          sb.SoapRq.Req.Account,
-		LastDepAmount:         "0",
-		LastDepTime:           "2026-04-21T15:45:34",
-		LastRefreshTime:       "2026-04-21T15:45:34",
+		ExtendedAccountNumber: foundAcc.Accnum,
+		FoundAccount:          foundAcc.Accnum,
+		LastDepAmount:         fmt.Sprintf("%.2f", foundAcc.AvlbalUnset),
+		LastDepTime:           utils.ConvertDate(foundAcc.OpenDate),
+		LastRefreshTime:       utils.ConvertDate(foundAcc.LastUsage),
 		LastTranId:            "",
-		LastWdlAmount:         "0",
-		LastWdlTime:           "2026-04-21T15:45:34",
-		Ledger:                "0",
+		LastWdlAmount:         fmt.Sprintf("%.2f", foundAcc.BlkamtUnset),
+		LastWdlTime:           utils.ConvertDate(foundAcc.LastUsage),
+		Ledger:                fmt.Sprintf("%.2f", foundAcc.AvlBal+foundAcc.BlkAmt),
 		MaskBalances:          "0",
 		PermissibleExcessType: "-1",
-		PersonExtId:           "120147",
-		PersonFIO:             "006772212 Давронбек Болтабоев",
-		PersonId:              "120147",
-		Remain:                "0",
-		Status:                "00",
-		TmpOverdraft:          "0",
-		Type:                  "00",
+		PersonExtId:           "",
+		PersonFIO:             foundAcc.Name,
+		PersonId:              foundAcc.Custcode,
+		Remain:                fmt.Sprintf("%.2f", foundAcc.AvlBal),
+		Status:                utils.AccountStatuses[foundAcc.Statcode],
+		TmpOverdraft:          fmt.Sprintf("%.2f", foundAcc.Balincr),
+		Type:                  utils.AccountTypes[foundAcc.Typecode],
 	}
 
 	return soapResp, nil

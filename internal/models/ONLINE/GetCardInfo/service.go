@@ -63,7 +63,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.ECUseCardSettingsAuth = "0"
 	resp.ECUseDecoupledAuth = "0"
 	resp.EMVOptionsCheckDisabled = "0"
-	resp.ExpDate = utils.ConvertExpDate(cardInfo.CardBasicInfo.ExpiryDate)
+	resp.ExpDate = utils.ConvertDate(cardInfo.CardBasicInfo.ExpiryDate)
 	resp.FoundMBR = "0"
 	resp.FoundPAN = cardInfo.CardBasicInfo.Lkey.Pan
 	resp.IB_Registered = "0"
