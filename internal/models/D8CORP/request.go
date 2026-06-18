@@ -93,7 +93,7 @@ type ChkTxStatusReq struct {
 }
 
 type CardKey struct {
-	Lkey       string `json:"lkey,omitempty"`
+	Lkey       int    `json:"lkeyId,omitempty"`
 	Pan        string `json:"pan,omitempty"`
 	ExpiryDate string `json:"expiryDate,omitempty"`
 }

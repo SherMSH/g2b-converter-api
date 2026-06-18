@@ -84,7 +84,7 @@ func SendRequest(method, uri string, jsonBody []byte, headers map[string]string)
 	return body, status, nil
 }
 
-func ConvertExpDate(d8expdate string) string {
+func ConvertDate(d8expdate string) string {
 	t, err := time.Parse("20060102", d8expdate)
 	if err != nil {
 		return ""
@@ -115,6 +115,13 @@ func GetExpFromTrack(trck2 string) string {
 		return data[1]
 	}
 	return data[1][:4]
+}
+
+func GetExpFormat4(expdate string) string {
+	if len(expdate) < 5 {
+		return expdate
+	}
+	return expdate[2:6]
 }
 
 func GenerateTimestampID() string {

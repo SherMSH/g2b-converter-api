@@ -28,7 +28,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 			PersonId: b.SoapRq.Req.Id,
 			Account:  "20216972600001090524",
 			Type:     "0",
-			Status:   "00 - Active",
+			Status:   utils.AccountStatuses["00"],
 		},
 	}
 

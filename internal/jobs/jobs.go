@@ -23,5 +23,6 @@ func Start() {
 			logger.Errorf("ConvScanner JOB err %v", err)
 		}
 	}
+	// scheduler.Every(30).Seconds().Do(d8procweb.Signin())
 	scheduler.StartAsync()
 }

@@ -63,7 +63,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.ECUseCardSettingsAuth = "0"
 	resp.ECUseDecoupledAuth = "0"
 	resp.EMVOptionsCheckDisabled = "0"
-	resp.ExpDate = utils.ConvertExpDate(cardInfo.CardBasicInfo.ExpiryDate)
+	resp.ExpDate = utils.ConvertDate(cardInfo.CardBasicInfo.ExpiryDate)
 	resp.FoundMBR = "0"
 	resp.FoundPAN = cardInfo.CardBasicInfo.Lkey.Pan
 	resp.IB_Registered = "0"
@@ -82,7 +82,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	lcar := len(cardInfo.CardTransactions)
 	if lcar > 0 {
 		resp.LastTranId = fmt.Sprint(cardInfo.CardTransactions[lcar-1].TlId)
-		resp.LastTranTime = cardInfo.CardTransactions[lcar-1].When_created
+		resp.LastTranTime = utils.ConvertD8Tmstmp(cardInfo.CardTransactions[lcar-1].When_created)
 	}
 	resp.MaskBalances = "0"
 	resp.MaskPVV = "0"
