@@ -51,7 +51,7 @@ func D8Converter(c *gin.Context) {
 	err = xml.Unmarshal(body, &envelope)
 	if err != nil {
 		// В случае ошибки парсинга возвращаем SOAP-ошибку
-		sendSoapFault(c, 500, "Client", "Invalid XML format: "+err.Error())
+		SendSoapFault(c, 500, "Client", "Invalid XML format: "+err.Error())
 		return
 	}
 
@@ -65,19 +65,19 @@ func D8Converter(c *gin.Context) {
 	switch rqType {
 	case utils.Unknown:
 		logger.Errorf("Unknown XML body!")
-		sendSoapFault(c, 400, "Client", "Unknown XML body")
+		SendSoapFault(c, 400, "Client", "Unknown XML body")
 		return
 	case utils.AcctCreditRq:
 		var unmBody acctcredit.Body
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("acctcredit.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.AcctDebitRq:
@@ -85,12 +85,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("acctdebit.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.AddCMSAbonentRq:
@@ -98,13 +98,13 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("addcmsabonent.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
 			logger.Errorf("addcmsabonent g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.AddPersonCMSAbonentRq:
@@ -112,13 +112,13 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("addpersoncmsabonentrq.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
 			logger.Errorf("addcmsabonent g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 400, "client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "client", "Service error: "+err.Error())
 			return
 		}
 	case utils.ChangeCMSAbonentRq:
@@ -126,13 +126,13 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("changecmsabonentrq.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
 			logger.Errorf("addcmsabonent g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.GetAcctInfoRq:
@@ -140,13 +140,13 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("getaccinfo.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
 			logger.Errorf("getaccinfo g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.GetAcctStatementRq:
@@ -154,13 +154,13 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("getacctstatement.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
 			logger.Errorf("getacctstatement g2b svc call err: %s", err.Error())
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.GetCardInfoRq:
@@ -168,12 +168,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("getcardinforq.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.GetCardStatementRq:
@@ -181,12 +181,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("getcardstatement.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.GetCVVRq:
@@ -194,12 +194,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("getcvv.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.GetPersonInfoRq:
@@ -207,12 +207,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("getpersoninfo.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.GetTransInfoRq:
@@ -220,12 +220,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("gettransinfo.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.InitSessionRq:
@@ -233,12 +233,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("initsession.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", err.Error())
+			SendSoapFault(c, 400, "Client", err.Error())
 			return
 		}
 	case utils.POSRequestRq:
@@ -246,12 +246,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("posrequestrq.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		err := unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", err.Error())
+			SendSoapFault(c, 400, "Client", err.Error())
 			return
 		}
 		switch unmBody.SoapRq.Req.TranCode {
@@ -363,12 +363,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(body, &unmBody)
 		if err != nil {
 			logger.Errorf("relinkpreissuedcards.SoapEnvelope unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Body.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", err.Error())
+			SendSoapFault(c, 400, "Client", err.Error())
 			return
 		}
 	case utils.RemoveCMSAbonentRq:
@@ -376,12 +376,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("removecmsabonent.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", err.Error())
+			SendSoapFault(c, 400, "Client", err.Error())
 			return
 		}
 	case utils.RemovePersonCMSAbonentRq:
@@ -389,12 +389,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("removepersoncmsabonent.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", err.Error())
+			SendSoapFault(c, 400, "Client", err.Error())
 			return
 		}
 	case utils.ResetBadPINTriesRq:
@@ -402,12 +402,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("resetbadpintries.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.SetCardStatusRq:
@@ -415,12 +415,12 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("setcardstatus.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.UpdatePersonRq:
@@ -428,17 +428,17 @@ func D8Converter(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("updateperson.Body unmarshal err: %v", err)
-			sendSoapFault(c, 500, "Client", "Internal server error")
+			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}
 		resp, err = unmBody.Call()
 		if err != nil {
-			sendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	default:
 		logger.Errorf("Unknown XML body")
-		sendSoapFault(c, 400, "Client", "Unknown XML body")
+		SendSoapFault(c, 400, "Client", "Unknown XML body")
 		return
 	}
 
@@ -453,7 +453,7 @@ func sendJsonResponse(c *gin.Context, req interface{}) {
 }
 
 // Вспомогательная функция для отправки SOAP-ошибки (Fault)
-func sendSoapFault(c *gin.Context, status int, faultCode, faultString string) {
+func SendSoapFault(c *gin.Context, status int, faultCode, faultString string) {
 	fault := struct {
 		XMLName xml.Name `xml:"Fault"`
 		Code    struct {
