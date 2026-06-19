@@ -2,11 +2,13 @@ package middlewares
 
 import (
 	"bytes"
+	"converterapi/internal/auth"
 	"converterapi/internal/config"
 	d8procweb "converterapi/pkg/d8-proc-web"
 	"converterapi/pkg/logger"
 	"converterapi/pkg/prometheus"
-	"errors"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,6 +18,51 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+func ClerkAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		xmlData, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			logger.Errorf("Error reading body: %v", err)
+			c.XML(http.StatusUnauthorized, gin.H{"error": "Failed to read request body"})
+			c.Abort()
+			return
+		}
+
+		c.Request.Body = io.NopCloser(bytes.NewReader(xmlData))
+
+		if len(xmlData) == 0 {
+			c.XML(http.StatusUnauthorized, gin.H{"error": "Empty body"})
+			c.Abort()
+			return
+		}
+
+		logger.Debugf("xml Data: %s", string(xmlData))
+		user, err := auth.ParseAuth(string(xmlData))
+		if err != nil {
+			logger.Errorf("Error: %v", err)
+			c.XML(http.StatusInternalServerError, "Auth error")
+			c.Abort()
+			return
+		}
+
+		want, ok := auth.ClerksMap[user.Clerk]
+		if !ok {
+			c.XML(http.StatusUnauthorized, gin.H{"error": "wrong clerk or password"})
+			c.Abort()
+			return
+		}
+		hash := sha256.Sum256([]byte(user.Password))
+		got := hex.EncodeToString(hash[:])
+		if got != want {
+			c.XML(http.StatusUnauthorized, gin.H{"error": "wrong clerk or password"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
 
 func CheckApiKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -27,7 +74,7 @@ func CheckApiKey() gin.HandlerFunc {
 		}
 		if reqToken == "" {
 			logger.Warnf("empty API key")
-			c.XML(http.StatusUnauthorized, errors.New("secret API key is needed"))
+			c.XML(http.StatusUnauthorized, "secret API key is needed")
 			c.Abort()
 			return
 		}
