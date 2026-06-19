@@ -16,12 +16,17 @@ func Init(h *handlers.Handler) *gin.Engine {
 	router.StaticFile("/favicon.ico", "./internal/app/files/favicon.ico")
 	router.MaxMultipartMemory = 10 << 20 // 10 MiB
 
+	clerk := router.Group("/g2b")
+	clerk.Use(middlewares.ClerkAuth())
+	{
+		clerk.POST("/d8convert", handlers.D8Converter)
+	}
+
 	soap := router.Group("/g2b")
 	soap.Use(middlewares.SOAPLogger())
 	soap.Use(middlewares.CheckApiKey())
 	{
 		soap.GET("/ping", ping)
-		soap.POST("/d8convert", handlers.D8Converter)
 		soap.PUT("/convFile", handlers.PutConvFile)
 		soap.GET("/convFile/:filename", handlers.GetConvFile)
 
