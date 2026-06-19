@@ -51,7 +51,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		Bonus:                 fmt.Sprintf("%.2f", foundAcc.Balincr),
 		Cards:                 Rows{Rows: cardRows},
 		CreditHold:            "0",
-		Currency:              utils.Currencies[foundAcc.Currcode],
+		Currency:              foundAcc.Currcode,
 		DebitHold:             "0",
 		DropTmpOverOnRefresh:  "0",
 		ExtendedAccountNumber: foundAcc.Accnum,
