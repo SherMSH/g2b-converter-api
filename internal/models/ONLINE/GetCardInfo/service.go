@@ -35,7 +35,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			Status:        utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode],
 			LedgerBalance: fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal+cardInfo.CardAccounts[0].BlkAmt),
 			AvailBalance:  fmt.Sprintf("%.2f", cardInfo.CardAccounts[0].AvlBal),
-			Currency:      utils.Currencies[cardInfo.CardAccounts[0].Currency],
+			Currency:      cardInfo.CardAccounts[0].Currency,
 			Type:          utils.AccountTypes[cardInfo.CardAccounts[0].TypeCode],
 			AccountStatus: utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode],
 		}

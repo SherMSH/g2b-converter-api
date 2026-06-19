@@ -3,10 +3,15 @@ package setcardstatus
 import (
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
+	"fmt"
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	err = service.SetCardStatusG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate, sb.SoapRq.Req.Status, sb.SoapRq.Req.ChangeReason)
+	statCodes := utils.ReverseCardStatuses[sb.SoapRq.Req.Status]
+	if len(statCodes) == 0 {
+		return nil, fmt.Errorf("Status %v is not supported!", sb.SoapRq.Req.Status)
+	}
+	err = service.SetCardStatusG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate, statCodes[0], sb.SoapRq.Req.ChangeReason)
 	if err != nil {
 		return nil, err
 	}
