@@ -32,32 +32,36 @@ var CardStatuses = map[string]string{
 	"00": "1",  // Normal, active -> Open
 	"01": "0",  // Card data prepared -> Not active
 	"02": "0",  // Card data extracted -> Not active
-	"03": "0",  // Card prepared -> Not active
+	"03": "12", // Card prepared -> Not active
 	"04": "0",  // Card production fail -> Not active
-	"10": "4",  // PIN tries exceeded -> Restricted
+	"05": "5",  // VIP -> VIP
+	"06": "6",  // Open Domestic
+	"08": "8",  // Compromised
+	"10": "4",  // PIN tries exceeded -> Restricted (ограничена)
 	"11": "15", // Card expired -> Expired
 	"12": "2",  // Card reported lost -> Lost
 	"13": "3",  // Card reported stolen -> Stolen
 	"14": "9",  // Customer closed -> Closed
 	"15": "9",  // Bank cancelled -> Closed (закрыта банком)
 	"16": "4",  // Card used fraudulent -> Restricted (скомпрометирована/мошенничество)
+	"17": "10", // Referral -> Referral (Работает c запросом к эмитенту)
 	"20": "1",  //  ATM Operator card -> Open (активна, как ATM оператора)
 }
 
 // ReverseCardStatuses - обратный маппинг: TWO код -> список внешних кодов
 var ReverseCardStatuses = map[string][]string{
-	"0":  {"01", "02", "03", "04"}, // Not active
-	"1":  {"00", "20"},             // Open
-	"2":  {"12"},                   // Lost
-	"3":  {"13"},                   // Stolen
-	"4":  {"10", "16"},             // Restricted
-	"5":  {},                       // VIP (нет прямого маппинга)
-	"6":  {},                       // Open Domestic (нет прямого маппинга)
-	"8":  {},                       // Compromised (нет прямого маппинга)
-	"9":  {"14", "15"},             // Closed
-	"10": {},                       // Referral (нет прямого маппинга)
-	"12": {},                       // Declared (нет прямого маппинга)
-	"15": {"11"},                   // Expired
+	"0":  {"01"}, // Not active
+	"1":  {"00"}, // Open
+	"2":  {"12"}, // Lost
+	"3":  {"13"}, // Stolen
+	"4":  {"16"}, // Restricted (ограничена)
+	"5":  {"05"}, // VIP
+	"6":  {"06"}, // Open Domestic
+	"8":  {"08"}, // Compromised
+	"9":  {"15"}, // Closed
+	"10": {"17"}, // Referral (Необходим дополнительный запрос к эмитенту)
+	"12": {"03"}, // Declared (Не издана)
+	"15": {"11"}, // Expired
 }
 
 var Currencies = map[string]string{
