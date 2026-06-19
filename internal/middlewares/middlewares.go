@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"converterapi/internal/auth"
 	"converterapi/internal/config"
+	"converterapi/internal/handlers"
 	d8procweb "converterapi/pkg/d8-proc-web"
 	"converterapi/pkg/logger"
 	"converterapi/pkg/prometheus"
@@ -11,7 +12,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -25,7 +25,7 @@ func ClerkAuth() gin.HandlerFunc {
 		xmlData, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			logger.Errorf("Error reading body: %v", err)
-			c.XML(http.StatusUnauthorized, gin.H{"error": "Failed to read request body"})
+			handlers.SendSoapFault(c, 400, "400", "Failed to read credentials")
 			c.Abort()
 			return
 		}
@@ -33,7 +33,7 @@ func ClerkAuth() gin.HandlerFunc {
 		c.Request.Body = io.NopCloser(bytes.NewReader(xmlData))
 
 		if len(xmlData) == 0 {
-			c.XML(http.StatusUnauthorized, gin.H{"error": "Empty body"})
+			handlers.SendSoapFault(c, 400, "400", "Empty credentials")
 			c.Abort()
 			return
 		}
@@ -42,21 +42,21 @@ func ClerkAuth() gin.HandlerFunc {
 		user, err := auth.ParseAuth(string(xmlData))
 		if err != nil {
 			logger.Errorf("Error: %v", err)
-			c.XML(http.StatusInternalServerError, "Auth error")
+			handlers.SendSoapFault(c, 500, "500", "Auth error")
 			c.Abort()
 			return
 		}
 
 		want, ok := auth.ClerksMap[user.Clerk]
 		if !ok {
-			c.XML(http.StatusUnauthorized, gin.H{"error": "wrong clerk or password"})
+			handlers.SendSoapFault(c, 401, "401", "wrong clerk or password")
 			c.Abort()
 			return
 		}
 		hash := sha256.Sum256([]byte(user.Password))
 		got := hex.EncodeToString(hash[:])
 		if got != want {
-			c.XML(http.StatusUnauthorized, gin.H{"error": "wrong clerk or password"})
+			handlers.SendSoapFault(c, 401, "401", "wrong clerk or password")
 			c.Abort()
 			return
 		}
@@ -74,7 +74,7 @@ func CheckApiKey() gin.HandlerFunc {
 		}
 		if reqToken == "" {
 			logger.Warnf("empty API key")
-			c.XML(http.StatusUnauthorized, "secret API key is needed")
+			handlers.SendSoapFault(c, 401, "401", "secret API key is needed")
 			c.Abort()
 			return
 		}
@@ -87,7 +87,7 @@ func CheckApiKey() gin.HandlerFunc {
 
 		if reqToken != splitToken {
 			logger.Warnf("wrong API key!")
-			c.XML(http.StatusUnauthorized, "secret key is not valid")
+			handlers.SendSoapFault(c, 401, "401", "secret key is not valid")
 			c.Abort()
 			return
 		}
