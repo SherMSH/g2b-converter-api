@@ -29,16 +29,16 @@ type TrnData struct {
 	TransactionResponse TransactionResponse `json:"transactionResponse"`
 	Lkey                Lkey                `json:"lkey"`
 	RecipientLkey       Lkey                `json:"recipientLkey"`
-	ApprovalCode        string              `json:"aprvlCode"`
 }
 
 type TransactionResponse struct {
-	TlId       int    `json:"tlId"`
-	EcTxRefno  string `json:"ecTxRefno"`
-	Stan       int    `json:"stan"`
-	Rrn        string `json:"rrn"`
-	ActionCode string `json:"actionCode"`
-	RspCode    string `json:"rspCode"`
+	TlId         int    `json:"tlId"`
+	EcTxRefno    string `json:"ecTxRefno"`
+	Stan         int    `json:"stan"`
+	Rrn          string `json:"rrn"`
+	ActionCode   string `json:"actionCode"`
+	RspCode      string `json:"rspCode"`
+	ApprovalCode string `json:"aprvlCode"`
 }
 
 type Lkey struct {

@@ -28,7 +28,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	if trn != nil {
 		body.SoapRq.Req.ThisTranId = fmt.Sprintf("%v", trn.TransactionResponse.TlId)
 		body.SoapRq.Req.RespCode = trn.TransactionResponse.RspCode
-		body.SoapRq.ApprovalCode = trn.ApprovalCode
+		body.SoapRq.ApprovalCode = trn.TransactionResponse.ApprovalCode
 	}
 	if trn.TransactionResponse.RspCode == string(utils.AdviceLogNotProceed) {
 		logger.Errorf("bad response tx status {Skipped}")
@@ -68,7 +68,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					Echo:         body.SoapRq.Req.Echo,
 
 					AccountCurrency:      utils.Currencies[cardInfo.CardBasicInfo.Currcode],
-					ApprovalCode:         trn.ApprovalCode,
+					ApprovalCode:         trn.TransactionResponse.ApprovalCode,
 					AuthRespCode:         body.SoapRq.Req.RespCode,
 					AuthRespCodeCategory: "0",
 					AvailBalance:         fmt.Sprintf("%.2f", avlbal),
