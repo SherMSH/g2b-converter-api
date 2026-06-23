@@ -72,3 +72,26 @@ var Currencies = map[string]string{
 	"156": "CNY",
 	"643": "RUB",
 }
+
+var TranCodes = map[int]string{
+	0: "175", //Goods and services
+	1: "175", //  01 Withdrawal
+	// 02 Debit Adjustment 09 Goods and services with cash disbursement
+	// 10 Non-cash instrument
+	//11 Quasi cash
+	// 17 Goods/sale with tip
+	// 20 Refund
+	21: "140", // 21 Deposits
+	// 22 Credit Adjustment
+	// 26 Cardholder funds transfer
+	// 28 Cash Deposit (cash in)
+	// 30 Available Funds Enquiry
+	// 31 Balance Enquiry
+	// 47 Money Transfer
+	// 50 Bill payment
+	// 58 Payment external bank
+	// 90 PIN Change
+	// 93 Customer Authentication
+	// 94 PIN unblock (EMV only)
+	// 95 Application unblock
+}

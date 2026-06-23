@@ -113,15 +113,15 @@ type TranCode int
 
 const (
 	Credit TranCode = 140
-	Debit  TranCode = 174
+	Debit  TranCode = 175
 )
 
 func (req Request) GetTxnType() utils.TxnType {
 	switch req.TranCode {
 	case Credit:
-		return utils.Sales
-	case Debit:
 		return utils.Deposit
+	case Debit:
+		return utils.Sales
 	default:
 		return utils.Sales
 	}

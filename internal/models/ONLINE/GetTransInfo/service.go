@@ -2,6 +2,7 @@ package gettransinfo
 
 import (
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
 	"time"
@@ -48,7 +49,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 			TermClass:            trn.Details.Termtype,
 			TermName:             trn.Details.TermCode,
 			TermDate:             tstamp.Format("2006-01-02") + "T00:00:00",
-			TranCode:             fmt.Sprintf("%d", trn.Details.TxnCode),
+			TranCode:             utils.TranCodes[trn.Details.TxnCode],
 			DraftCapture:         "1",
 			FromAcct:             accnum,
 			Amount:               fmt.Sprintf("%.2f", trn.Details.TxnAmount),
