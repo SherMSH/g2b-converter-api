@@ -16,6 +16,15 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		return nil, fmt.Errorf("Transaction card PAN validation fail!")
 	}
 
+	var accnum string
+	cardInfo, err := service.GetCardInfo(trn.Details.Lkey.Pan, trn.Details.DateExp)
+	if err != nil {
+		logger.Errorf("[SERVICE] GetCardInfo for TranInfo err: %v", err)
+	}
+	if len(cardInfo.CardAccounts) != 0 {
+		accnum = cardInfo.CardAccounts[0].AccountNumber
+	}
+
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
 	soapResp.XmlnsM1 = "http://schemas.compassplus.com/two/1.0/fimi.xsd"
@@ -41,7 +50,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 			TermDate:             tstamp.Format("2006-01-02") + "T00:00:00",
 			TranCode:             fmt.Sprintf("%d", trn.Details.TxnCode),
 			DraftCapture:         "1",
-			FromAcct:             trn.Details.Lkey.MaskedPan,
+			FromAcct:             accnum,
 			Amount:               fmt.Sprintf("%.2f", trn.Details.TxnAmount),
 			Amount2:              "0",
 			Fee:                  "0",
