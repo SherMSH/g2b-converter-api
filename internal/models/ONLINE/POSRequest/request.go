@@ -32,7 +32,7 @@ type Request struct {
 	Clerk    string `xml:"Clerk,attr" json:"clerk"`
 	Password string `xml:"Password,attr" json:"password"`
 
-	TranType   string   `xml:"TranType" json:"tran_type"`
+	TranType   TranType `xml:"TranType" json:"tran_type"`
 	TranCode   TranCode `xml:"TranCode" json:"tran_code"`
 	TranNumber string   `xml:"TranNumber" json:"tran_number"`
 
@@ -62,11 +62,58 @@ type Request struct {
 	RespCode string `xml:"RespCode" json:"resp_code"`
 }
 
-type TranCode string
+type TranType int
+
+// Тип транзакции:
+// 100=AuthRequest (авторизационный
+// запрос, происходит онлайн-авторизация);
+// 120=AuthAdvice (авторизационный запрос,
+// безусловный прием и одобрение
+// извещения о транзакции);
+// 200=Request (финансовый запрос,
+// происходит онлайн-авторизация);
+// 220=Advice (финансовый запрос,
+// безусловный прием и одобрение
+// извещения о транзакции);
+// 999=Admin(админстративный запрос,
+// используется только для транзакции
+// CloseDay (162))
+
+type TranCode int
+
+// Код транзакции. Возможные значения:
+// - Purchase (110),
+// - Pre-purchase(111),
+// - Pre-purchase Complete (112),
+// - Mail/Phone Order(113),
+// - Merchandise Return(114),
+// - Cash Advance(115),
+// - Card Verification(116),
+// - POS Balance Inquiry(117),
+// - Purchase With Cashback(118),
+// - Purchase Adjustment(121),
+// - Merchandise Return Adjustment(122),
+// - Cash Advance Adjustment(123),
+// - Pre-purchase Increment(124),
+// - Purchase Cancellation(125),
+// - POS Message to Financial Institution(126),
+// - Quasi-Cash(130),
+// - POS P2P Debit(132),
+// - POS P2P Credit(133),
+// - POS P2P Calc Fee(134),
+// - POS P2P Pass(135),
+// - POS Installment Details(136),
+// - POS PIN Change(139),
+// - POS Deposit(140),
+// - POS Deposit Adjustment(141),
+// - POS Transfer Pass(149),
+// - Close Batch(160),
+// - Close Day(162),
+// - POS Prepaid Pass(171),
 
 const (
-	Credit TranCode = "140"
-	Debit  TranCode = "174"
+	Credit TranCode = 140
+	Debit  TranCode = 174
 )
 
 func (req Request) GetTxnType() utils.TxnType {

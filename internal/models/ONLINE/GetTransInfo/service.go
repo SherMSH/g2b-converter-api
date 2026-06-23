@@ -12,6 +12,9 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 	if err != nil {
 		return nil, err
 	}
+	if trn.Details.Lkey.Pan != b.SoapRq.Req.PAN {
+		return nil, fmt.Errorf("Transaction card PAN validation fail!")
+	}
 
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
