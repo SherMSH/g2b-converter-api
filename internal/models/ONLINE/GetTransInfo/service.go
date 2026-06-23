@@ -2,6 +2,7 @@ package gettransinfo
 
 import (
 	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
 	"time"
@@ -11,6 +12,18 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 	trn, err := service.GetTransactionDetailsG2b(b.SoapRq.Req.Id, b.SoapRq.Req.TranNumber)
 	if err != nil {
 		return nil, err
+	}
+	if trn.Details.Lkey.Pan != b.SoapRq.Req.PAN {
+		return nil, fmt.Errorf("Transaction card PAN validation fail!")
+	}
+
+	var accnum string
+	cardInfo, err := service.GetCardInfo(trn.Details.Lkey.Pan, trn.Details.DateExp)
+	if err != nil {
+		logger.Errorf("[SERVICE] GetCardInfo for TranInfo err: %v", err)
+	}
+	if len(cardInfo.CardAccounts) != 0 {
+		accnum = cardInfo.CardAccounts[0].AccountNumber
 	}
 
 	soapResp = new(Envelope)
@@ -36,9 +49,9 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 			TermClass:            trn.Details.Termtype,
 			TermName:             trn.Details.TermCode,
 			TermDate:             tstamp.Format("2006-01-02") + "T00:00:00",
-			TranCode:             fmt.Sprintf("%d", trn.Details.TxnCode),
+			TranCode:             utils.TranCodes[trn.Details.TxnCode],
 			DraftCapture:         "1",
-			FromAcct:             trn.Details.Lkey.MaskedPan,
+			FromAcct:             accnum,
 			Amount:               fmt.Sprintf("%.2f", trn.Details.TxnAmount),
 			Amount2:              "0",
 			Fee:                  "0",
