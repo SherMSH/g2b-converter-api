@@ -9,9 +9,8 @@ type Body struct {
 	SoapRq SoapRq `xml:"POSRequestRq" json:"POSRequestRq"`
 }
 
-func (b *Body) Call() (err error) {
-	err = PosReq(b)
-	return
+func (b *Body) Call() (resp *Envelope, err error) {
+	return PosReq(b)
 }
 
 func (b Body) GetReqType() interface{} {
@@ -41,11 +40,11 @@ type Request struct {
 
 	PAN string `xml:"PAN" json:"pan"`
 
-	FromAccount  string  `xml:"FromAccount" json:"from_account"`
-	FromAcctType string  `xml:"FromAcctType" json:"from_acct_type"`
-	ToAccount    string  `xml:"ToAccount" json:"to_account"`
-	ToAcctType   string  `xml:"ToAcctType" json:"to_acct_type"`
-	Amount       float64 `xml:"Amount" json:"amount"`
+	FromAccount  string `xml:"FromAccount" json:"from_account"`
+	FromAcctType string `xml:"FromAcctType" json:"from_acct_type"`
+	// ToAccount    string  `xml:"ToAccount" json:"to_account"`
+	ToAcctType string  `xml:"ToAcctType" json:"to_acct_type"`
+	Amount     float64 `xml:"Amount" json:"amount"`
 
 	CVV       string `xml:"CVV" json:"cvv"`
 	CVV2      string `xml:"CVV2" json:"cvv2"`
@@ -151,10 +150,6 @@ func (req Request) GetCurrency() string {
 	return req.Currency
 }
 
-func (req Request) GetRecipientAcc() string {
-	return req.ToAccount
-}
-
 func (req Request) GetTerminal() string {
 	return req.TermName
 }
@@ -164,5 +159,5 @@ func (req Request) GetAmount() float64 {
 }
 
 func (req Request) GetAcceptorID() string {
-	return req.ToAccount
+	return "000001"
 }

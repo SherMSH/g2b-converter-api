@@ -29,7 +29,6 @@ type TrnInputIface interface {
 	GetAccount() string
 	GetAmount() float64
 	GetCurrency() string
-	GetRecipientAcc() string
 	GetTerminal() string
 	GetAcceptorID() string
 }

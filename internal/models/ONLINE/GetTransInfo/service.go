@@ -9,6 +9,23 @@ import (
 )
 
 func Svc(b *Body) (soapResp *Envelope, err error) {
+	soapResp = new(Envelope)
+	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
+	soapResp.XmlnsM1 = "http://schemas.compassplus.com/two/1.0/fimi.xsd"
+	soapResp.XmlnsS = "http://www.w3.org/2003/05/soap-envelope"
+	soapResp.Body.GetTransInfoRp.Response = Response{
+		Echo:         b.SoapRq.Req.Echo,
+		Product:      b.SoapRq.Req.Product,
+		ResponseAttr: "1",
+		Ver:          "1.0",
+		TranList: TranList{
+			Rows: []TranListRow{},
+		},
+	}
+
+	if len(b.SoapRq.Req.Id) == 0 {
+		return
+	}
 	trn, err := service.GetTransactionDetailsG2b(b.SoapRq.Req.Id, b.SoapRq.Req.TranNumber)
 	if err != nil {
 		return nil, err
@@ -25,11 +42,6 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 	if len(cardInfo.CardAccounts) != 0 {
 		accnum = cardInfo.CardAccounts[0].AccountNumber
 	}
-
-	soapResp = new(Envelope)
-	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
-	soapResp.XmlnsM1 = "http://schemas.compassplus.com/two/1.0/fimi.xsd"
-	soapResp.XmlnsS = "http://www.w3.org/2003/05/soap-envelope"
 
 	tstamp, err := time.Parse("20060102T150405", trn.Details.DateLocal+"T"+trn.Details.TimeLocal)
 	if err != nil {
@@ -123,16 +135,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		},
 	}
 
-	soapResp.Body.GetTransInfoRp.Response = Response{
-		Echo:         b.SoapRq.Req.Echo,
-		Product:      b.SoapRq.Req.Product,
-		ResponseAttr: "1",
-		Ver:          "1.0",
-
-		MaskBalances: "0",
-		TranList: TranList{
-			Rows: tranListArr,
-		},
-	}
+	soapResp.Body.GetTransInfoRp.Response.MaskBalances = "0"
+	soapResp.Body.GetTransInfoRp.Response.TranList.Rows = tranListArr
 	return
 }
