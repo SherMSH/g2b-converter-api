@@ -6,7 +6,6 @@ import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/crypto"
 	"converterapi/pkg/logger"
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 )
@@ -14,32 +13,60 @@ import (
 func SetPinG2b(pan, pin, expDate string) error {
 	var resp *d8corp.CommonResp
 
-	pinBlockBuilder := crypto.NewPinBlockBuilder()
-	pinblock0, err := pinBlockBuilder.BuildFormat0(pan, pin)
+	key3DES, err := crypto.Generate3DESKey()
 	if err != nil {
-		return err
+		logger.Errorf("generate 3DES key error: %v", err)
+		return fmt.Errorf("generate 3DES key error: %v", err)
+	}
+	logger.Infof("Generated 3DES key: %v", crypto.HexUpper(key3DES))
+
+	publicKey, err := crypto.ReadPublicKey("internal/app/files/transport_setpin.der")
+	if err != nil {
+		logger.Errorf("read public key error: %v", err)
+		return fmt.Errorf("read public key error: %v", err)
+	}
+	logger.Infof("Key size: %d", publicKey.N.BitLen())
+
+	// Шифруем 3DES ключ публичным ключом
+	pinKeyUnderRSA, err := crypto.EncryptWithRSA(publicKey, key3DES)
+	if err != nil {
+		logger.Errorf("Encrypt with RSA: %v", err)
+		return fmt.Errorf("Encrypt with RSA: %v", err)
 	}
 
-	pinBlockEncrypter := crypto.NewTripleDESEncrypter()
-	pinBlock, err := pinBlockEncrypter.EncryptECB(crypto.RandomZPK, pinblock0)
+	clear, err := crypto.Format0(pin)
 	if err != nil {
-		return err
+		logger.Errorf("pin block format0: %v", err)
+		return fmt.Errorf("pin block format0: %v", err)
+	}
+	var zpk, encrypted []byte
+	zpk, err = crypto.GenerateZPK32()
+	if err != nil {
+		logger.Errorf("generate ZPK: %v", err)
+		return fmt.Errorf("generate ZPK: %v", err)
+	}
+	encrypted, err = crypto.Encrypt3DES(zpk, clear)
+	if err != nil {
+		logger.Errorf("encrypt: %v", err)
+		return fmt.Errorf("encrypt: %v", err)
 	}
 
-	pubKey := new(rsa.PublicKey)
-	pinBlockRSAEncrypter := crypto.NewRSAZPKEncrypter(pubKey)
+	pinBlock := encrypted // hex.DecodeString(pinBlockHex)
 
-	pinBlockUnderRSA, err := pinBlockRSAEncrypter.Encrypt(pinBlock)
+	// Шифруем PIN-блок 3DES ключом
+	encryptedPinBlock, err := crypto.EncryptWith3DES(key3DES, pinBlock)
 	if err != nil {
-		return err
+		logger.Errorf("Encrypt with 3DES: %v", err)
+		return fmt.Errorf("Encrypt with 3DES: %v", err)
 	}
+
 	req := d8corp.SetPinReq{
 		CardKey: d8corp.CardKey{
 			Pan:        pan,
 			ExpiryDate: expDate,
 		},
-		PinKeyUnderRSA: string(pinBlockUnderRSA),
-		PinBlock:       string(pinBlock),
+		PinKeyUnderRSA: crypto.HexUpper(pinKeyUnderRSA),
+		PinBlock:       crypto.HexUpper(encryptedPinBlock),
 		PinBlockType:   "0",
 	}
 

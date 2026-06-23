@@ -1,113 +1,123 @@
 package crypto
 
 import (
+	"crypto/aes"
+	"crypto/des"
+	"crypto/rand"
 	"errors"
 	"fmt"
-	"unicode"
 )
 
-// PinBlockBuilder builds ISO 9564-1 Format 0 (ANSI X9.8) PIN blocks.
-type PinBlockBuilder struct{}
+const (
+	ZPKBytes    = 16 // 32 hex digits (double-length 3DES ZPK)
+	PINBlockLen = 8
+)
 
-// NewPinBlockBuilder returns a PinBlockBuilder.
-func NewPinBlockBuilder() *PinBlockBuilder {
-	return &PinBlockBuilder{}
+// Format0 builds a clear ISO 9564-1 Format 0 PIN block (8 bytes).
+func Format0(pin string) ([]byte, error) {
+	if len(pin) < 4 || len(pin) > 12 {
+		return nil, errors.New("PIN length must be 4..12 digits")
+	}
+	for _, c := range pin {
+		if c < '0' || c > '9' {
+			return nil, errors.New("PIN must contain only decimal digits")
+		}
+	}
+
+	block := make([]byte, PINBlockLen)
+	for i := range block {
+		block[i] = 0xFF
+	}
+	block[0] = byte(len(pin) & 0x0F)
+
+	for i, c := range pin {
+		d := byte(c - '0')
+		idx := 1 + i/2
+		if i%2 == 0 {
+			block[idx] = (d << 4) | (block[idx] & 0x0F)
+		} else {
+			block[idx] = (block[idx] & 0xF0) | d
+		}
+	}
+	if len(pin)%2 == 1 {
+		idx := 1 + len(pin)/2
+		block[idx] = (block[idx] & 0xF0) | 0x0F
+	}
+	return block, nil
 }
 
-// BuildFormat0 returns the 8-byte cleartext PIN block before 3DES.
-// Algorithm: XOR of PIN field P1 and PAN field P2 (both 8 bytes).
-func (b *PinBlockBuilder) BuildFormat0(pan, pin string) ([]byte, error) {
-	if err := validatePIN(pin); err != nil {
+// GenerateZPK32 returns a random 16-byte ZPK with odd parity (32 hex digits).
+func GenerateZPK32() ([]byte, error) {
+	key := make([]byte, ZPKBytes)
+	if _, err := rand.Read(key); err != nil {
 		return nil, err
 	}
-	panDigits, err := digitsOnly(pan)
-	if err != nil {
-		return nil, err
+	for i, b := range key {
+		if bitsOnes(b)%2 == 0 {
+			key[i] = b ^ 0x01
+		}
 	}
-	if len(panDigits) < 13 || len(panDigits) > 19 {
-		return nil, fmt.Errorf("pan: expected 13–19 digits, got %d", len(panDigits))
+	return key, nil
+}
+func bitsOnes(b byte) int {
+	n := 0
+	for b != 0 {
+		n += int(b & 1)
+		b >>= 1
 	}
+	return n
+}
 
-	p1, err := buildP1(pin)
+// Encrypt3DES encrypts an 8-byte PIN block with ZPK using 3DES-ECB (2-key).
+func Encrypt3DES(zpk, clear []byte) ([]byte, error) {
+	if len(clear) != PINBlockLen {
+		return nil, fmt.Errorf("clear PIN block must be %d bytes", PINBlockLen)
+	}
+	key24, err := expand2Key3DES(zpk)
 	if err != nil {
 		return nil, err
 	}
-	p2, err := buildP2(panDigits)
+	block, err := des.NewTripleDESCipher(key24)
 	if err != nil {
 		return nil, err
 	}
-
-	out := make([]byte, 8)
-	for i := range out {
-		out[i] = p1[i] ^ p2[i]
-	}
+	out := make([]byte, PINBlockLen)
+	block.Encrypt(out, clear)
 	return out, nil
 }
 
-func validatePIN(pin string) error {
-	n := len(pin)
-	if n < 4 || n > 12 {
-		return fmt.Errorf("pin: length must be 4–12, got %d", n)
+func expand2Key3DES(key16 []byte) ([]byte, error) {
+	if len(key16) != ZPKBytes {
+		return nil, fmt.Errorf("ZPK must be %d bytes, got %d", ZPKBytes, len(key16))
 	}
-	for _, r := range pin {
-		if r < '0' || r > '9' {
-			return errors.New("pin: must contain only digits")
-		}
-	}
-	return nil
+	out := make([]byte, 24)
+	copy(out, key16)
+	copy(out[16:], key16[:8])
+	return out, nil
 }
 
-func digitsOnly(s string) (string, error) {
-	var b []byte
-	for _, r := range s {
-		if unicode.IsDigit(r) {
-			b = append(b, byte(r))
-		} else {
-			return "", errors.New("pan: must contain only digits")
-		}
+// GenerateZPK256 returns a random 32-byte key (AES-256).
+func GenerateZPK256() ([]byte, error) {
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		return nil, err
 	}
-	return string(b), nil
+	return key, nil
 }
 
-// buildP1: nibble0=0 (format 0), nibble1=PIN length, then PIN in BCD padded with F; remaining bytes 0xFF.
-func buildP1(pin string) ([]byte, error) {
-	pinLen := len(pin)
-	block := []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
-	block[0] = byte((0 << 4) | pinLen)
-
-	nibbles := make([]byte, 0, 24)
-	for i := 0; i < pinLen; i++ {
-		nibbles = append(nibbles, pin[i]-'0')
+// EncryptAES encrypts an 8-byte PIN block with a 32-byte ZPK using AES-256-ECB.
+func EncryptAES(zpk, clear []byte) ([]byte, error) {
+	if len(zpk) != 32 {
+		return nil, errors.New("AES ZPK must be 32 bytes")
 	}
-	if len(nibbles)%2 == 1 {
-		nibbles = append(nibbles, 0x0F)
+	if len(clear) != PINBlockLen {
+		return nil, fmt.Errorf("clear PIN block must be %d bytes", PINBlockLen)
 	}
-	idx := 1
-	for i := 0; i < len(nibbles); i += 2 {
-		if idx >= 8 {
-			return nil, errors.New("pin: internal encoding overflow")
-		}
-		block[idx] = (nibbles[i] << 4) | nibbles[i+1]
-		idx++
+	block, err := aes.NewCipher(zpk)
+	if err != nil {
+		return nil, err
 	}
-	return block, nil
-}
-
-// buildP2: bytes 0-1 are 0x00; bytes 2-7 are 12 PAN digits (excluding check digit) as BCD.
-func buildP2(panDigits string) ([]byte, error) {
-	// Exclude check digit (last digit); take 12 rightmost of the remainder.
-	body := panDigits[:len(panDigits)-1]
-	if len(body) < 12 {
-		return nil, fmt.Errorf("pan: need at least 12 digits excluding check digit, got %d", len(body))
-	}
-	start := len(body) - 12
-	d12 := body[start:]
-
-	block := []byte{0x00, 0x00, 0, 0, 0, 0, 0, 0}
-	for i := 0; i < 6; i++ {
-		high := d12[i*2] - '0'
-		low := d12[i*2+1] - '0'
-		block[2+i] = (high << 4) | low
-	}
-	return block, nil
+	out := make([]byte, PINBlockLen)
+	block.Encrypt(out, clear)
+	return out, nil
 }
