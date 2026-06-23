@@ -34,7 +34,9 @@ func Init(h *handlers.Handler) *gin.Engine {
 
 		d8procweb := soap.Group("/d8-proc-web")
 		d8procweb.Use(middlewares.D8ProcWebAuth())
-		d8procweb.POST("/d8convert")
+		{
+			d8procweb.POST("/d8convert")
+		}
 	}
 	return router
 }

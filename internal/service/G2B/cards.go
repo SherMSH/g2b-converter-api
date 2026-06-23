@@ -19,7 +19,7 @@ func GetCardsListG2b(custcode, currcode string) (foundCards []d8procweb.CardData
 		},
 	}
 
-	resp, err := d8procweb.D8procwebRequest(path, filters)
+	resp, err := d8procweb.Request(path, filters)
 	if err != nil {
 		return nil, err
 	}
