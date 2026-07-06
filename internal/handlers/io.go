@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"converterapi/internal/config"
+	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
 	"io"
@@ -44,6 +45,21 @@ func PutConvFile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":         "Тип файла не поддерживается",
 			"detected_type": mimeType,
+		})
+		return
+	}
+
+	//Валидация Filename
+	var isValid bool
+	for _, v := range utils.OfflineReqTypes {
+		if string(v) == header.Filename {
+			isValid = true
+		}
+	}
+	if !isValid {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":    "Неверное имя файла",
+			"filename": header.Filename,
 		})
 		return
 	}
