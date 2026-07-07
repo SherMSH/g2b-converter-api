@@ -61,3 +61,9 @@ type Row struct {
 	CurrencyISOCode     string `xml:"m0:CurrencyISOCode"`
 	OrigCurrencyISOCode string `xml:"m0:OrigCurrencyISOCode"`
 }
+type CardRow struct {
+	PAN    string `xml:"m0:PAN"`
+	MBR    string `xml:"m0:MBR"`
+	Status string `xml:"m0:Status"`
+	Type   string `xml:"m0:Type"`
+}

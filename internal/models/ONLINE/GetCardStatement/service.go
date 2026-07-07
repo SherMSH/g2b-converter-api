@@ -42,10 +42,10 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		tranTime, _ := time.ParseInLocation("20060102150405", v.When_created[:14], time.Local)
 		row := Row{
 			FrontId:             fmt.Sprintf("%v", v.TlId),
-			Origin:              fmt.Sprintf("%d", i),
+			Origin:              v.EcTxRefno,
 			Type:                "1",
 			OperCode:            fmt.Sprintf("%d", v.Txncode),
-			Description:         "",
+			Description:         fmt.Sprintf("%s %s", v.CrdactplocName, v.EcTxRefno),
 			Amount:              fmt.Sprintf("%.2f", v.TxnAmount),
 			Currency:            utils.Currencies[v.TxnCurrency],
 			OperDate:            operDate.Format("2006-01-02"),
@@ -55,7 +55,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			PAN:                 v.Lkey.Pan,
 			MBR:                 "0",
 			TermClass:           v.TermType,
-			TermName:            fmt.Sprintf("%s %s", v.CrdacptID, v.TermCode),
+			TermName:            v.TermCode,
 			TermRetailerName:    v.CrdactplocName,
 			TermSIC:             fmt.Sprintf("%d", v.CrdacptBus),
 			TermLocation:        v.CrdactplocName,
@@ -66,7 +66,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			OrigTime:            tranTime.Format("2006-01-02T15:04:05"),
 			TermCountry:         v.CrdactplocCountry,
 			TermCity:            v.CrdactplocCity,
-			// OnlineIssuerFee:     "",
+			OnlineIssuerFee:     "0",
 		}
 		rows = append(rows, row)
 	}
