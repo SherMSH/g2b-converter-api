@@ -29,10 +29,10 @@ type GetCardInfoReq struct {
 
 type GetCardTrnHistoryReq struct {
 	CardKey       CardKey      `json:"cardKey"`
-	DateUTCFrom   string       `json:"dateUTCFrom"`
-	DateUTCTo     string       `json:"dateUTCTo"`
-	DateLocalFrom string       `json:"dateLocalFrom"`
-	DateLocalTo   string       `json:"dateLocalTo"`
+	DateUTCFrom   string       `json:"dateInsertUTCFrom"`
+	DateUTCTo     string       `json:"dateInsertUTCTo"`
+	DateLocalFrom string       `json:"dateInsertLocalFrom"`
+	DateLocalTo   string       `json:"dateInsertLocalTo"`
 	PagingParams  PagingParams `json:"paging"`
 }
 

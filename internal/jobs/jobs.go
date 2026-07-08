@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"converterapi/internal/config"
+	d8procweb "converterapi/pkg/d8-proc-web"
 	"converterapi/pkg/logger"
 	"time"
 
@@ -23,6 +24,6 @@ func Start() {
 			logger.Errorf("ConvScanner JOB err %v", err)
 		}
 	}
-	// scheduler.Every(30).Seconds().Do(d8procweb.Signin())
+	scheduler.Every(30).Seconds().Do(d8procweb.Signin())
 	scheduler.StartAsync()
 }

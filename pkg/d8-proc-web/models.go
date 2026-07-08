@@ -62,3 +62,18 @@ type RequestBody struct {
 	Ordering []string    `json:"ordering,omitempty"`
 	Filters  []Filter    `json:"filters,omitempty"`
 }
+
+type TerminalsData struct {
+	Recver        int    `json:"recver"`
+	ID            int    `json:"id"`
+	CompanyID     int    `json:"company_id"`
+	MerchantID    int    `json:"merchant_id"`
+	Netname       string `json:"netname"`
+	MerchantIDStr string `json:"merchantid"`
+	TerminalID    string `json:"terminalid"`
+	Statcode      int    `json:"statcode"`
+	Curcode       string `json:"curcode"`
+	Geoip4        string `json:"geoip4"`
+	Timezone      string `json:"timezone"`
+	PostypID      int    `json:"postyp_id"`
+}

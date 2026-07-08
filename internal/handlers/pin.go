@@ -14,14 +14,13 @@ type PinChangeReq struct {
 	PIN        string `json:"pin"`
 }
 
-func PinChange(c *gin.Context) {
+func SetPIN(c *gin.Context) {
 
 	var req PinChangeReq
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.JSON(http.StatusExpectationFailed, gin.H{"error": err.Error()})
 		logger.Errorf("Error binding PinChageReq: %v", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Error binding PinChageReq"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Error binding PinChageReq"})
 		return
 	}
 

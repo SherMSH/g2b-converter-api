@@ -1,6 +1,7 @@
 package posrequestrq
 
 import (
+	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 )
@@ -159,5 +160,9 @@ func (req Request) GetAmount() float64 {
 }
 
 func (req Request) GetAcceptorID() string {
-	return "000001"
+	terminals, err := service.GetTerminalByIdG2b(req.TermName)
+	if err != nil || len(terminals) == 0 {
+		return "000001"
+	}
+	return terminals[0].MerchantIDStr
 }

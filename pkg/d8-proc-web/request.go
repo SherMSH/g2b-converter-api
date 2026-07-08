@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-func D8procwebRequest(path string, filters []Filter) (respData json.RawMessage, err error) {
+func Request(path string, filters []Filter) (respData json.RawMessage, err error) {
 	reqBody := RequestBody{
 		Filters: filters,
 	}
