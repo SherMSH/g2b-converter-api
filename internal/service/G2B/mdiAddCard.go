@@ -7,13 +7,15 @@ import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
-func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
+func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	var (
 		recDetails d8corp.MdiFile
+		resp       d8corp.CommonResp
 	)
 	recNums := utils.NewSequence()
 
@@ -105,12 +107,30 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 		return nil, err
 	}
 	logger.Infof("[SERVICE] D8 G2b ADDCARD resp status: %v, body: %v", status, string(data))
-	return data, nil
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		return nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP status %s", resp.Status.Code)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
+	}
+
+	err = json.Unmarshal(resp.Data, mdiData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		return nil, err
+	}
+
+	return mdiData, nil
 }
 
-func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
+func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	var (
 		recDetails d8corp.MdiFile
+		resp       d8corp.CommonResp
 	)
 	recNums := utils.NewSequence()
 
@@ -215,5 +235,22 @@ func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
 		return nil, err
 	}
 	logger.Infof("[SERVICE] D8 G2b ADDCARD (preissued) resp status: %v, body: %v", status, string(data))
-	return data, nil
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		return nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP status %s", resp.Status.Code)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
+	}
+
+	err = json.Unmarshal(resp.Data, mdiData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		return nil, err
+	}
+
+	return mdiData, nil
 }

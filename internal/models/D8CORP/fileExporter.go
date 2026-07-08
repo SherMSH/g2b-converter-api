@@ -22,4 +22,10 @@ type RespDetails struct {
 	ISS_RECNUM    string `json:"ISS_RECNUM"`
 	ISS_RECTYPE   string `json:"ISS_RECTYPE"`
 	I_REJMSG      string `json:"I_REJMSG"`
+
+	ISS_CARDA_ID  int    `json:"ISS_CARDA_ID"`
+	ISS_CARD_ID   int    `json:"ISS_CARD_ID"`
+	KL_LKEY_ALIAS string `json:"KL_LKEY_ALIAS"`
+	KL_LKEY_CLR   string `json:"KL_LKEY_CLR"`
+	KL_LKEY_SEQNO int    `json:"KL_LKEY_SEQNO"`
 }
