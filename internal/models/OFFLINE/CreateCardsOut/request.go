@@ -4,7 +4,6 @@ import (
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
-	"converterapi/pkg/logger"
 	"encoding/xml"
 )
 
@@ -26,7 +25,6 @@ func (r Root) GetRecordsCount() int {
 }
 
 func (r Root) Call() error {
-	resp, err := service.AddCardG2b(r)
-	logger.Infof("AddCard Mdi call resp: %v", resp)
+	_, err := service.AddCardG2b(r)
 	return err
 }

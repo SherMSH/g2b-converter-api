@@ -43,6 +43,7 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 			firstName = names[1]
 		}
 		prior, _ := strconv.Atoi(v.MakePrior)
+		prior++
 		record := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
 			IssRecaction:         "ADD",
@@ -98,20 +99,7 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 	// 	return nil, err
 	// }
 
-	mdiFile := d8corp.MdiFile{
-		MdiRecords: []json.RawMessage{
-			// headerJSON,
-			cardJSON,
-			// footerJSON,
-		},
-	}
-	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
-		return nil, err
-	}
-
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", cardJSON, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADDCARD request sending err: %v", err)
 		return nil, err
@@ -152,6 +140,7 @@ func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
 			firstName = names[1]
 		}
 		prior, _ := strconv.Atoi(v.MakePrior)
+		prior++
 		record := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
 			IssRecaction:         "ADD",
@@ -161,8 +150,8 @@ func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
 			IssImpPvki:           1,
 			DbCustomerCustcode:   firstSecret,
 			DbCdproductCdproduct: "ARVDBT",
-			//DbAccountAccnum:      v.Account,
-			DbAccountCurrcode: v.CurrencyNo,
+			DbAccountAccnum:      v.Account,
+			DbAccountCurrcode:    v.CurrencyNo,
 			// DbCardaCommCat:    "COM03",
 			DbCardaEnroll3ds: "1",
 			DbCardaLimitCat:  "LIM01",

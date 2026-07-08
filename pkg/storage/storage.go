@@ -30,11 +30,6 @@ func MoveFile(sourcePath, destPath string) error {
 		return fmt.Errorf("исходный файл не существует: %s", sourcePath)
 	}
 
-	// Проверяем, не существует ли уже файл в месте назначения
-	if _, err := os.Stat(destPath); err == nil {
-		return fmt.Errorf("файл назначения уже существует: %s", destPath)
-	}
-
 	// Перемещаем файл
 	err := os.Rename(sourcePath, destPath)
 	if err != nil {
