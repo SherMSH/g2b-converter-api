@@ -1,13 +1,14 @@
 package getcardinfo
 
 import (
+	"converterapi/internal/config"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"fmt"
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	if len(sb.SoapRq.Req.ExpirationDate) == 0 {
+	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
 		sb.SoapRq.Req.ExpirationDate = "3004"
 	}
 	cardInfo, err := service.GetCardInfo(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
