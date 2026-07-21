@@ -13,8 +13,8 @@ const (
 	PINBlockLen = 8
 )
 
-// Format0 builds a clear ISO 9564-1 Format 0 PIN block (8 bytes).
-func Format0(pin string) ([]byte, error) {
+// PinFormat0 builds a PIN_field ISO 9564-1 (8 bytes).
+func PinFormat0(pin string) ([]byte, error) {
 	if len(pin) < 4 || len(pin) > 12 {
 		return nil, errors.New("PIN length must be 4..12 digits")
 	}
@@ -43,6 +43,89 @@ func Format0(pin string) ([]byte, error) {
 		idx := 1 + len(pin)/2
 		block[idx] = (block[idx] & 0xF0) | 0x0F
 	}
+	return block, nil
+}
+
+// Format0 builds an ISO 9564-1 Format 0 PIN block (8 bytes).
+// PIN_field = 0 | PIN length | PIN value | padding F (to 16 positions)
+// PAN_field = 0000 | 12 rightmost digits of PAN excluding check digit
+// Result = PIN_field XOR PAN_field
+func Format0(pin string, pan string) ([]byte, error) {
+	if len(pin) < 4 || len(pin) > 12 {
+		return nil, errors.New("PIN length must be 4..12 digits")
+	}
+	for _, c := range pin {
+		if c < '0' || c > '9' {
+			return nil, errors.New("PIN must contain only decimal digits")
+		}
+	}
+
+	// 1. Build PIN_field (16 bytes in BCD format)
+	pinField := make([]byte, PINBlockLen) // 8 bytes = 16 BCD digits
+	for i := range pinField {
+		pinField[i] = 0xFF
+	}
+
+	// First nibble: 0, second nibble: PIN length
+	pinField[0] = byte(len(pin) & 0x0F) // 0x0L where L is PIN length
+
+	// Fill PIN digits
+	for i, c := range pin {
+		d := byte(c - '0')
+		idx := 1 + i/2
+		if i%2 == 0 {
+			pinField[idx] = (d << 4) | (pinField[idx] & 0x0F)
+		} else {
+			pinField[idx] = (pinField[idx] & 0xF0) | d
+		}
+	}
+
+	// Add padding F if PIN length is odd
+	if len(pin)%2 == 1 {
+		idx := 1 + len(pin)/2
+		pinField[idx] = (pinField[idx] & 0xF0) | 0x0F
+	}
+	// If PIN length is even, remaining bytes are already 0xFF
+
+	// 2. Build PAN_field (16 bytes in BCD format)
+	panField := make([]byte, PINBlockLen)
+
+	// First 4 digits (2 bytes) are "0000"
+	panField[0] = 0x00
+	panField[1] = 0x00
+
+	// Get PAN without check digit (last digit)
+	if len(pan) < 2 {
+		return nil, errors.New("PAN must be at least 2 digits")
+	}
+	panWithoutCheck := pan[:len(pan)-1]
+
+	// Get 12 rightmost digits
+	var pan12 string
+	if len(panWithoutCheck) >= 12 {
+		pan12 = panWithoutCheck[len(panWithoutCheck)-12:]
+	} else {
+		// Pad left with zeros if less than 12 digits
+		pan12 = fmt.Sprintf("%012s", panWithoutCheck)
+	}
+
+	// Fill PAN digits starting from byte 2 (after 0000)
+	for i, c := range pan12 {
+		d := byte(c - '0')
+		idx := 2 + i/2 // start from byte 2
+		if i%2 == 0 {
+			panField[idx] = (d << 4) | (panField[idx] & 0x0F)
+		} else {
+			panField[idx] = (panField[idx] & 0xF0) | d
+		}
+	}
+
+	// 3. XOR PIN_field and PAN_field
+	block := make([]byte, PINBlockLen)
+	for i := range block {
+		block[i] = pinField[i] ^ panField[i]
+	}
+
 	return block, nil
 }
 

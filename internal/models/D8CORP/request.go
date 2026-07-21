@@ -13,7 +13,7 @@ type SetPinReq struct {
 	CardKey        CardKey `json:"cardKey"`
 	PinKeyUnderRSA string  `json:"pinKeyUnderRSA"`
 	PinBlock       string  `json:"pinBlock,omitempty"`
-	PinBlockType   string  `json:"pinBlockType,omitempty"`
+	PinBlockType   int16   `json:"pinBlockType,omitempty"`
 }
 type GetCardInfoReq struct {
 	CardKey                 CardKey `json:"cardKey"`
