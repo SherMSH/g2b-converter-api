@@ -26,11 +26,11 @@ func (r Root) GetRecordsCount() int {
 }
 
 func (r Root) Call() ([]byte, error) {
-	// _, err := service.CheckCustomerIfExist()
+	// err := service.CreateCustomer(r)
 	// if err != nil {
 	// 	return nil, err
 	// }
-	// _, err = service.CheckAccountIfExist()
+	// _, err = service.CreateAccountIfExist(r)
 	// if err != nil {
 	// 	return nil, err
 	// }

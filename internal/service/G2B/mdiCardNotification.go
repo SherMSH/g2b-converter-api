@@ -84,6 +84,7 @@ func DeleteCardNotificationG2b(input models.MDIface) (result *d8corp.CommonResp,
 			IssCompanyRegnr: "ARVD",
 			KlLkeyAlias:     "",
 			KlLKeyClr:       v.PAN,
+			DbCardaExpdate:  v.ExpDate,
 			DbCdNotifSvcTyp: "SMSTXN",
 			DbCdNotifTarget: v.Address,
 		}

@@ -18,23 +18,7 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 		resp       d8corp.CommonResp
 	)
 	recNums := utils.NewSequence()
-
-	// filename := fmt.Sprintf("G2BISS-%v.JSON", time.Now().Local().Format("20060102-150405"))
-	// header := d8corp.HeaderRecord{
-	// 	IssRectype:      "HEADER",
-	// 	IssRecaction:    "IMPORT",
-	// 	CFilename:       filename, //"G2BISS-20060102-150405.JSON"
-	// 	IssSourcesys:    "LK",
-	// 	IssCompanyRegnr: "ARV",
-	// 	IssTimestamp:    "20230906120000123",
-	// }
-
 	for _, v := range input.GetRecords() {
-		// separator := make([]byte, 0)
-		// if i != 0 {
-		// 	separator = json.RawMessage(",")
-		// }
-
 		var firstSecret, firstName, lastName string
 		if len(v.SecretInfo.Items) != 0 {
 			firstSecret = v.SecretInfo.Items[0].Value

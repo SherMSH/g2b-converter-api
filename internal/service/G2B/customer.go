@@ -14,6 +14,10 @@ func GetCustomerInfoG2b() error {
 	return nil
 }
 
+func CreateCustomer(input models.MDIface) error {
+	return nil
+}
+
 func UpdateCustomerG2b(input models.MDIface) (resp interface{}, err error) {
 	var recDetails d8corp.MdiFile
 	recNums := utils.NewSequence()
