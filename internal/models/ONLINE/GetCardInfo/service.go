@@ -7,6 +7,9 @@ import (
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
+	if len(sb.SoapRq.Req.ExpirationDate) == 0 {
+		sb.SoapRq.Req.ExpirationDate = "3004"
+	}
 	cardInfo, err := service.GetCardInfo(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
 	if err != nil {
 		return nil, err

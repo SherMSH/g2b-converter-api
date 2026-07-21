@@ -26,6 +26,14 @@ func (r Root) GetRecordsCount() int {
 }
 
 func (r Root) Call() ([]byte, error) {
+	// _, err := service.CheckCustomerIfExist()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// _, err = service.CheckAccountIfExist()
+	// if err != nil {
+	// 	return nil, err
+	// }
 	mdiData, err := service.AddCardG2b(r)
 	if err != nil {
 		return nil, err

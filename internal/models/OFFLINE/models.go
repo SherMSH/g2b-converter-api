@@ -117,6 +117,7 @@ type MRecord struct {
 	MBR          string     `xml:"MBR"`
 	AcctNumber   string     `xml:"-"`
 	Id           string     `xml:"-"`
+	CustomerCode string     `xml:"-"`
 	FirstName    string     `xml:"-"`
 	LastName     string     `xml:"-"`
 	MiddleName   string     `xml:"-"`

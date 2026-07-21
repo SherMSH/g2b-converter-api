@@ -38,6 +38,7 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 		var firstSecret, firstName, lastName string
 		if len(v.SecretInfo.Items) != 0 {
 			firstSecret = v.SecretInfo.Items[0].Value
+			_ = firstSecret
 		}
 		names := strings.Split(v.LatFIO, " ")
 		if len(names) > 1 {
@@ -53,7 +54,7 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			IssCompanyRegnr:      "ARVD",
 			IssCompanyRegnrAcc:   "ARVD",
 			IssImpPvki:           1,
-			DbCustomerCustcode:   firstSecret,
+			DbCustomerCustcode:   v.CustomerCode,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,

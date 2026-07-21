@@ -7,6 +7,10 @@ import (
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
+
+	if len(sb.SoapRq.Req.ExpDate) == 0 {
+		sb.SoapRq.Req.ExpDate = "3004"
+	}
 	cvvData, err := service.GetCVVG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpDate)
 	if err != nil {
 		return nil, err
