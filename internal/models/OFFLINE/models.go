@@ -121,6 +121,7 @@ type MRecord struct {
 	FirstName    string     `xml:"-"`
 	LastName     string     `xml:"-"`
 	MiddleName   string     `xml:"-"`
+	ExpDate      string     `xml:"-"`
 }
 
 // SecretInfo - элемент с секретной информацией (список item-ов)

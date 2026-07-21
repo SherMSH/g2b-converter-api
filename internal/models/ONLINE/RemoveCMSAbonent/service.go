@@ -1,6 +1,7 @@
 package removecmsabonent
 
 import (
+	"converterapi/internal/config"
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
@@ -12,10 +13,16 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if sb.SoapRq.Req.AlternativeMessaging.Row != nil {
 		address = sb.SoapRq.Req.AlternativeMessaging.Row[0].Address
 	}
+
+	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
+		sb.SoapRq.Req.ExpirationDate = "3004"
+	}
+
 	root := models.Root{
 		Records: []models.MRecord{
 			{
 				PAN:     sb.SoapRq.Req.PAN,
+				ExpDate: sb.SoapRq.Req.ExpirationDate,
 				Address: address,
 			},
 		},

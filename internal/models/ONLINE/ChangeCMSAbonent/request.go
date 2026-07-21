@@ -27,11 +27,12 @@ type Request struct {
 	Clerk    string `xml:"Clerk,attr" json:"clerk"`
 	Password string `xml:"Password,attr" json:"password"`
 
-	MBR          string       `xml:"MBR" json:"mbr"`
-	PAN          string       `xml:"PAN" json:"pan"`
-	CardUID      string       `xml:"CardUID" json:"card_uid"`
-	AltMessaging AltMessaging `xml:"AlternativeMessaging" json:"alternative_messaging"`
-	NeedNotify   string       `xml:"NeedNotify" json:"need_notify"`
+	MBR            string       `xml:"MBR" json:"mbr"`
+	PAN            string       `xml:"PAN" json:"pan"`
+	CardUID        string       `xml:"CardUID" json:"card_uid"`
+	AltMessaging   AltMessaging `xml:"AlternativeMessaging" json:"alternative_messaging"`
+	NeedNotify     string       `xml:"NeedNotify" json:"need_notify"`
+	ExpirationDate string       `xml:"-"`
 }
 
 type AltMessaging struct {

@@ -1,6 +1,7 @@
 package changecmsabonent
 
 import (
+	"converterapi/internal/config"
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
@@ -15,10 +16,14 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 	if len(b.SoapRq.Req.AltMessaging.Row[0].PrevAddress) == 0 {
 		return nil, fmt.Errorf("Mandatory field is empty 'AlternativeMassaging -> Row -> PrevAddress'")
 	}
+	if config.Config.App.DebugMode && len(b.SoapRq.Req.ExpirationDate) == 0 {
+		b.SoapRq.Req.ExpirationDate = "3004"
+	}
 
 	root := models.Root{}
 	record := models.MRecord{
 		PAN:     b.SoapRq.Req.PAN,
+		ExpDate: b.SoapRq.Req.ExpirationDate,
 		Address: b.SoapRq.Req.AltMessaging.Row[0].Address,
 	}
 	root.Records = append(root.Records, record)

@@ -29,6 +29,7 @@ type Request struct {
 
 	MBR                  string `xml:"MBR" json:"mbr"`
 	PAN                  string `xml:"PAN" json:"pan"`
+	ExpirationDate       string `xml:"-"`
 	NeedNotify           string `xml:"NeedNotify" json:"need_notify"`
 	AlternativeMessaging Rows   `xml:"AlternativeMessaging" json:"alternative_messaging"`
 
