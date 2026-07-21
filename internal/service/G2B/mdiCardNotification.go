@@ -19,7 +19,7 @@ func AddCardNotificationG2b(input models.MDIface) (result *d8corp.CommonResp, er
 	recNums := utils.NewSequence()
 
 	for _, v := range input.GetRecords() {
-		record := d8corp.MdiRecordDetails{
+		smsTxnRec := d8corp.MdiRecordDetails{
 			IssRectype:      "CDRNOTIF",
 			IssRecaction:    "ADD",
 			IssRecnum:       recNums.NextVal(),
@@ -29,13 +29,30 @@ func AddCardNotificationG2b(input models.MDIface) (result *d8corp.CommonResp, er
 			DbCdNotifSvcTyp: "SMSTXN",
 			DbCdNotifTarget: v.Address,
 		}
-		jsonRec, err := json.Marshal(record)
+		smsGenRec := d8corp.MdiRecordDetails{
+			IssRectype:      "CDRNOTIF",
+			IssRecaction:    "ADD",
+			IssRecnum:       recNums.NextVal(),
+			IssCompanyRegnr: "ARVD",
+			KlLkeyAlias:     "",
+			KlLKeyClr:       v.PAN,
+			DbCdNotifSvcTyp: "SMSGEN",
+			DbCdNotifTarget: v.Address,
+		}
+
+		jsonRec1, err := json.Marshal(smsTxnRec)
 		if err != nil {
-			logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling record err: %v", err)
+			logger.Errorf("[SERVICE] D8 G2b ADDCARD SMSTXN req marshaling record err: %v", err)
 			return nil, err
 		}
-		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec)
+		jsonRec2, err := json.Marshal(smsGenRec)
+		if err != nil {
+			logger.Errorf("[SERVICE] D8 G2b ADDCARD SMSGEN req marshaling record err: %v", err)
+			return nil, err
+		}
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec1, jsonRec2)
 	}
+
 	mdiDataJSON, err := json.Marshal(recDetails)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADD CRDNOTIF req marshaling err: %v", err)
@@ -77,7 +94,7 @@ func DeleteCardNotificationG2b(input models.MDIface) (result *d8corp.CommonResp,
 	recNums := utils.NewSequence()
 
 	for _, v := range input.GetRecords() {
-		record := d8corp.MdiRecordDetails{
+		smsTxnRec := d8corp.MdiRecordDetails{
 			IssRectype:      "CDRNOTIF",
 			IssRecaction:    "DELETE",
 			IssRecnum:       recNums.NextVal(),
@@ -88,13 +105,31 @@ func DeleteCardNotificationG2b(input models.MDIface) (result *d8corp.CommonResp,
 			DbCdNotifSvcTyp: "SMSTXN",
 			DbCdNotifTarget: v.Address,
 		}
-		jsonRec, err := json.Marshal(record)
+		smsGenRec := d8corp.MdiRecordDetails{
+			IssRectype:      "CDRNOTIF",
+			IssRecaction:    "DELETE",
+			IssRecnum:       recNums.NextVal(),
+			IssCompanyRegnr: "ARVD",
+			KlLkeyAlias:     "",
+			KlLKeyClr:       v.PAN,
+			DbCardaExpdate:  v.ExpDate,
+			DbCdNotifSvcTyp: "SMSGEN",
+			DbCdNotifTarget: v.Address,
+		}
+
+		jsonRec1, err := json.Marshal(smsTxnRec)
 		if err != nil {
-			logger.Errorf("[SERVICE] D8 G2b DELETECARDNOTIF req marshaling record err: %v", err)
+			logger.Errorf("[SERVICE] D8 G2b DELETECARDNOTIF SMSTXN req marshaling record err: %v", err)
 			return nil, err
 		}
-		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec)
+		jsonRec2, err := json.Marshal(smsGenRec)
+		if err != nil {
+			logger.Errorf("[SERVICE] D8 G2b DELETECARDNOTIF SMSGEN req marshaling record err: %v", err)
+			return nil, err
+		}
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec1, jsonRec2)
 	}
+
 	mdiDataJSON, err := json.Marshal(recDetails)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b DELETECARDNOTIF req marshaling err: %v", err)
