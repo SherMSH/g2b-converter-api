@@ -17,7 +17,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		return nil, fmt.Errorf("Mandatory field is empty 'AlternativeMassaging -> Row -> PrevAddress'")
 	}
 	if config.Config.App.DebugMode && len(b.SoapRq.Req.ExpirationDate) == 0 {
-		b.SoapRq.Req.ExpirationDate = "3004"
+		b.SoapRq.Req.ExpirationDate = "20300430"
 	}
 
 	root := models.Root{}

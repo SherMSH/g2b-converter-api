@@ -8,7 +8,6 @@ import (
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-
 	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpDate) == 0 {
 		sb.SoapRq.Req.ExpDate = "3004"
 	}
