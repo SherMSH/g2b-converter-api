@@ -24,21 +24,30 @@ func LoadFile(path string) ([]byte, error) {
 }
 
 // MoveFile использует os.Rename для перемещения файла
-func MoveFile(sourcePath, destPath string) error {
+func MoveFile(sourcePath, destPath string, content []byte) (err error) {
 	// Проверяем, существует ли исходный файл
 	if _, err := os.Stat(sourcePath); os.IsNotExist(err) {
 		return fmt.Errorf("исходный файл не существует: %s", sourcePath)
 	}
 
-	// Проверяем, не существует ли уже файл в месте назначения
-	if _, err := os.Stat(destPath); err == nil {
-		return fmt.Errorf("файл назначения уже существует: %s", destPath)
+	// Create создает файл или усекает (очищает) существующий
+	if content != nil {
+		file, err := os.Create(sourcePath)
+		if err != nil {
+			return fmt.Errorf("Ошибка os.Create: %v", err)
+		}
+		defer file.Close()
+
+		_, err = file.Write(content)
+		if err != nil {
+			return fmt.Errorf("Ошибка записи: %v", err)
+		}
 	}
 
 	// Перемещаем файл
-	err := os.Rename(sourcePath, destPath)
+	err = os.Rename(sourcePath, destPath)
 	if err != nil {
-		return fmt.Errorf("ошибка перемещения файла: %w", err)
+		return fmt.Errorf("Oшибка перемещения файла: %w", err)
 	}
 
 	return nil

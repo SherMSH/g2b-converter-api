@@ -15,8 +15,12 @@ func (r Root) GetReqType() string {
 	return string(utils.ReissueCardsOut)
 }
 
-func (r Root) Call() error {
-	return nil
+func (r Root) Call() ([]byte, error) {
+	respContent, err := xml.Marshal(r)
+	if err != nil {
+		return nil, err
+	}
+	return respContent, nil
 }
 
 // Record - запись с данными о карте

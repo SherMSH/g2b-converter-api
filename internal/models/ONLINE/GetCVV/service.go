@@ -1,12 +1,17 @@
 package getcvv
 
 import (
+	"converterapi/internal/config"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"fmt"
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
+
+	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpDate) == 0 {
+		sb.SoapRq.Req.ExpDate = "3004"
+	}
 	cvvData, err := service.GetCVVG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpDate)
 	if err != nil {
 		return nil, err

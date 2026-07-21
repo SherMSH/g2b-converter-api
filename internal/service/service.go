@@ -7,7 +7,7 @@ import (
 
 type G2bServiceIface interface {
 	GetReqType() string
-	Call() error
+	Call() ([]byte, error)
 }
 
 type Service struct {

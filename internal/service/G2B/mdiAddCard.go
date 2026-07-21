@@ -7,13 +7,15 @@ import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
-func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
+func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	var (
 		recDetails d8corp.MdiFile
+		resp       d8corp.CommonResp
 	)
 	recNums := utils.NewSequence()
 
@@ -36,6 +38,7 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 		var firstSecret, firstName, lastName string
 		if len(v.SecretInfo.Items) != 0 {
 			firstSecret = v.SecretInfo.Items[0].Value
+			_ = firstSecret
 		}
 		names := strings.Split(v.LatFIO, " ")
 		if len(names) > 1 {
@@ -43,6 +46,7 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 			firstName = names[1]
 		}
 		prior, _ := strconv.Atoi(v.MakePrior)
+		prior++
 		record := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
 			IssRecaction:         "ADD",
@@ -50,7 +54,7 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 			IssCompanyRegnr:      "ARVD",
 			IssCompanyRegnrAcc:   "ARVD",
 			IssImpPvki:           1,
-			DbCustomerCustcode:   firstSecret,
+			DbCustomerCustcode:   v.CustomerCode,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,
@@ -98,31 +102,36 @@ func AddCardG2b(input models.MDIface) (resp interface{}, err error) {
 	// 	return nil, err
 	// }
 
-	mdiFile := d8corp.MdiFile{
-		MdiRecords: []json.RawMessage{
-			// headerJSON,
-			cardJSON,
-			// footerJSON,
-		},
-	}
-	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
-		return nil, err
-	}
-
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", cardJSON, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADDCARD request sending err: %v", err)
 		return nil, err
 	}
 	logger.Infof("[SERVICE] D8 G2b ADDCARD resp status: %v, body: %v", status, string(data))
-	return data, nil
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		return nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP status %s", resp.Status.Code)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
+	}
+
+	err = json.Unmarshal(resp.Data, mdiData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		return nil, err
+	}
+
+	return mdiData, nil
 }
 
-func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
+func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	var (
 		recDetails d8corp.MdiFile
+		resp       d8corp.CommonResp
 	)
 	recNums := utils.NewSequence()
 
@@ -152,6 +161,7 @@ func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
 			firstName = names[1]
 		}
 		prior, _ := strconv.Atoi(v.MakePrior)
+		prior++
 		record := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
 			IssRecaction:         "ADD",
@@ -161,8 +171,8 @@ func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
 			IssImpPvki:           1,
 			DbCustomerCustcode:   firstSecret,
 			DbCdproductCdproduct: "ARVDBT",
-			//DbAccountAccnum:      v.Account,
-			DbAccountCurrcode: v.CurrencyNo,
+			DbAccountAccnum:      v.Account,
+			DbAccountCurrcode:    v.CurrencyNo,
 			// DbCardaCommCat:    "COM03",
 			DbCardaEnroll3ds: "1",
 			DbCardaLimitCat:  "LIM01",
@@ -226,5 +236,22 @@ func AddPreissiedCardG2b(input models.MDIface) (resp interface{}, err error) {
 		return nil, err
 	}
 	logger.Infof("[SERVICE] D8 G2b ADDCARD (preissued) resp status: %v, body: %v", status, string(data))
-	return data, nil
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		return nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP status %s", resp.Status.Code)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
+	}
+
+	err = json.Unmarshal(resp.Data, mdiData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		return nil, err
+	}
+
+	return mdiData, nil
 }

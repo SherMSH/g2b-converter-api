@@ -32,14 +32,17 @@ func ConvScanner() {
 		}
 		logger.Infof("Converter Scans %v req", v)
 
-		err = reqOf.Call()
+		sourcePath := config.Config.App.Storage.Basepath + config.Config.App.Storage.In + "/" + string(v)
+		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + string(v) // + time.Now().Format("2006_01_02T15_04_05Z07_00")
+		content, err := reqOf.Call()
 		if err != nil {
 			logger.Errorf("Converter Scanner service %v call error: %v", v, err)
 			continue
 		}
-		sourcePath := config.Config.App.Storage.Basepath + config.Config.App.Storage.In + "/" + string(v)
-		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + string(v) // + time.Now().Format("2006_01_02T15_04_05Z07_00")
-		storage.MoveFile(sourcePath, destPath)
+		err2 := storage.MoveFile(sourcePath, destPath, content)
+		if err2 != nil {
+			logger.Warnf("Error mv file %v: %v", v, err2)
+		}
 	}
 }
 

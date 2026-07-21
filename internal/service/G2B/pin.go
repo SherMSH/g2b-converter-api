@@ -34,7 +34,7 @@ func SetPinG2b(pan, pin, expDate string) error {
 		return fmt.Errorf("Encrypt with RSA: %v", err)
 	}
 
-	clear, err := crypto.Format0(pin)
+	clear, err := crypto.Format0(pin, pan)
 	if err != nil {
 		logger.Errorf("pin block format0: %v", err)
 		return fmt.Errorf("pin block format0: %v", err)
@@ -52,6 +52,7 @@ func SetPinG2b(pan, pin, expDate string) error {
 	}
 
 	pinBlock := encrypted // hex.DecodeString(pinBlockHex)
+	logger.Infof("pinBlock: %X", pinBlock)
 
 	// Шифруем PIN-блок 3DES ключом
 	encryptedPinBlock, err := crypto.EncryptWith3DES(key3DES, pinBlock)
@@ -67,8 +68,10 @@ func SetPinG2b(pan, pin, expDate string) error {
 		},
 		PinKeyUnderRSA: crypto.HexUpper(pinKeyUnderRSA),
 		PinBlock:       crypto.HexUpper(encryptedPinBlock),
-		PinBlockType:   "0",
+		PinBlockType:   0,
 	}
+
+	logger.Infof("[SERVICE] setPin request: %+v", req)
 
 	jsonReq, err := json.Marshal(req)
 	if err != nil {

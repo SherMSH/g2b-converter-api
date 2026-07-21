@@ -16,10 +16,14 @@ func (r Root) GetReqType() string {
 	return string(utils.CreateCustomerAndAccount)
 }
 
-func (r Root) Call() error {
+func (r Root) Call() ([]byte, error) {
 	resp, err := CreateCustomersAndAccountsG2b(r)
 	logger.Infof("AddCustomer and Account Mdi call resp: %v", resp)
-	return err
+	respContent, err := xml.Marshal(r)
+	if err != nil {
+		return nil, err
+	}
+	return respContent, err
 }
 
 // Record - основная запись с данными клиента

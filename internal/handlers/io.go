@@ -89,6 +89,14 @@ func PutConvFile(c *gin.Context) {
 		return
 	}
 
+	err = os.Chmod(filePath, 0776)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Ошибка выставления perm: " + err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Файл успешно загружен",
 		"filename": header.Filename,

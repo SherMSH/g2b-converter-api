@@ -1,6 +1,7 @@
 package setcardstatus
 
 import (
+	"converterapi/internal/config"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"fmt"
@@ -11,6 +12,11 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if len(statCodes) == 0 {
 		return nil, fmt.Errorf("Status %v is not supported!", sb.SoapRq.Req.Status)
 	}
+
+	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
+		sb.SoapRq.Req.ExpirationDate = "3004"
+	}
+
 	err = service.SetCardStatusG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate, statCodes[0], sb.SoapRq.Req.ChangeReason)
 	if err != nil {
 		return nil, err
