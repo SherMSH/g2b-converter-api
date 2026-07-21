@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
@@ -19,45 +20,94 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	)
 	recNums := utils.NewSequence()
 	for _, v := range input.GetRecords() {
-		var firstSecret, firstName, lastName string
+		var secret, mobTel, firstName, lastName, nameInLat, lastNameinLat string
 		if len(v.SecretInfo.Items) != 0 {
-			firstSecret = v.SecretInfo.Items[0].Value
-			_ = firstSecret
+			secret = v.SecretInfo.Items[0].Value
 		}
-		names := strings.Split(v.LatFIO, " ")
+		names := strings.Split(strings.TrimSpace(v.LatFIO), " ")
 		if len(names) > 1 {
-			lastName = names[0]
-			firstName = names[1]
+			lastNameinLat = names[0]
+			nameInLat = names[1]
 		}
+		fio := strings.Split(strings.TrimSpace(v.FIO), " ")
+		if len(fio) > 2 {
+			mobTel = fio[0]
+			firstName = fio[2]
+			lastName = fio[1]
+		}
+		bday, _ := time.Parse("02012006", v.Birthday)
 		prior, _ := strconv.Atoi(v.MakePrior)
 		prior++
-		record := d8corp.MdiRecordDetails{
-			IssRectype:           "CARD",
-			IssRecaction:         "ADD",
-			IssRecnum:            recNums.NextVal(),
-			IssCompanyRegnr:      "ARVD",
-			IssCompanyRegnrAcc:   "ARVD",
+		countryCode, er := strconv.Atoi(v.CountryRes)
+		if er != nil {
+			countryCode = 762
+		}
+		customerRec := d8corp.MdiRecordDetails{
+			IssRectype:               "CUSTOMER",
+			IssRecaction:             "ADD",
+			IssRecnum:                recNums.NextVal(),
+			IssCompanyRegnr:          "ARVD",
+			DbCustomerTypeCode:       0,
+			DbCustomerCustcode:       v.ExtID,
+			DbCustomerFirstName:      firstName,
+			DbCustomerLastName:       lastName,
+			DbCustomerLatinFirstName: nameInLat,
+			DbCustomerLatinLastName:  lastNameinLat,
+			DbCustomerDateBirth:      bday.Format("20060102"),
+			DbCustomerHomeCountry:    countryCode,
+			DbCustomerPassPhrase:     secret,
+			DbCustomerMobTel:         mobTel,
+		}
+		accRec := d8corp.MdiRecordDetails{
+			IssRectype:         "ACCOUNT",
+			IssRecaction:       "ADD",
+			IssRecnum:          recNums.NextVal(),
+			IssCompanyRegnr:    "ARVD",
+			DbCustomerCustcode: v.ExtID,
+			DbAccountCurrcode:  v.CurrencyNo,
+			DbAccountAccnum:    v.Account,
+			DbAccountTypecode:  "00",
+		}
+		cardRec := d8corp.MdiRecordDetails{
+			IssRectype:      "CARD",
+			IssRecaction:    "ADD",
+			IssRecnum:       recNums.NextVal(),
+			IssCompanyRegnr: "ARVD",
+			// IssCompanyRegnrAcc:   "ARVD",
 			IssImpPvki:           1,
-			DbCustomerCustcode:   v.CustomerCode,
+			DbCustomerCustcode:   v.ExtID,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
 			DbCardaLimitCat:      "LIM01",
-			DbCardEmbossname:     v.LatFIO,
-			DbCardFirstname:      firstName,
-			DbCardLastname:       lastName,
-			DbCardMaidenname:     firstName,
+			DbCardEmbossname:     v.NameOnCard,
+			DbCardFirstname:      nameInLat,
+			DbCardLastname:       lastNameinLat,
+			DbCardMaidenname:     nameInLat,
 			DbCrdaccPriority:     prior,
 		}
-		jsonRec, err := json.Marshal(record)
+
+		jsonRec1, err := json.Marshal(customerRec)
 		if err != nil {
-			logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling record err: %v", err)
+			logger.Errorf("[SERVICE] D8 G2b ADDCARD customer req marshaling record err: %v", err)
 			return nil, err
 		}
-		// recDetails.MdiRecords = append(recDetails.MdiRecords, separator)
-		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec)
+		jsonRec2, err := json.Marshal(accRec)
+		if err != nil {
+			logger.Errorf("[SERVICE] D8 G2b ADDCARD account req marshaling record err: %v", err)
+			return nil, err
+		}
+		jsonRec3, err := json.Marshal(cardRec)
+		if err != nil {
+			logger.Errorf("[SERVICE] D8 G2b ADDCARD card req marshaling record err: %v", err)
+			return nil, err
+		}
+
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec1)
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec2)
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec3)
 	}
 
 	// footer := d8corp.FooterRecord{

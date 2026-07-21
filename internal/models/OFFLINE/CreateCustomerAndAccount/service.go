@@ -16,27 +16,37 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 	)
 	recNums := utils.NewSequence()
 	for _, v := range input.Records {
-		var firstSecret, firstName, lastName string
+		var secret, mobTel, firstName, lastName, nameInLat, lastNameinLat string
 		if len(v.SecretInfo.Items) != 0 {
-			firstSecret = v.SecretInfo.Items[0].Value
+			secret = v.SecretInfo.Items[0].Value
 		}
-		names := strings.Split(v.LatFIO, " ")
+		names := strings.Split(strings.TrimSpace(v.LatFIO), " ")
 		if len(names) > 1 {
-			lastName = names[0]
-			firstName = names[1]
+			lastNameinLat = names[0]
+			nameInLat = names[1]
+		}
+		fio := strings.Split(strings.TrimSpace(v.FIO), " ")
+		if len(fio) > 2 {
+			mobTel = fio[0]
+			firstName = fio[2]
+			lastName = fio[1]
 		}
 		bday, _ := time.Parse("02012006", v.Birthday)
 		customerRec := d8corp.MdiRecordDetails{
-			IssRectype:            "CUSTOMER",
-			IssRecaction:          "ADD",
-			IssRecnum:             recNums.NextVal(),
-			IssCompanyRegnr:       "ARVD",
-			DbCustomerTypeCode:    0,
-			DbCustomerCustcode:    firstSecret,
-			DbCustomerFirstName:   firstName,
-			DbCustomerLastName:    lastName,
-			DbCustomerDateBirth:   bday.Format("20060102"),
-			DbCustomerHomeCountry: v.CountryRes,
+			IssRectype:               "CUSTOMER",
+			IssRecaction:             "ADD",
+			IssRecnum:                recNums.NextVal(),
+			IssCompanyRegnr:          "ARVD",
+			DbCustomerTypeCode:       0,
+			DbCustomerCustcode:       v.ExtID,
+			DbCustomerFirstName:      firstName,
+			DbCustomerLastName:       lastName,
+			DbCustomerLatinFirstName: nameInLat,
+			DbCustomerLatinLastName:  lastNameinLat,
+			DbCustomerDateBirth:      bday.Format("20060102"),
+			DbCustomerHomeCountry:    v.CountryRes,
+			DbCustomerPassPhrase:     secret,
+			DbCustomerMobTel:         mobTel,
 		}
 
 		accountRec := d8corp.MdiRecordDetails{
@@ -44,7 +54,7 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 			IssRecaction:       "ADD",
 			IssRecnum:          recNums.NextVal(),
 			IssCompanyRegnr:    "ARVD",
-			DbCustomerCustcode: firstSecret,
+			DbCustomerCustcode: v.ExtID,
 			DbAccountCurrcode:  v.Currency,
 			DbAccountAccnum:    v.Account,
 			DbAccountTypecode:  "00",
