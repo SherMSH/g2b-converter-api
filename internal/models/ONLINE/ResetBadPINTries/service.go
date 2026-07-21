@@ -1,11 +1,15 @@
 package resetbadpintries
 
 import (
+	"converterapi/internal/config"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
+	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
+		sb.SoapRq.Req.ExpirationDate = "3004"
+	}
 	err = service.ResetCardPINTriesG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
 	if err != nil {
 		return nil, err
