@@ -15,7 +15,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	}
 
 	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
-		sb.SoapRq.Req.ExpirationDate = "3004"
+		sb.SoapRq.Req.ExpirationDate = "20300430"
 	}
 
 	root := models.Root{

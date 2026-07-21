@@ -17,7 +17,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		return nil, fmt.Errorf("Mandatory field is empty 'AlternativeMassaging -> Row -> PrevAddress'")
 	}
 	if config.Config.App.DebugMode && len(b.SoapRq.Req.ExpirationDate) == 0 {
-		b.SoapRq.Req.ExpirationDate = "3004"
+		b.SoapRq.Req.ExpirationDate = "20300430"
 	}
 
 	root := models.Root{}
@@ -28,15 +28,15 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 	}
 	root.Records = append(root.Records, record)
 
+	_, err = service.DeleteCardNotificationG2b(root)
+	if err != nil {
+		logger.Errorf("%s", err.Error())
+	}
+
 	_, err = service.AddCardNotificationG2b(root)
 	if err != nil {
 		logger.Errorf("%s", err.Error())
 		return nil, err
-	}
-
-	_, err = service.DeleteCardNotificationG2b(root)
-	if err != nil {
-		logger.Errorf("%s", err.Error())
 	}
 
 	soapResp = new(Envelope)

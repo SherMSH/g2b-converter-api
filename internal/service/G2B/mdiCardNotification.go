@@ -100,7 +100,7 @@ func DeleteCardNotificationG2b(input models.MDIface) (result *d8corp.CommonResp,
 		logger.Errorf("[SERVICE] D8 G2b DELETECARDNOTIF req marshaling err: %v", err)
 		return nil, err
 	}
-	logger.Debugf("json ADD CRDNOTIF: %v", string(mdiDataJSON))
+	logger.Debugf("json DELETE CRDNOTIF: %v", string(mdiDataJSON))
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
 	if err != nil {
