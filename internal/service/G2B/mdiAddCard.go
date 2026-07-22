@@ -125,31 +125,12 @@ func AddCardG2b(input models.MDIface, custExist, accExist bool) (mdiData *d8corp
 		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonCrd)
 	}
 
-	// footer := d8corp.FooterRecord{
-	// 	IssRectype:   "FOOTER",
-	// 	IssRecaction: "IMPORT",
-	// 	CFilename:    filename,
-	// 	IssReccnt:    input.GetRecordsCount(),
-	// }
-
-	// headerJSON, err := json.Marshal(header)
-	// if err != nil {
-	// 	logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
-	// 	return nil, err
-	// }
-
 	cardJSON, err := json.Marshal(recDetails)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
 		return nil, err
 	}
 	logger.Infof("json ADDCARD: %v", string(cardJSON))
-
-	// footerJSON, err := json.Marshal(footer)
-	// if err != nil {
-	// 	logger.Errorf("[SERVICE] D8 G2b ADDCARD req marshaling err: %v", err)
-	// 	return nil, err
-	// }
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", cardJSON, utils.D8HeadersMap)
 	if err != nil {
