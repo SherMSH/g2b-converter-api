@@ -7,6 +7,7 @@ import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"encoding/json"
+	"fmt"
 	"strconv"
 )
 
@@ -14,7 +15,52 @@ func GetCustomerInfoG2b() error {
 	return nil
 }
 
-func CreateCustomer(input models.MDIface) error {
+func CreateCustomerTry(customerRec *d8corp.MdiRecordDetails) error {
+	var (
+		recDetails d8corp.MdiFile
+		resp       d8corp.CommonResp
+	)
+	jsonCustmr, err := json.Marshal(customerRec)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD customer req marshaling record err: %v", err)
+		return err
+	}
+	recDetails.MdiRecords = append(recDetails.MdiRecords, jsonCustmr)
+	cardJSON, err := json.Marshal(recDetails)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD customer req marshaling err: %v", err)
+		return err
+	}
+	logger.Infof("json ADD customer: %v", string(cardJSON))
+
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", cardJSON, utils.D8HeadersMap)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD customer request sending err: %v", err)
+		return err
+	}
+	logger.Infof("[SERVICE] D8 G2b ADD customer resp status: %v, body: %v", status, string(data))
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD customer common RESP unmarshaling err: %v", err)
+		return err
+	}
+
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b ADD customer RESP status %s", resp.Status.Code)
+		return fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
+	}
+
+	mdiData := new(d8corp.MdiData)
+	err = json.Unmarshal(resp.Data, mdiData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD mdiData marshaling err: %v", err)
+		return err
+	}
+	if mdiData.Header.CActionCode != "0" {
+		return fmt.Errorf("D8 G2B ADD customer err: ActionCode %s REJ_MSG %s", mdiData.Header.CActionCode, mdiData.Header.IRejMsg)
+	}
+
 	return nil
 }
 

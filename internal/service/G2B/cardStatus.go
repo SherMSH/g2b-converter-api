@@ -19,6 +19,7 @@ func SetCardStatusG2b(pan, expDate, newStatus, reason string) (err error) {
 		},
 		NewStatCode: newStatus,
 		Reason:      reason,
+		Force:       true,
 	}
 	jsonReq, err := json.Marshal(req)
 	if err != nil {

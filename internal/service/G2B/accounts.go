@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"converterapi/internal/config"
 	d8corp "converterapi/internal/models/D8CORP"
+	"converterapi/internal/utils"
 	d8procweb "converterapi/pkg/d8-proc-web"
 	"converterapi/pkg/logger"
 	"encoding/json"
@@ -113,4 +114,53 @@ func GetAcctInfoG2b(accNum string) (foundAcc *d8procweb.AccountData, err error) 
 	foundAcc.CompanyName = accs[0].CompanyName
 
 	return foundAcc, nil
+}
+
+func CreateAccountTry(accRec *d8corp.MdiRecordDetails) error {
+	var (
+		recDetails d8corp.MdiFile
+		resp       d8corp.CommonResp
+	)
+	jsonAcc, err := json.Marshal(accRec)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD account req marshaling record err: %v", err)
+		return err
+	}
+	recDetails.MdiRecords = append(recDetails.MdiRecords, jsonAcc)
+	cardJSON, err := json.Marshal(recDetails)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD account req marshaling err: %v", err)
+		return err
+	}
+	logger.Infof("json ADD account: %v", string(cardJSON))
+
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", cardJSON, utils.D8HeadersMap)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD account request sending err: %v", err)
+		return err
+	}
+	logger.Infof("[SERVICE] D8 G2b ADD account resp status: %v, body: %v", status, string(data))
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD account common RESP unmarshaling err: %v", err)
+		return err
+	}
+
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b ADD account RESP status %s", resp.Status.Code)
+		return fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
+	}
+
+	mdiData := new(d8corp.MdiData)
+	err = json.Unmarshal(resp.Data, mdiData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADD account mdiData marshaling err: %v", err)
+		return err
+	}
+	if mdiData.Header.CActionCode != "0" {
+		return fmt.Errorf("D8 G2B ADD account err: ActionCode %s REJ_MSG %s", mdiData.Header.CActionCode, mdiData.Header.IRejMsg)
+	}
+
+	return nil
 }

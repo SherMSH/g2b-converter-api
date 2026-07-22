@@ -25,22 +25,24 @@ func (r Root) GetRecordsCount() int {
 	return len(r.Records)
 }
 
-func (r Root) Call() ([]byte, error) {
+func (r Root) Call() (respContent []byte, err error) {
 	mdiData, err := service.AddPreissiedCardG2b(r)
 	if err != nil {
 		return nil, err
 	}
-	if len(mdiData.Details) > r.GetRecordsCount() {
-		return nil, fmt.Errorf("internal error: mdi response length mismatch")
-	}
 	for i, v := range mdiData.Details {
-		r.Records[i].PAN = v.KL_LKEY_CLR
-		r.Records[i].MBR = "0"
-	}
-
-	respContent, err := xml.Marshal(r)
-	if err != nil {
-		return nil, err
+		if mdiData.Details[i].C_ACTIONCODE != "0" {
+			break
+		}
+		pck := models.Pack{
+			CustomerId:   r.Records[i].PCode,
+			CustomerCode: r.Records[i].ExtID,
+			AccNum:       r.Records[i].Account,
+			CurrencyCode: r.Records[i].CurrencyNo,
+			LkeyId:       fmt.Sprintf("%d", v.ISS_CARD_ID),
+			CardPan:      v.KL_LKEY_CLR,
+		}
+		respContent = append(respContent, pck.GetData()...)
 	}
 	return respContent, nil
 }
