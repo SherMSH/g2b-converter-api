@@ -37,7 +37,7 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 			IssRecaction:             "ADD",
 			IssRecnum:                recNums.NextVal(),
 			IssCompanyRegnr:          "ARVD",
-			DbCustomerTypeCode:       0,
+			DbCustomerTypeCode:       "0",
 			DbCustomerCustcode:       v.ExtID,
 			DbCustomerFirstName:      firstName,
 			DbCustomerLastName:       lastName,

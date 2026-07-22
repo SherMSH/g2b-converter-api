@@ -17,9 +17,9 @@ type MdiRecordDetails struct {
 	IssCompanyRegnrNew       utils.CompanyRegNum `json:"ISS_COMPANY_REGNR_NEW,omitempty"`
 	IssCompanyRegnrAcc       string              `json:"ISS_COMPANY_REGNR_ACC,omitempty"`
 	IssImpPvki               int                 `json:"ISS_IMP_PVKI,omitempty"` //PVKI used for PVV validation (should be values 0..6). Field required in case if ISS_GEN_PIN=3.
-	DbCustomerCustcode       string              `json:"DB_CUSTOMER_CUSTCODE"`
-	DbCustomerTypeCode       int                 `json:"DB_CUSTOMER_TYPECODE,omitempty"`
-	DbCdproductCdproduct     string              `json:"DB_CDPRODUCT_CDPRODUCT"`
+	DbCustomerCustcode       string              `json:"DB_CUSTOMER_CUSTCODE,omitempty"`
+	DbCustomerTypeCode       string              `json:"DB_CUSTOMER_TYPECODE,omitempty"`
+	DbCdproductCdproduct     string              `json:"DB_CDPRODUCT_CDPRODUCT,omitempty"`
 	DbAccountAccnum          string              `json:"DB_ACCOUNT_ACCNUM,omitempty"`
 	DbAccountTypecode        string              `json:"DB_ACCOUNT_TYPECODE,omitempty"`
 	DbAccountCurrcode        string              `json:"DB_ACCOUNT_CURRCODE,omitempty"`
@@ -42,11 +42,12 @@ type MdiRecordDetails struct {
 	DbCardMaidenname         string              `json:"DB_CARD_MAIDENNAME,omitempty"`
 	DbCardDeliveryPoint      string              `json:"DB_CARD_DELIVERY_POINT,omitempty"`
 	DbCardaDesignImage       string              `json:"DB_CARDA_DESIGN_IMAGE,omitempty"`
-	DbCardaOptions           string              `json:"DB_CARDA_OPTIONS"`
+	DbCardaOptions           string              `json:"DB_CARDA_OPTIONS,omitempty"`
 	DbCustomerFirstName      string              `json:"DB_CUSTOMER_FIRSTNAME,omitempty"`
 	DbCustomerLastName       string              `json:"DB_CUSTOMER_LASTNAME,omitempty"`
 	DbCustomerLatinFirstName string              `json:"DB_CUSTOMER_LATINFIRSTNAME,omitempty"`
 	DbCustomerLatinLastName  string              `json:"DB_CUSTOMER_LATINLASTNAME,omitempty"`
+	DbCustomerDocument       string              `json:"DB_CUSTOMER_DOCUMENT,omitempty"`
 	DbCustomerMobTel         string              `json:"DB_CUSTOMER_MOBTEL,omitempty"`
 	DbCustomerDateBirth      string              `json:"DB_CUSTOMER_DATE_BIRTH,omitempty"` //format YYYYMMDD
 	DbCustomerHomeCountry    int                 `json:"DB_CUSTOMER_HOME_COUNTRY,omitempty"`
