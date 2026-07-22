@@ -152,15 +152,17 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 	recNums := utils.NewSequence()
 
 	for _, v := range input.GetRecords() {
-		var firstSecret, firstName, lastName string
+		var nameInLat, lastNameinLat string
+		secret := "imtiyoz"
 		if len(v.SecretInfo.Items) != 0 {
-			firstSecret = v.SecretInfo.Items[0].Value
+			secret = v.SecretInfo.Items[0].Value
 		}
-		names := strings.Split(v.LatFIO, " ")
+		names := strings.Split(strings.TrimSpace(v.LatFIO), " ")
 		if len(names) > 1 {
-			lastName = names[0]
-			firstName = names[1]
+			lastNameinLat = names[0]
+			nameInLat = names[1]
 		}
+
 		prior, _ := strconv.Atoi(v.MakePrior)
 		prior++
 		record := d8corp.MdiRecordDetails{
@@ -169,41 +171,28 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 			IssRecnum:            recNums.NextVal(),
 			IssCompanyRegnr:      "ARV",
 			IssCompanyRegnrAcc:   "ARV",
-			IssImpPvki:           1,
-			DbCustomerCustcode:   firstSecret,
+			IssImpPvki:           3,
+			IssGenPin:            1,
+			DbCustomerCustcode:   secret,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,
-			// DbCardaCommCat:    "COM03",
-			DbCardaEnroll3ds: "1",
-			DbCardaLimitCat:  "LIM01",
-			DbCardEmbossname: v.LatFIO,
-			DbCardFirstname:  firstName,
-			DbCardLastname:   lastName,
-			DbCardMaidenname: firstName,
-			DbCrdaccPriority: prior,
+			DbCardaCommCat:       "COM03",
+			DbCardaEnroll3ds:     "1",
+			DbCardaLimitCat:      "LIM01",
+			DbCardEmbossname:     v.NameOnCard,
+			DbCardFirstname:      nameInLat,
+			DbCardLastname:       lastNameinLat,
+			DbCardMaidenname:     lastNameinLat,
+			DbCrdaccPriority:     prior,
 		}
 		jsonRec, err := json.Marshal(record)
 		if err != nil {
 			logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling record err: %v", err)
 			return nil, err
 		}
-		// recDetails.MdiRecords = append(recDetails.MdiRecords, separator)
 		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec)
 	}
-
-	// footer := d8corp.FooterRecord{
-	// 	IssRectype:   "FOOTER",
-	// 	IssRecaction: "IMPORT",
-	// 	CFilename:    filename,
-	// 	IssReccnt:    input.GetRecordsCount(),
-	// }
-
-	// headerJSON, err := json.Marshal(header)
-	// if err != nil {
-	// 	logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling err: %v", err)
-	// 	return nil, err
-	// }
 
 	mdiDataJSON, err := json.Marshal(recDetails)
 	if err != nil {
@@ -211,25 +200,6 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 		return nil, err
 	}
 	logger.Infof("json ADDCARD (preissued): %v", string(mdiDataJSON))
-
-	// footerJSON, err := json.Marshal(footer)
-	// if err != nil {
-	// 	logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling err: %v", err)
-	// 	return nil, err
-	// }
-
-	// mdiFile := d8corp.MdiFile{
-	// 	MdiRecords: []json.RawMessage{
-	// 		headerJSON,
-	// 		cardJSON,
-	// 		footerJSON,
-	// 	},
-	// }
-	// mdiDataJSON, err := json.Marshal(cardJSON)
-	// if err != nil {
-	// 	logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling err: %v", err)
-	// 	return nil, err
-	// }
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
 	if err != nil {
@@ -248,6 +218,7 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 
+	mdiData = new(d8corp.MdiData)
 	err = json.Unmarshal(resp.Data, mdiData)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
