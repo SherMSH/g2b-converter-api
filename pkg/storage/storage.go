@@ -44,11 +44,11 @@ func MoveFile(sourcePath, destPath string, content []byte) (err error) {
 		}
 	}
 
-	// Перемещаем файл
-	err = os.Rename(sourcePath, destPath)
-	if err != nil {
-		return fmt.Errorf("Oшибка перемещения файла: %w", err)
-	}
+	// // Перемещаем файл
+	// err = os.Rename(sourcePath, destPath)
+	// if err != nil {
+	// 	return fmt.Errorf("Oшибка перемещения файла: %w", err)
+	// }
 
 	return nil
 }
