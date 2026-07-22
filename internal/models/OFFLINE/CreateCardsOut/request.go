@@ -25,31 +25,30 @@ func (r Root) GetRecordsCount() int {
 	return len(r.Records)
 }
 
-func (r Root) Call() ([]byte, error) {
-	// err := service.CreateCustomer(r)
+func (r Root) Call() (respContent []byte, err error) {
+	// err := service.GetCustomerByCode(r)
 	// if err != nil {
 	// 	return nil, err
 	// }
-	// _, err = service.CreateAccountIfExist(r)
+	// _, err = service.GetAccountByAccnum(r)
 	// if err != nil {
 	// 	return nil, err
 	// }
-	mdiData, err := service.AddCardG2b(r)
+	mdiData, err := service.AddCardG2b(r, false, false)
 	if err != nil {
 		return nil, err
 	}
-	if len(mdiData.Details) > r.GetRecordsCount() {
-		return nil, fmt.Errorf("internal error: mdi response length mismatch")
-	}
+
 	for i, v := range mdiData.Details {
-		r.Records[i].PAN = v.KL_LKEY_CLR
-		r.Records[i].MBR = "0"
+		pck := models.Pack{
+			CustomerId:   r.Records[i].PCode,
+			CustomerCode: r.Records[i].ExtID,
+			AccNum:       r.Records[i].Account,
+			CurrencyCode: r.Records[i].CurrencyNo,
+			LkeyId:       fmt.Sprintf("%d", v.ISS_CARD_ID),
+			CardPan:      v.KL_LKEY_CLR,
+		}
+		respContent = append(respContent, pck.GetData()...)
 	}
-
-	respContent, err := xml.Marshal(r)
-	if err != nil {
-		return nil, err
-	}
-
 	return respContent, nil
 }

@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
+func AddCardG2b(input models.MDIface, custExist, accExist bool) (mdiData *d8corp.MdiData, err error) {
 	var (
 		recDetails d8corp.MdiFile
 		resp       d8corp.CommonResp
@@ -46,8 +46,8 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			IssRectype:               "CUSTOMER",
 			IssRecaction:             "ADD",
 			IssRecnum:                recNums.NextVal(),
-			IssCompanyRegnr:          "ARVD",
-			DbCustomerTypeCode:       0,
+			IssCompanyRegnr:          "ARV",
+			DbCustomerTypeCode:       "0",
 			DbCustomerCustcode:       v.ExtID,
 			DbCustomerFirstName:      firstName,
 			DbCustomerLastName:       lastName,
@@ -57,12 +57,13 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			DbCustomerHomeCountry:    countryCode,
 			DbCustomerPassPhrase:     secret,
 			DbCustomerMobTel:         mobTel,
+			DbCustomerDocument:       v.PasNom,
 		}
 		accRec := d8corp.MdiRecordDetails{
 			IssRectype:         "ACCOUNT",
 			IssRecaction:       "ADD",
 			IssRecnum:          recNums.NextVal(),
-			IssCompanyRegnr:    "ARVD",
+			IssCompanyRegnr:    "ARV",
 			DbCustomerCustcode: v.ExtID,
 			DbAccountCurrcode:  v.CurrencyNo,
 			DbAccountAccnum:    v.Account,
@@ -72,7 +73,7 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			IssRectype:      "CARD",
 			IssRecaction:    "ADD",
 			IssRecnum:       recNums.NextVal(),
-			IssCompanyRegnr: "ARVD",
+			IssCompanyRegnr: "ARV",
 			// IssCompanyRegnrAcc:   "ARVD",
 			IssImpPvki:           1,
 			DbCustomerCustcode:   v.ExtID,
@@ -85,29 +86,43 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			DbCardEmbossname:     v.NameOnCard,
 			DbCardFirstname:      nameInLat,
 			DbCardLastname:       lastNameinLat,
-			DbCardMaidenname:     nameInLat,
+			DbCardMaidenname:     lastNameinLat,
 			DbCrdaccPriority:     prior,
 		}
+		// linkRec := d8corp.MdiRecordDetails{
+		// 	IssRectype: "CRDACC",
+		// 	IssRecaction: "ADD",
+		// 	IssRecnum: recNums.NextVal(),
+		// 	IssCompanyRegnr: "ARV",
+		// 	KlLKeyClr: "",
+		// 	KlLkeySeqno: 0,
+		// 	DbAccountAccnum: v.Account,
+		// 	DbAccountCurrcode: v.CurrencyNo,
+		// 	DbCrdaccPriority: prior,
+		// }
 
-		jsonRec1, err := json.Marshal(customerRec)
+		jsonCustmr, err := json.Marshal(customerRec)
 		if err != nil {
 			logger.Errorf("[SERVICE] D8 G2b ADDCARD customer req marshaling record err: %v", err)
 			return nil, err
 		}
-		jsonRec2, err := json.Marshal(accRec)
+		jsonAccnt, err := json.Marshal(accRec)
 		if err != nil {
 			logger.Errorf("[SERVICE] D8 G2b ADDCARD account req marshaling record err: %v", err)
 			return nil, err
 		}
-		jsonRec3, err := json.Marshal(cardRec)
+		jsonCrd, err := json.Marshal(cardRec)
 		if err != nil {
 			logger.Errorf("[SERVICE] D8 G2b ADDCARD card req marshaling record err: %v", err)
 			return nil, err
 		}
-
-		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec1)
-		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec2)
-		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec3)
+		if !custExist {
+			recDetails.MdiRecords = append(recDetails.MdiRecords, jsonCustmr)
+		}
+		if !accExist {
+			recDetails.MdiRecords = append(recDetails.MdiRecords, jsonAccnt)
+		}
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonCrd)
 	}
 
 	// footer := d8corp.FooterRecord{
@@ -145,7 +160,7 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 
 	err = json.Unmarshal(data, &resp)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD common RESP unmarshaling err: %v", err)
 		return nil, err
 	}
 	if resp.Status.Code != "0" {
@@ -153,9 +168,10 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 
+	mdiData = new(d8corp.MdiData)
 	err = json.Unmarshal(resp.Data, mdiData)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD mdiData marshaling err: %v", err)
 		return nil, err
 	}
 

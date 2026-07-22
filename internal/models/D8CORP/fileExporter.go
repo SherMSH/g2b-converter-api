@@ -19,7 +19,7 @@ type RespDetails struct {
 	C_ACTIONCODE  string `json:"C_ACTIONCODE"`
 	C_RSPCODE     string `json:"C_RSPCODE"`
 	ISS_RECACTION string `json:"ISS_RECACTION"`
-	ISS_RECNUM    string `json:"ISS_RECNUM"`
+	ISS_RECNUM    int    `json:"ISS_RECNUM"`
 	ISS_RECTYPE   string `json:"ISS_RECTYPE"`
 	I_REJMSG      string `json:"I_REJMSG"`
 
