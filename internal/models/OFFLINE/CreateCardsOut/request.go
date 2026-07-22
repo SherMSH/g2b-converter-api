@@ -40,6 +40,9 @@ func (r Root) Call() (respContent []byte, err error) {
 	}
 
 	for i, v := range mdiData.Details {
+		if mdiData.Details[i].I_REJMSG == "Record already exists" {
+			break
+		}
 		pck := models.Pack{
 			CustomerId:   r.Records[i].PCode,
 			CustomerCode: r.Records[i].ExtID,
