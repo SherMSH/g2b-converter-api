@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func AddCardG2b(input models.MDIface, custExist, accExist bool) (mdiData *d8corp.MdiData, err error) {
+func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	var (
 		recDetails d8corp.MdiFile
 		resp       d8corp.CommonResp
@@ -59,6 +59,14 @@ func AddCardG2b(input models.MDIface, custExist, accExist bool) (mdiData *d8corp
 			DbCustomerMobTel:         mobTel,
 			DbCustomerDocument:       v.PasNom,
 		}
+		// Вызов функции исполнения MDI запроса
+		err = CreateCustomerTry(&customerRec)
+		if err != nil {
+			err = nil
+			continue
+		}
+
+		// Вызов функции исполнения MDI запроса
 		accRec := d8corp.MdiRecordDetails{
 			IssRectype:         "ACCOUNT",
 			IssRecaction:       "ADD",
@@ -69,13 +77,18 @@ func AddCardG2b(input models.MDIface, custExist, accExist bool) (mdiData *d8corp
 			DbAccountAccnum:    v.Account,
 			DbAccountTypecode:  "00",
 		}
+		err = CreateAccountTry(&accRec)
+		if err != nil {
+			err = nil
+			continue
+		}
 		cardRec := d8corp.MdiRecordDetails{
-			IssRectype:      "CARD",
-			IssRecaction:    "ADD",
-			IssRecnum:       recNums.NextVal(),
-			IssCompanyRegnr: "ARV",
-			// IssCompanyRegnrAcc:   "ARVD",
-			IssImpPvki:           1,
+			IssRectype:           "CARD",
+			IssRecaction:         "ADD",
+			IssRecnum:            recNums.NextVal(),
+			IssCompanyRegnr:      "ARV",
+			IssImpPvki:           3,
+			IssGenPin:            1,
 			DbCustomerCustcode:   v.ExtID,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
@@ -89,38 +102,10 @@ func AddCardG2b(input models.MDIface, custExist, accExist bool) (mdiData *d8corp
 			DbCardMaidenname:     lastNameinLat,
 			DbCrdaccPriority:     prior,
 		}
-		// linkRec := d8corp.MdiRecordDetails{
-		// 	IssRectype: "CRDACC",
-		// 	IssRecaction: "ADD",
-		// 	IssRecnum: recNums.NextVal(),
-		// 	IssCompanyRegnr: "ARV",
-		// 	KlLKeyClr: "",
-		// 	KlLkeySeqno: 0,
-		// 	DbAccountAccnum: v.Account,
-		// 	DbAccountCurrcode: v.CurrencyNo,
-		// 	DbCrdaccPriority: prior,
-		// }
-
-		jsonCustmr, err := json.Marshal(customerRec)
-		if err != nil {
-			logger.Errorf("[SERVICE] D8 G2b ADDCARD customer req marshaling record err: %v", err)
-			return nil, err
-		}
-		jsonAccnt, err := json.Marshal(accRec)
-		if err != nil {
-			logger.Errorf("[SERVICE] D8 G2b ADDCARD account req marshaling record err: %v", err)
-			return nil, err
-		}
 		jsonCrd, err := json.Marshal(cardRec)
 		if err != nil {
 			logger.Errorf("[SERVICE] D8 G2b ADDCARD card req marshaling record err: %v", err)
 			return nil, err
-		}
-		if !custExist {
-			recDetails.MdiRecords = append(recDetails.MdiRecords, jsonCustmr)
-		}
-		if !accExist {
-			recDetails.MdiRecords = append(recDetails.MdiRecords, jsonAccnt)
 		}
 		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonCrd)
 	}
@@ -166,22 +151,7 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 	)
 	recNums := utils.NewSequence()
 
-	// filename := fmt.Sprintf("G2BISS-%v.JSON", time.Now().Local().Format("20060102-150405"))
-	// header := d8corp.HeaderRecord{
-	// 	IssRectype:      "HEADER",
-	// 	IssRecaction:    "IMPORT",
-	// 	CFilename:       filename, //"G2BISS-20060102-150405.JSON"
-	// 	IssSourcesys:    "LK",
-	// 	IssCompanyRegnr: "ARV",
-	// 	IssTimestamp:    "20230906120000123",
-	// }
-
 	for _, v := range input.GetRecords() {
-		// separator := make([]byte, 0)
-		// if i != 0 {
-		// 	separator = json.RawMessage(",")
-		// }
-
 		var firstSecret, firstName, lastName string
 		if len(v.SecretInfo.Items) != 0 {
 			firstSecret = v.SecretInfo.Items[0].Value

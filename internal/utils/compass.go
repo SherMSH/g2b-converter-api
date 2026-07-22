@@ -50,7 +50,7 @@ var CardStatuses = map[string]string{
 
 // ReverseCardStatuses - обратный маппинг: TWO код -> список внешних кодов
 var ReverseCardStatuses = map[string][]string{
-	"0":  {"09"}, // Not active
+	"0":  {"14"}, // Not active
 	"1":  {"00"}, // Open
 	"2":  {"12"}, // Lost
 	"3":  {"13"}, // Stolen

@@ -4,6 +4,7 @@ import (
 	d8corp "converterapi/internal/models/D8CORP"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
+	d8procweb "converterapi/pkg/d8-proc-web"
 	"converterapi/pkg/logger"
 	"fmt"
 	"strconv"
@@ -11,6 +12,8 @@ import (
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
+	d8procweb.Signin()
+	defer d8procweb.Signout()
 	dateFrom, errPrsFrom := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.FromTime, time.Local)
 	if errPrsFrom != nil {
 		dateFrom = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)

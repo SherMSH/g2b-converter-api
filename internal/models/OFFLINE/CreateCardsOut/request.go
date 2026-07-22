@@ -26,21 +26,13 @@ func (r Root) GetRecordsCount() int {
 }
 
 func (r Root) Call() (respContent []byte, err error) {
-	// err := service.GetCustomerByCode(r)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// _, err = service.GetAccountByAccnum(r)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	mdiData, err := service.AddCardG2b(r, false, false)
+	mdiData, err := service.AddCardG2b(r)
 	if err != nil {
 		return nil, err
 	}
 
 	for i, v := range mdiData.Details {
-		if mdiData.Details[i].I_REJMSG == "Record already exists" {
+		if mdiData.Details[i].C_ACTIONCODE != "0" {
 			break
 		}
 		pck := models.Pack{
