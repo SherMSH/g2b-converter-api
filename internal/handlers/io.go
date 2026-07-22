@@ -116,7 +116,7 @@ func GetConvFile(c *gin.Context) {
 		return
 	}
 	// Путь к файлу
-	filePath := filepath.Join(config.Config.App.Storage.Basepath, config.Config.App.Storage.Out, filename)
+	filePath := filepath.Join(config.Config.App.Storage.Basepath, config.Config.App.Storage.In, filename)
 	// Открываем файл
 	file, err := os.Open(filePath)
 	if err != nil {
