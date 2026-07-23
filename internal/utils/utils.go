@@ -92,6 +92,14 @@ func ConvertDate(d8expdate string) string {
 	return t.Format("2006-01-02T15:04:05")
 }
 
+func ConvertDDMMYYYYtoYYYYMMDD(ddmmyyyy string) (string, error) {
+	t, err := time.Parse("02012006", ddmmyyyy)
+	if err != nil {
+		return "", err
+	}
+	return t.Format("20060102"), nil
+}
+
 func ConvertD8Tmstmp(d8expdate string) string {
 	if len(d8expdate) < 14 {
 		return ""

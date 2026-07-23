@@ -82,6 +82,7 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			err = nil
 			continue
 		}
+		dbExpDate, _ := utils.ConvertDDMMYYYYtoYYYYMMDD(v.CancelDate)
 		cardRec := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
 			IssRecaction:         "ADD",
@@ -94,6 +95,8 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,
+			DbCardaExpdate:       dbExpDate,
+			DbCardaStatcode:      "00",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
 			DbCardaLimitCat:      "LIM01",
@@ -179,6 +182,8 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,
+			DbCardaExpdate:       time.Now().Add(18 * 30 * 24 * time.Hour).Format("20060102"),
+			DbCardaStatcode:      "03",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
 			DbCardaLimitCat:      "LIM01",
