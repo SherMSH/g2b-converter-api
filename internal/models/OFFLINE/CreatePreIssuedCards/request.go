@@ -39,7 +39,7 @@ func (r Root) Call() (respContent []byte, err error) {
 			CustomerCode: r.Records[i].ExtID,
 			AccNum:       r.Records[i].Account,
 			CurrencyCode: r.Records[i].CurrencyNo,
-			LkeyId:       fmt.Sprintf("Instant %d", v.ISS_CARD_ID),
+			LkeyAlias:    fmt.Sprintf("Instant %d", v.ISS_CARD_ID),
 			CardPan:      v.KL_LKEY_CLR,
 		}
 		respContent = append(respContent, pck.GetData()...)
