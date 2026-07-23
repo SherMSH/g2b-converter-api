@@ -17,13 +17,14 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 func ConvScanner() {
 	logger.Infof("[JOBS] Converter scanner")
 
 	for _, v := range utils.OfflineReqTypes {
-		reqOf, err := unmarshalFromFile(v)
+		reqOf, err := unmarshalFromFormat(v)
 		if err != nil {
 			if !os.IsNotExist(err) {
 				logger.Errorf("Unmarshal from file %v Error: %v", v, err)
@@ -32,8 +33,24 @@ func ConvScanner() {
 		}
 		logger.Infof("Converter Scans %v req", v)
 
-		sourcePath := config.Config.App.Storage.Basepath + config.Config.App.Storage.In + "/" + string(v)
-		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + string(v) // + time.Now().Format("2006_01_02T15_04_05Z07_00")
+		sourceMask := config.Config.App.Storage.Basepath + config.Config.App.Storage.In + "/" + string(v)
+		matches, err := filepath.Glob(sourceMask)
+		if err != nil {
+			logger.Errorf("Error founding matches for %s: %v", sourceMask, err.Error())
+			continue
+		}
+		if len(matches) == 0 {
+			logger.Errorf("Empty matches for %s", sourceMask)
+			continue
+		}
+		sourcePath := matches[0]
+		base := filepath.Base(sourcePath)
+		// prefix := string(v)[:len(v)-5]
+		// suffix := ".xml"
+		// timestamp := strings.TrimPrefix(base, prefix)
+		// timestamp = strings.TrimSuffix(timestamp, suffix)
+
+		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + base
 		content, err := reqOf.Call()
 		if err != nil {
 			logger.Errorf("Converter Scanner service %v call error: %v", v, err)
@@ -41,14 +58,22 @@ func ConvScanner() {
 		}
 		err2 := storage.MoveFile(sourcePath, destPath, content)
 		if err2 != nil {
-			logger.Warnf("Error mv file %v: %v", v, err2)
+			logger.Warnf("Error mv file %v: %v", sourcePath, err2)
 		}
 	}
 }
 
-func unmarshalFromFile(ort utils.OfflineReqType) (service.G2bServiceIface, error) {
+func unmarshalFromFormat(ort utils.OfflineReqType) (service.G2bServiceIface, error) {
 	source := config.Config.App.Storage.Basepath + config.Config.App.Storage.In + "/" + string(ort)
-	data, err := storage.LoadFile(source)
+	matches, err := filepath.Glob(source)
+	if err != nil {
+		return nil, err
+	}
+	if len(matches) == 0 {
+		return nil, os.ErrNotExist
+	}
+	nameFile := matches[0]
+	data, err := storage.LoadFile(nameFile)
 	if err != nil {
 		return nil, err
 	}

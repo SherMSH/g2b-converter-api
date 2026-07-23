@@ -31,9 +31,11 @@ func GetCardsListG2b(custcode, currcode string) (foundCards []d8procweb.CardData
 
 	for i, v := range foundCards {
 		cardInfo, _ := GetCardBasicInfo(v.LkeyID, "", utils.GetExpFormat4(v.Expdate))
-		foundCards[i].PAN = cardInfo.CardBasicInfo.Lkey.Pan
-		foundCards[i].StatCode = cardInfo.CardBasicInfo.StatCode
-		foundCards[i].ProductType = cardInfo.CardBasicInfo.ProductType
+		if cardInfo != nil {
+			foundCards[i].PAN = cardInfo.CardBasicInfo.Lkey.Pan
+			foundCards[i].StatCode = cardInfo.CardBasicInfo.StatCode
+			foundCards[i].ProductType = cardInfo.CardBasicInfo.ProductType
+		}
 	}
 
 	return

@@ -39,7 +39,7 @@ func (r Root) Call() (respContent []byte, err error) {
 			CustomerCode: r.Records[i].ExtID,
 			AccNum:       r.Records[i].Account,
 			CurrencyCode: r.Records[i].CurrencyNo,
-			LkeyAlias:    v.KL_LKEY_ALIAS,
+			LkeyAlias:    r.Records[i].ExternalID,
 			CardPan:      v.KL_LKEY_CLR,
 		}
 		respContent = append(respContent, pck.GetData()...)
