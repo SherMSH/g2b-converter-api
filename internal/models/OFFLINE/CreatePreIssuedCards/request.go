@@ -5,7 +5,6 @@ import (
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"encoding/xml"
-	"fmt"
 )
 
 // Root - корневой элемент XML
@@ -39,7 +38,7 @@ func (r Root) Call() (respContent []byte, err error) {
 			CustomerCode: r.Records[i].ExtID,
 			AccNum:       r.Records[i].Account,
 			CurrencyCode: r.Records[i].CurrencyNo,
-			LkeyAlias:    fmt.Sprintf("Instant %d", v.ISS_CARD_ID),
+			LkeyAlias:    v.KL_LKEY_ALIAS,
 			CardPan:      v.KL_LKEY_CLR,
 		}
 		respContent = append(respContent, pck.GetData()...)
