@@ -116,7 +116,7 @@ type MRecord struct {
 	AccountTP  string `xml:"ACCOUNTTP"`
 	AcctType   string `xml:"ACCTTYPE"`
 	AcctStat   string `xml:"ACCTSTAT"`
-	Acct2CStat string `xml:"ACCT2CSTAT"` // из Record
+	Acct2CStat string `xml:"ACCT2CSTAT"`
 
 	// Данные карты
 	PAN        string `xml:"PAN"`
@@ -154,6 +154,20 @@ type MRecord struct {
 	LimitCMD   string `xml:"LIMITCMD"`   // Команда лимитов (пусто)
 	BlockReiss string `xml:"BLOCKREISS"` // Блокировка перевыпуска (пусто)
 	FinProfCMD string `xml:"FINPROFCMD"` // Команда финансового профиля (пусто)
+
+	// Продукт и причина
+	CardProd string `xml:"CARDPROD"` // Продукт карты (4)
+	Reason   string `xml:"REASON"`   // Причина операции (2)
+
+	// Флаги и приоритеты
+	CMChangePAN string `xml:"CMCHANGEPAN"` // Флаг смены PAN (1)
+
+	// Финансовые профили
+	FinProfile string `xml:"FINPROFILE"` // Финансовый профиль
+
+	// Переизготовление
+	RemakePAN string `xml:"REMAKEPAN"` // PAN при переизготовлении
+	RemakeMBR string `xml:"REMAKEMBR"` // MBR при переизготовлении
 
 	// Поля без XML-тегов (только для внутреннего использования)
 	AcctNumber   string `xml:"-"`
