@@ -36,19 +36,19 @@ func MoveFile(sourcePath, destPath string, content []byte) (err error) {
 		if err != nil {
 			return fmt.Errorf("Ошибка os.Create: %v", err)
 		}
-		defer file.Close()
 
 		_, err = file.Write(content)
 		if err != nil {
 			return fmt.Errorf("Ошибка записи: %v", err)
 		}
+		file.Close()
 	}
 
-	// // Перемещаем файл
-	// err = os.Rename(sourcePath, destPath)
-	// if err != nil {
-	// 	return fmt.Errorf("Oшибка перемещения файла: %w", err)
-	// }
+	// Перемещаем файл
+	err = os.Rename(sourcePath, destPath)
+	if err != nil {
+		return fmt.Errorf("Oшибка перемещения файла: %w", err)
+	}
 
 	return nil
 }
