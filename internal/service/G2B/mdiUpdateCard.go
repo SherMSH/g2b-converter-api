@@ -156,7 +156,7 @@ func UpdatePreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err 
 	recNums := utils.NewSequence()
 
 	for _, v := range input.GetRecords() {
-		var nameInLat, lastNameinLat string
+		var nameInLat, lastNameinLat, mobTel, firstName, lastName string
 		secret := "imtiyoz"
 		if len(v.SecretInfo.Items) != 0 {
 			secret = v.SecretInfo.Items[0].Value
@@ -166,32 +166,81 @@ func UpdatePreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err 
 			lastNameinLat = names[0]
 			nameInLat = names[1]
 		}
-
+		fio := strings.Split(strings.TrimSpace(v.FIO), " ")
+		if len(fio) > 2 {
+			mobTel = fio[0]
+			firstName = fio[2]
+			lastName = fio[1]
+		}
+		bday, _ := time.Parse("02012006", v.Birthday)
 		prior, _ := strconv.Atoi(v.MakePrior)
 		prior++
+		countryCode, er := strconv.Atoi(v.CountryRes)
+		if er != nil {
+			countryCode = 762
+		}
+		customerRec := d8corp.MdiRecordDetails{
+			IssRectype:               "CUSTOMER",
+			IssRecaction:             "ADD",
+			IssRecnum:                recNums.NextVal(),
+			IssCompanyRegnr:          "ARV",
+			DbCustomerTypeCode:       "0",
+			DbCustomerCustcode:       v.ExtID,
+			DbCustomerFirstName:      firstName,
+			DbCustomerLastName:       lastName,
+			DbCustomerLatinFirstName: nameInLat,
+			DbCustomerLatinLastName:  lastNameinLat,
+			DbCustomerDateBirth:      bday.Format("20060102"),
+			DbCustomerHomeCountry:    countryCode,
+			DbCustomerPassPhrase:     secret,
+			DbCustomerMobTel:         mobTel,
+			DbCustomerDocument:       v.PasNom,
+		}
+		// Вызов функции исполнения MDI запроса
+		err = CreateCustomerTry(&customerRec)
+		if err != nil {
+			err = nil
+			continue
+		}
+		// Вызов функции исполнения MDI запроса
+		accRec := d8corp.MdiRecordDetails{
+			IssRectype:         "ACCOUNT",
+			IssRecaction:       "ADD",
+			IssRecnum:          recNums.NextVal(),
+			IssCompanyRegnr:    "ARV",
+			DbCustomerCustcode: v.ExtID,
+			DbAccountCurrcode:  v.CurrencyNo,
+			DbAccountAccnum:    v.Account,
+			DbAccountTypecode:  "00",
+		}
+		err = CreateAccountTry(&accRec)
+		if err != nil {
+			err = nil
+			continue
+		}
+
 		record := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
-			IssRecaction:         "ADD",
+			IssRecaction:         "UPDATE",
 			IssRecnum:            recNums.NextVal(),
 			IssCompanyRegnr:      "ARV",
-			IssCompanyRegnrAcc:   "ARV",
 			IssImpPvki:           3,
 			IssGenPin:            1,
 			KlLkeyAlias:          v.ExternalID,
-			DbCustomerCustcode:   secret,
+			DbCustomerCustcode:   v.ExtID,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
-			DbAccountCurrcode:    v.CurrencyNo,
-			DbCardaExpdate:       time.Now().Add(18 * 30 * 24 * time.Hour).Format("20060102"),
-			DbCardaStatcode:      "03",
-			DbCardaCommCat:       "COM03",
-			DbCardaEnroll3ds:     "1",
-			DbCardaLimitCat:      "LIM01",
-			DbCardEmbossname:     v.NameOnCard,
-			DbCardFirstname:      nameInLat,
-			DbCardLastname:       lastNameinLat,
-			DbCardMaidenname:     lastNameinLat,
-			DbCrdaccPriority:     prior,
+			DbAccountCurrcode:    "972",
+			// DbCardaExpdate:       time.Now().Add(18 * 30 * 24 * time.Hour).Format("20060102"),
+			DbCardaStatcode:  "00",
+			DbCardaCommCat:   "COM03",
+			DbCardaEnroll3ds: "1",
+			DbCardaLimitCat:  "LIM01",
+			DbCardEmbossname: v.NameOnCard,
+			DbCardFirstname:  nameInLat,
+			DbCardLastname:   lastNameinLat,
+			DbCardMaidenname: lastNameinLat,
+			DbCrdaccPriority: prior,
 		}
 		jsonRec, err := json.Marshal(record)
 		if err != nil {

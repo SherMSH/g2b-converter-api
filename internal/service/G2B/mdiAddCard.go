@@ -83,6 +83,9 @@ func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			continue
 		}
 		dbExpDate, _ := utils.ConvertDDMMYYYYtoYYYYMMDD(v.CancelDate)
+		if config.Config.App.DebugMode {
+			dbExpDate = "20300430"
+		}
 		cardRec := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
 			IssRecaction:         "ADD",
@@ -155,6 +158,10 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 	)
 	recNums := utils.NewSequence()
 
+	tmpExpDate := time.Now().Add(18 * 30 * 24 * time.Hour).Format("20060102")
+	if config.Config.App.DebugMode {
+		tmpExpDate = "20300430"
+	}
 	for _, v := range input.GetRecords() {
 		var nameInLat, lastNameinLat string
 		secret := "imtiyoz"
@@ -175,14 +182,14 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 			IssRecnum:            recNums.NextVal(),
 			IssCompanyRegnr:      "ARV",
 			IssCompanyRegnrAcc:   "ARV",
-			IssImpPvki:           3,
-			IssGenPin:            1,
+			IssImpPvki:           1,
+			IssGenPin:            0,
 			KlLkeyAlias:          v.ExternalID,
 			DbCustomerCustcode:   secret,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,
-			DbCardaExpdate:       time.Now().Add(18 * 30 * 24 * time.Hour).Format("20060102"),
+			DbCardaExpdate:       tmpExpDate,
 			DbCardaStatcode:      "03",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
