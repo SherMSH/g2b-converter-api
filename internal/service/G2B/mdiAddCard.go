@@ -210,18 +210,18 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 
 	err = json.Unmarshal(data, &resp)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) RESP marshaling err: %v", err)
 		return nil, err
 	}
 	if resp.Status.Code != "0" {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP status %s", resp.Status.Code)
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) RESP status %s", resp.Status.Code)
 		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 
 	mdiData = new(d8corp.MdiData)
 	err = json.Unmarshal(resp.Data, mdiData)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD RESP marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) mdiData marshaling err: %v", err)
 		return nil, err
 	}
 
