@@ -45,9 +45,65 @@ func MoveFile(sourcePath, destPath string, content []byte) (err error) {
 	}
 
 	// Перемещаем файл
-	err = os.Rename(sourcePath, destPath)
+	err = copyAndRemove(sourcePath, destPath)
 	if err != nil {
 		return fmt.Errorf("Oшибка перемещения файла: %w", err)
+	}
+
+	return nil
+}
+
+// copyAndRemove копирует файл и удаляет исходник
+func copyAndRemove(sourcePath, destPath string) error {
+	// 1. Копируем файл с сохранением прав доступа
+	err := copyFile(sourcePath, destPath)
+	if err != nil {
+		return fmt.Errorf("копирование файла: %w", err)
+	}
+
+	// 2. Удаляем исходный файл
+	err = os.Remove(sourcePath)
+	if err != nil {
+		// Пытаемся удалить скопированный файл, чтобы не оставить мусор
+		os.Remove(destPath)
+		return fmt.Errorf("удаление исходного файла: %w", err)
+	}
+
+	return nil
+}
+
+// copyFile копирует содержимое и права доступа
+func copyFile(sourcePath, destPath string) error {
+	// Открываем исходный файл
+	src, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	// Получаем информацию о файле для прав доступа
+	srcInfo, err := src.Stat()
+	if err != nil {
+		return err
+	}
+
+	// Создаём целевой файл с теми же правами
+	dest, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, srcInfo.Mode())
+	if err != nil {
+		return err
+	}
+	defer dest.Close()
+
+	// Копируем содержимое
+	_, err = io.Copy(dest, src)
+	if err != nil {
+		return err
+	}
+
+	// Гарантируем запись на диск
+	err = dest.Sync()
+	if err != nil {
+		return err
 	}
 
 	return nil
