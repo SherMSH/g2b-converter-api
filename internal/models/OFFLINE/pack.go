@@ -7,10 +7,10 @@ type Pack struct {
 	CustomerCode string
 	AccNum       string
 	CurrencyCode string
-	LkeyId       string
+	LkeyAlias    string
 	CardPan      string
 }
 
 func (p *Pack) GetData() []byte {
-	return []byte(fmt.Sprintf("%s:%s:%s:%s:%s:%s:%s\n", p.CustomerId, p.CustomerCode, p.AccNum, p.AccNum, p.CurrencyCode, p.LkeyId, p.CardPan))
+	return []byte(fmt.Sprintf("%s:%s:%s:%s:%s:%s:%s\n", p.CustomerId, p.CustomerCode, p.AccNum, p.AccNum, p.CurrencyCode, p.LkeyAlias, p.CardPan))
 }
