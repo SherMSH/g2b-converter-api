@@ -241,3 +241,115 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 
 	return mdiData, nil
 }
+
+func ReissueCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, cards []d8corp.CardInfoData, err error) {
+	var (
+		recDetails                              d8corp.MdiFile
+		resp                                    d8corp.CommonResp
+		currentExpDate, firstAccNum, embossName string
+	)
+	recNums := utils.NewSequence()
+	for i, v := range input.GetRecords() {
+		if len(v.PAN) != 16 {
+			logger.Errorf("[SERVICE] D8 G2b (reissue) card error: wrong PAN parametr: %s, record %d skipped ", v.PAN, i)
+			continue
+		}
+
+		dbExpDate, _ := utils.ConvertDDMMYYYYtoYYYYMMDD(v.CancelDate)
+		if config.Config.App.DebugMode {
+			dbExpDate = "20300430"
+			currentExpDate = "3004"
+		}
+		// GetCardInfo to get custcode and accnum
+		curCard, err := GetCardBasicAndAccsInfo(v.PAN, currentExpDate)
+		if curCard != nil {
+			cards = append(cards, *curCard)
+		} else {
+			cards = append(cards, d8corp.CardInfoData{})
+		}
+		if err != nil || curCard == nil {
+			err = fmt.Errorf("cannot find cardData")
+			logger.Errorf("[SERVICE] D8 G2b (reissue) GetCardInfo error: %v; record %d scopped", err, i)
+			continue
+		}
+		if len(curCard.CardBasicInfo.Currcode) == 0 {
+			logger.Errorf("[SERVICE] D8 G2b (reissue) cannot find customer; record %d scopped", i)
+			continue
+		}
+		if len(curCard.CardAccounts) != 0 {
+			firstAccNum = curCard.CardAccounts[0].AccountNumber
+		} else {
+			firstAccNum = ""
+		}
+		embossName = v.NameOnCard
+		if len(embossName) == 0 {
+			embossName = curCard.CardBasicInfo.EmbossName
+		}
+		cardRec := d8corp.MdiRecordDetails{
+			IssRectype:           "CARD",
+			IssRecaction:         "ADD",
+			IssRecnum:            recNums.NextVal(),
+			IssCompanyRegnr:      "ARV",
+			IssImpPvki:           3,
+			IssGenPin:            1,
+			KlLkeyAlias:          v.ExternalID,
+			DbCustomerCustcode:   curCard.CardBasicInfo.CustomerCode,
+			DbCdproductCdproduct: "ARVDBT",
+			DbAccountAccnum:      firstAccNum,
+			DbAccountCurrcode:    curCard.CardBasicInfo.Currcode,
+			DbCardaExpdate:       dbExpDate,
+			DbCardaStatcode:      "00",
+			DbCardaCommCat:       "COM03",
+			DbCardaEnroll3ds:     "1",
+			DbCardaLimitCat:      "LIM01",
+			DbCardEmbossname:     embossName,
+			DbCardFirstname:      curCard.CardBasicInfo.FirstName,
+			DbCardLastname:       curCard.CardBasicInfo.LastName,
+			DbCardMaidenname:     curCard.CardBasicInfo.LastName,
+			DbCrdaccPriority:     1,
+		}
+		jsonCrd, err := json.Marshal(cardRec)
+		if err != nil {
+			logger.Errorf("[SERVICE] D8 G2b ADDCARD (reissue) card req marshaling record err: %v", err)
+			return nil, nil, err
+		}
+		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonCrd)
+
+		if curCard.CardBasicInfo.StatCode == "00" {
+			defer SetCardStatusG2b(v.PAN, currentExpDate, "14", "Reissued by convertor")
+		}
+	}
+
+	cardJSON, err := json.Marshal(recDetails)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD (reissue) req marshaling err: %v", err)
+		return nil, nil, err
+	}
+	logger.Infof("json ADDCARD: %v", string(cardJSON))
+
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", cardJSON, utils.D8HeadersMap)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD (reissue) request sending err: %v", err)
+		return nil, nil, err
+	}
+	logger.Infof("[SERVICE] D8 G2b ADDCARD (reissue) resp status: %v, body: %v", status, string(data))
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD (reissue) common RESP unmarshaling err: %v", err)
+		return nil, nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD (reissue) RESP status %s", resp.Status.Code)
+		return nil, nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
+	}
+
+	mdiData = new(d8corp.MdiData)
+	err = json.Unmarshal(resp.Data, mdiData)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b ADDCARD (reissue) mdiData marshaling err: %v", err)
+		return nil, nil, err
+	}
+
+	return mdiData, cards, nil
+}

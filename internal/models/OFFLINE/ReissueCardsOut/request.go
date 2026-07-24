@@ -26,7 +26,7 @@ func (r Root) GetRecordsCount() int {
 }
 
 func (r Root) Call() (respContent []byte, err error) {
-	mdiData, err := service.ReissueCardG2b(r)
+	mdiData, cardsData, err := service.ReissueCardG2b(r)
 	if err != nil {
 		return []byte(err.Error()), err
 	}
@@ -36,17 +36,24 @@ func (r Root) Call() (respContent []byte, err error) {
 		return []byte(err.Error()), err
 	}
 
-	for i, v := range mdiData.Details {
+	for i := range mdiData.Details {
 		if mdiData.Details[i].C_ACTIONCODE != "0" {
 			break
 		}
+		if cardsData[i].CardBasicInfo.Lkey.LkeyId == 0 {
+			continue
+		}
+		accnum := ""
+		if len(cardsData[i].CardAccounts) != 0 {
+			accnum = cardsData[i].CardAccounts[0].AccountNumber
+		}
 		pck := models.Pack{
-			CustomerId:   r.Records[i].PCode,
-			CustomerCode: r.Records[i].ExtID,
-			AccNum:       r.Records[i].Account,
-			CurrencyCode: r.Records[i].CurrencyNo,
+			CustomerId:   cardsData[i].CardBasicInfo.Lkey.LkeyAlias,
+			CustomerCode: cardsData[i].CardBasicInfo.CustomerCode,
+			AccNum:       accnum,
+			CurrencyCode: cardsData[i].CardBasicInfo.Currcode,
 			LkeyAlias:    r.Records[i].ExternalID,
-			CardPan:      v.KL_LKEY_CLR,
+			CardPan:      mdiData.Details[i].KL_LKEY_CLR,
 		}
 		respContent = append(respContent, pck.GetData()...)
 	}

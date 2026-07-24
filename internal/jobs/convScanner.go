@@ -47,8 +47,7 @@ func ConvScanner() {
 		base := filepath.Base(sourcePath)
 		// prefix := string(v)[:len(v)-5]
 		// suffix := ".xml"
-		// timestamp := strings.TrimPrefix(base, prefix)
-		// timestamp = strings.TrimSuffix(timestamp, suffix)
+		// timestamp := strings.TrimSuffix(strings.TrimPrefix(base, prefix), suffix)
 
 		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + base
 		content, err := reqOf.Call()
