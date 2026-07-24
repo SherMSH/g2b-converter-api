@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"converterapi/internal/config"
 	"fmt"
 	"io"
 	"os"
@@ -23,12 +24,16 @@ func LoadFile(path string) ([]byte, error) {
 	return data, nil
 }
 
-// MoveFile использует os.Rename для перемещения файла
-func MoveFile(sourcePath, destPath string, content []byte) (err error) {
+// MoveFile копирует исходный файл в новое место и удалят его
+func MoveFile(sourcePath, destPath, base string, content []byte) (err error) {
 	// Проверяем, существует ли исходный файл
 	if _, err := os.Stat(sourcePath); os.IsNotExist(err) {
 		return fmt.Errorf("исходный файл не существует: %s", sourcePath)
 	}
+
+	// Копируем файл в сборник
+	collection := config.Config.App.Storage.Basepath + "/" + base
+	err = copyFile(sourcePath, collection)
 
 	// Create создает файл или усекает (очищает) существующий
 	if content != nil {
@@ -44,7 +49,7 @@ func MoveFile(sourcePath, destPath string, content []byte) (err error) {
 		file.Close()
 	}
 
-	// Перемещаем файл
+	// Перемещаем и удалям файл
 	err = copyAndRemove(sourcePath, destPath)
 	if err != nil {
 		return fmt.Errorf("Oшибка перемещения файла: %w", err)

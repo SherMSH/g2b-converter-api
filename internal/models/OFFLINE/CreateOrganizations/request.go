@@ -18,7 +18,7 @@ func (r Root) GetReqType() string {
 func (r Root) Call() ([]byte, error) {
 	respContent, err := xml.Marshal(r)
 	if err != nil {
-		return nil, err
+		return []byte(err.Error()), err
 	}
 	return respContent, nil
 }

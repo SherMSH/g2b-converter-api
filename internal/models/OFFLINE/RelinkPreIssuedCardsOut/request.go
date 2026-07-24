@@ -5,6 +5,7 @@ import (
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"encoding/xml"
+	"fmt"
 )
 
 type Root struct {
@@ -26,19 +27,26 @@ func (r Root) GetRecordsCount() int {
 func (r Root) Call() (respContent []byte, err error) {
 	mdiData, err := service.RelinkPreissiedCardG2b(r)
 	if err != nil {
-		return nil, err
+		return []byte(err.Error()), err
 	}
 
-	for i := range mdiData.Details {
-		if mdiData.Details[i].C_ACTIONCODE != "0" {
-			break
+	if mdiData.Header.CActionCode != "0" {
+		err = fmt.Errorf("%s - %s", mdiData.Header.CRspCode, mdiData.Header.IRejMsg)
+		return []byte(err.Error()), err
+	}
+
+	for i := range r.Records {
+		if len(mdiData.Details) > 0 {
+			if mdiData.Details[i].C_ACTIONCODE != "0" {
+				break
+			}
 		}
 		pck := models.Pack{
 			CustomerId:   r.Records[i].PCode,
 			CustomerCode: r.Records[i].ExtID,
 			AccNum:       r.Records[i].Account,
 			CurrencyCode: "972",
-			LkeyAlias:    r.Records[i].ExternalID,
+			LkeyAlias:    r.Records[i].ExtID,
 			CardPan:      r.Records[i].PAN,
 		}
 		respContent = append(respContent, pck.GetData()...)
