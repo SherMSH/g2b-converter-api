@@ -90,10 +90,12 @@ func ReissueCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	return mdiData, nil
 }
 
-func UpdatePreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
+func RelinkPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	var (
-		recDetails d8corp.MdiFile
-		resp       d8corp.CommonResp
+		recDetails     d8corp.MdiFile
+		resp           d8corp.CommonResp
+		currentExpDate string
+		newExpDate     string
 	)
 	recNums := utils.NewSequence()
 
@@ -151,7 +153,7 @@ func UpdatePreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err 
 			IssRecnum:          recNums.NextVal(),
 			IssCompanyRegnr:    "ARV",
 			DbCustomerCustcode: v.ExtID,
-			DbAccountCurrcode:  v.CurrencyNo,
+			DbAccountCurrcode:  "972",
 			DbAccountAccnum:    v.Account,
 			DbAccountTypecode:  "00",
 		}
@@ -160,33 +162,44 @@ func UpdatePreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err 
 			err = nil
 			continue
 		}
+		currentExpDate, _ := utils.ConvertDDMMYYYYtoYYYYMMDD(currentExpDate)
+		if config.Config.App.DebugMode {
+			currentExpDate = "20300430"
+		} else {
+			//TODO: определение expDate по PAN
+			currentExpDate = ""
+		}
+		newExpDate = currentExpDate
 
 		record := d8corp.MdiRecordDetails{
-			IssRectype:           "CARD",
-			IssRecaction:         "UPDATE",
-			IssRecnum:            recNums.NextVal(),
-			IssCompanyRegnr:      "ARV",
-			IssImpPvki:           3,
-			IssGenPin:            1,
-			KlLkeyAlias:          v.ExternalID,
+			IssRectype:         "CARD",
+			IssRecaction:       "UPDATE",
+			IssRecnum:          recNums.NextVal(),
+			IssCompanyRegnr:    "ARV",
+			IssImpPvki:         3,
+			IssGenPin:          1,
+			IssCardaExpdateNew: newExpDate,
+
+			KlLKeyClr:      v.PAN,
+			DbCardaExpdate: currentExpDate,
+
 			DbCustomerCustcode:   v.ExtID,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    "972",
-			// DbCardaExpdate:       time.Now().Add(18 * 30 * 24 * time.Hour).Format("20060102"),
-			DbCardaStatcode:  "00",
-			DbCardaCommCat:   "COM03",
-			DbCardaEnroll3ds: "1",
-			DbCardaLimitCat:  "LIM01",
-			DbCardEmbossname: v.NameOnCard,
-			DbCardFirstname:  nameInLat,
-			DbCardLastname:   lastNameinLat,
-			DbCardMaidenname: lastNameinLat,
-			DbCrdaccPriority: prior,
+			DbCardaStatcode:      "00",
+			DbCardaCommCat:       "COM03",
+			DbCardaEnroll3ds:     "1",
+			DbCardaLimitCat:      "LIM01",
+			DbCardEmbossname:     v.NameOnCard,
+			DbCardFirstname:      nameInLat,
+			DbCardLastname:       lastNameinLat,
+			DbCardMaidenname:     lastNameinLat,
+			DbCrdaccPriority:     prior,
 		}
 		jsonRec, err := json.Marshal(record)
 		if err != nil {
-			logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling record err: %v", err)
+			logger.Errorf("[SERVICE] D8 G2b UPDATECARD (preissued) req marshaling record err: %v", err)
 			return nil, err
 		}
 		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonRec)
@@ -194,32 +207,32 @@ func UpdatePreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err 
 
 	mdiDataJSON, err := json.Marshal(recDetails)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) req marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b UPDATECARD (preissued) req marshaling err: %v", err)
 		return nil, err
 	}
-	logger.Infof("json ADDCARD (preissued): %v", string(mdiDataJSON))
+	logger.Infof("json UPDATECARD (preissued): %v", string(mdiDataJSON))
 
 	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) request sending err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b UPDATECARD (preissued) request sending err: %v", err)
 		return nil, err
 	}
-	logger.Infof("[SERVICE] D8 G2b ADDCARD (preissued) resp status: %v, body: %v", status, string(data))
+	logger.Infof("[SERVICE] D8 G2b UPDATECARD (preissued) resp status: %v, body: %v", status, string(data))
 
 	err = json.Unmarshal(data, &resp)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) RESP marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b UPDATECARD (preissued) RESP marshaling err: %v", err)
 		return nil, err
 	}
 	if resp.Status.Code != "0" {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) RESP status %s", resp.Status.Code)
+		logger.Errorf("[SERVICE] D8 G2b UPDATECARD (preissued) RESP status %s", resp.Status.Code)
 		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 
 	mdiData = new(d8corp.MdiData)
 	err = json.Unmarshal(resp.Data, mdiData)
 	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADDCARD (preissued) mdiData marshaling err: %v", err)
+		logger.Errorf("[SERVICE] D8 G2b UPDATECARD (preissued) mdiData marshaling err: %v", err)
 		return nil, err
 	}
 
