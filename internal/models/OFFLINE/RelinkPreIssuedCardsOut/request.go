@@ -34,7 +34,7 @@ func (r Root) Call() (respContent []byte, err error) {
 		err = fmt.Errorf("%s - %s", mdiData.Header.CRspCode, mdiData.Header.IRejMsg)
 		return []byte(err.Error()), err
 	}
-
+	service.DeleteCardAcctLinkG2b(r)
 	service.AddCardAcctLinkG2b(r)
 	for i := range r.Records {
 		if len(mdiData.Details) > 0 {
