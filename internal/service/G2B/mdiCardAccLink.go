@@ -112,6 +112,11 @@ func DeleteCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 	recNums := utils.NewSequence()
 
 	for _, v := range input.GetRecords() {
+		//TODO: доделать
+		cardInfo, _ := GetCardBasicAndAccsInfo(v.PAN, "3004")
+		if len(cardInfo.CardAccounts) == 0 {
+			continue
+		}
 		record := d8corp.MdiRecordDetails{
 			IssRectype:         "CRDACC",
 			IssRecaction:       "DELETE",
@@ -120,7 +125,7 @@ func DeleteCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 			IssCompanyRegnrAcc: "ARV",
 			KlLKeyClr:          v.PAN,
 			DbAccountCurrcode:  "972",
-			DbAccountAccnum:    v.Account,
+			DbAccountAccnum:    cardInfo.CardAccounts[0].AccountNumber,
 		}
 		jsonRec, err := json.Marshal(record)
 		if err != nil {
