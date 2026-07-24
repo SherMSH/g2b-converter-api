@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"converterapi/internal/config"
+	"converterapi/internal/jobs"
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
@@ -97,6 +98,8 @@ func PutConvFile(c *gin.Context) {
 		})
 		return
 	}
+
+	defer jobs.ConvScanner()
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Файл успешно загружен",
