@@ -18,10 +18,10 @@ func AddCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 			IssRectype:         "CRDACC",
 			IssRecaction:       "ADD",
 			IssRecnum:          recNums.NextVal(),
-			IssCompanyRegnr:    "ARVD",
-			IssCompanyRegnrAcc: "ARVD",
+			IssCompanyRegnr:    "ARV",
+			IssCompanyRegnrAcc: "ARV",
 			KlLKeyClr:          v.PAN,
-			DbAccountCurrcode:  v.CurrencyNo,
+			DbAccountCurrcode:  "972",
 			DbAccountAccnum:    v.Account,
 		}
 		jsonRec, err := json.Marshal(record)
@@ -67,10 +67,10 @@ func UpdateCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 			IssRectype:         "CRDACC",
 			IssRecaction:       "UPDATE",
 			IssRecnum:          recNums.NextVal(),
-			IssCompanyRegnr:    "ARVD",
-			IssCompanyRegnrAcc: "ARVD",
+			IssCompanyRegnr:    "ARV",
+			IssCompanyRegnrAcc: "ARV",
 			KlLKeyClr:          v.PAN,
-			DbAccountCurrcode:  v.CurrencyNo,
+			DbAccountCurrcode:  "972",
 			DbAccountAccnum:    v.Account,
 		}
 		jsonRec, err := json.Marshal(record)
@@ -116,10 +116,10 @@ func DeleteCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 			IssRectype:         "CRDACC",
 			IssRecaction:       "DELETE",
 			IssRecnum:          recNums.NextVal(),
-			IssCompanyRegnr:    "ARVD",
-			IssCompanyRegnrAcc: "ARVD",
+			IssCompanyRegnr:    "ARV",
+			IssCompanyRegnrAcc: "ARV",
 			KlLKeyClr:          v.PAN,
-			DbAccountCurrcode:  v.CurrencyNo,
+			DbAccountCurrcode:  "972",
 			DbAccountAccnum:    v.Account,
 		}
 		jsonRec, err := json.Marshal(record)
