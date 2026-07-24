@@ -5,6 +5,7 @@ import (
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"encoding/xml"
+	"fmt"
 )
 
 type Root struct {
@@ -28,10 +29,14 @@ func (r Root) Call() (respContent []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-
-	for i := range mdiData.Details {
-		if mdiData.Details[i].C_ACTIONCODE != "0" {
-			break
+	if mdiData.Header.CActionCode != "0" {
+		return nil, fmt.Errorf("%s - %s", mdiData.Header.CActionCode, mdiData.Header.IRejMsg)
+	}
+	for i := range r.Records {
+		if len(mdiData.Details) > 0 {
+			if mdiData.Details[i].C_ACTIONCODE != "0" {
+				break
+			}
 		}
 		pck := models.Pack{
 			CustomerId:   r.Records[i].PCode,
