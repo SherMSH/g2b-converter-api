@@ -26,7 +26,12 @@ func (r Root) GetRecordsCount() int {
 func (r Root) Call() (respContent []byte, err error) {
 	// mdiData, err := service.UpdatePreissiedCardG2b(r)
 	// if err != nil {
-	// 	return nil, err
+	// 	return []byte(err.Error()), err
+	// }
+
+	// if mdiData.Header.CActionCode != "0" {
+	// 	err = fmt.Errorf("%s - %s", mdiData.Header.CRspCode, mdiData.Header.IRejMsg)
+	// 	return []byte(err.Error()), err
 	// }
 
 	// for i := range mdiData.Details {

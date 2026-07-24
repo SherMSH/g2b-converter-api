@@ -54,10 +54,9 @@ func ConvScanner() {
 		content, err := reqOf.Call()
 		if err != nil {
 			logger.Errorf("Converter Scanner service %v call error: %v", v, err)
-			continue
 		}
 		logger.Infof("writin' %s: %s", string(v), content)
-		err2 := storage.MoveFile(sourcePath, destPath, content)
+		err2 := storage.MoveFile(sourcePath, destPath, base, content)
 		if err2 != nil {
 			logger.Warnf("Error mv file %v: %v", sourcePath, err2)
 		}

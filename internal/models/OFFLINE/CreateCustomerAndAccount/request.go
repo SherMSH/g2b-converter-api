@@ -21,7 +21,7 @@ func (r Root) Call() ([]byte, error) {
 	logger.Infof("AddCustomer and Account Mdi call resp: %v", resp)
 	respContent, err := xml.Marshal(r)
 	if err != nil {
-		return nil, err
+		return []byte(err.Error()), err
 	}
 	return respContent, err
 }

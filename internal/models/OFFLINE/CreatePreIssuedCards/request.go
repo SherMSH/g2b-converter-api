@@ -5,6 +5,7 @@ import (
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"encoding/xml"
+	"fmt"
 )
 
 // Root - корневой элемент XML
@@ -27,8 +28,14 @@ func (r Root) GetRecordsCount() int {
 func (r Root) Call() (respContent []byte, err error) {
 	mdiData, err := service.AddPreissiedCardG2b(r)
 	if err != nil {
-		return nil, err
+		return []byte(err.Error()), err
 	}
+
+	if mdiData.Header.CActionCode != "0" {
+		err = fmt.Errorf("%s - %s", mdiData.Header.CRspCode, mdiData.Header.IRejMsg)
+		return []byte(err.Error()), err
+	}
+
 	for i, v := range mdiData.Details {
 		if mdiData.Details[i].C_ACTIONCODE != "0" {
 			break
