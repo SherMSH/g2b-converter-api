@@ -36,8 +36,6 @@ func (r Root) Call() (respContent []byte, err error) {
 	}
 
 	service.AddCardAcctLinkG2b(r)
-	service.DeleteCardAcctLinkG2b(r)
-
 	for i := range r.Records {
 		if len(mdiData.Details) > 0 {
 			if mdiData.Details[i].C_ACTIONCODE != "0" {
