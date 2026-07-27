@@ -16,6 +16,9 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
 		sb.SoapRq.Req.ExpirationDate = "3004"
 	}
+	if len(sb.SoapRq.Req.ChangeReason) == 0 {
+		sb.SoapRq.Req.ChangeReason = "forced status change via converter"
+	}
 
 	err = service.SetCardStatusG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate, statCodes[0], sb.SoapRq.Req.ChangeReason)
 	if err != nil {
