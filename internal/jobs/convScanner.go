@@ -18,9 +18,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
+var mutex sync.Mutex
+
 func ConvScanner() {
+	mutex.Lock()
+	defer mutex.Unlock()
 	logger.Infof("[JOBS] Converter scanner")
 
 	for _, v := range utils.OfflineReqTypes {
