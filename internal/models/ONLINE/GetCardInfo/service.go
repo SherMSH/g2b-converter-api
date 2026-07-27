@@ -96,7 +96,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.PasswordFlag = "0"
 	resp.UseUdCVV2 = fmt.Sprintf("%d", cardInfo.CardBasicInfo.Cvv2Type)
 
-	if cardInfo.CardNotifications != nil {
+	if len(cardInfo.CardNotifications) != 0 {
 		nums = cardInfo.CardNotifications[0].NotificationTarget
 		resp.PersonConfidential = PersonConfidential{
 			Row: ConfidentialRow{
