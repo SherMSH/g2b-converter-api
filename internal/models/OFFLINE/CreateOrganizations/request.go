@@ -26,29 +26,13 @@ func (r Root) GetRecordsCount() int {
 }
 
 func (r Root) Call() (respContent []byte, err error) {
-	mdiData, err := service.AddCompaniesG2b(r)
+	companies, err := service.AddCompaniesG2b(r)
 	if err != nil {
 		return []byte(err.Error()), err
 	}
 
-	if mdiData.Header.CActionCode != "0" {
-		err = fmt.Errorf("%s - %s", mdiData.Header.CRspCode, mdiData.Header.IRejMsg)
-		return []byte(err.Error()), err
-	}
-
-	for i := range mdiData.Details {
-		if mdiData.Details[i].C_ACTIONCODE != "0" {
-			break
-		}
-		pck := models.Pack{
-			// CustomerId:   r.Records[i].PCode,
-			CustomerCode: r.Records[i].ExtID,
-			// AccNum:       r.Records[i].Account,
-			// CurrencyCode: r.Records[i].CurrencyNo,
-			// LkeyAlias:    r.Records[i].ExternalID,
-			// CardPan:      v.KL_LKEY_CLR,
-		}
-		respContent = append(respContent, pck.GetData()...)
+	for _, v := range companies {
+		respContent = append(respContent, fmt.Sprintf("ID: %d, reg_number: %s. %s - ORG added succesfull.\n", v.ID, v.RegNumber, v.Name)...)
 	}
 	return respContent, nil
 }
