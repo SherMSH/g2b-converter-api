@@ -14,7 +14,7 @@ const (
 
 func AddCompaniesG2b(input models.MDIface) (companies []d8procweb.CompaniesData, err error) {
 	var (
-		path string = "/api/miss/v1/addCardProduct"
+		path string = "/api/kernel/v1/addCompany"
 	)
 	for i, v := range input.GetRecords() {
 		companyData := d8procweb.CompaniesData{
