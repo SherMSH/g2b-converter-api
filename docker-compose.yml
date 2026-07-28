@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       - /srv/g2b/logs:/app/logs
+      - /srv/g2b/files/history:/app/files/d8-partnerapi_docs/Examples/OffLine
       - /srv/g2b/files/in:/app/files/d8-partnerapi_docs/Examples/OffLine/in
       - /srv/g2b/files/out:/app/files/d8-partnerapi_docs/Examples/OffLine/out
     command: sh -c './converterApi >> /app/logs/app.log 2>&1'

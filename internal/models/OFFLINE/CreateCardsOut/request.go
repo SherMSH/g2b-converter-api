@@ -26,7 +26,7 @@ func (r Root) GetRecordsCount() int {
 }
 
 func (r Root) Call() (respContent []byte, err error) {
-	mdiData, err := service.AddCardG2b(r)
+	mdiData, err := service.AddCardsG2b(r)
 	if err != nil {
 		return []byte(err.Error()), err
 	}

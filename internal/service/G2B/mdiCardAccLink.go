@@ -38,18 +38,8 @@ func AddCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 		return nil, err
 	}
 	logger.Infof("json ADD CRDACC: %v", string(reqJSON))
-	mdiFile := d8corp.MdiFile{
-		MdiRecords: []json.RawMessage{
-			reqJSON,
-		},
-	}
-	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b ADD CRDACC req marshaling err: %v", err)
-		return nil, err
-	}
 
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", reqJSON, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADD CRDACC request sending err: %v", err)
 		return nil, err
@@ -87,18 +77,8 @@ func UpdateCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 		return nil, err
 	}
 	logger.Infof("json UPDATE CRDACC: %v", string(reqJSON))
-	mdiFile := d8corp.MdiFile{
-		MdiRecords: []json.RawMessage{
-			reqJSON,
-		},
-	}
-	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b UPDATE CRDACC req marshaling err: %v", err)
-		return nil, err
-	}
 
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", reqJSON, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b UPDATE CRDACC request sending err: %v", err)
 		return nil, err
@@ -145,18 +125,8 @@ func DeleteCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 		return nil, err
 	}
 	logger.Infof("json DELETE CRDACC: %v", string(reqJSON))
-	mdiFile := d8corp.MdiFile{
-		MdiRecords: []json.RawMessage{
-			reqJSON,
-		},
-	}
-	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b DELETE CRDACC req marshaling err: %v", err)
-		return nil, err
-	}
 
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", reqJSON, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b DELETE CRDACC request sending err: %v", err)
 		return nil, err

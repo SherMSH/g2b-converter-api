@@ -80,19 +80,7 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 		return nil, err
 	}
 	logger.Infof("json ADD CUSTOMER and ACCOUNT: %v", string(reqJSON))
-
-	mdiFile := d8corp.MdiFile{
-		MdiRecords: []json.RawMessage{
-			reqJSON,
-		},
-	}
-	mdiDataJSON, err := json.MarshalIndent(mdiFile, "", "  ")
-	if err != nil {
-		logger.Errorf("[SERVICE] D8 G2b CreateCustomersAndAccounts req marshaling err: %v", err)
-		return nil, err
-	}
-
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", mdiDataJSON, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/mdi", reqJSON, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b ADD CUSTOMER and ACCOUNT request sending err: %v", err)
 		return nil, err
