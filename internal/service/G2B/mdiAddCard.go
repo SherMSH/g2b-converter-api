@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func AddCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
+func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	var (
 		recDetails d8corp.MdiFile
 		resp       d8corp.CommonResp
