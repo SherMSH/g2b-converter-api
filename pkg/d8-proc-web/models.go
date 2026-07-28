@@ -1,5 +1,7 @@
 package d8procweb
 
+import "encoding/json"
+
 type CardData struct {
 	CardaID       int    `json:"carda_id"`
 	CardID        int    `json:"card_id"`
@@ -62,6 +64,11 @@ type RequestBody struct {
 	Ordering []string    `json:"ordering,omitempty"`
 	Filters  []Filter    `json:"filters,omitempty"`
 }
+type RequestWithData struct {
+	Data     json.RawMessage `json:"data,omitempty"`
+	Ordering []string        `json:"ordering,omitempty"`
+	Filters  []Filter        `json:"filters,omitempty"`
+}
 
 type TerminalsData struct {
 	Recver        int    `json:"recver"`
@@ -76,4 +83,11 @@ type TerminalsData struct {
 	Geoip4        string `json:"geoip4"`
 	Timezone      string `json:"timezone"`
 	PostypID      int    `json:"postyp_id"`
+}
+
+type CompaniesData struct {
+	ID        int    `json:"id"`
+	RegNumber string `json:"reg_number"`
+	Name      string `json:"name"`
+	ParentId  int    `json:"parent_id"`
 }
