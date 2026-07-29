@@ -23,7 +23,10 @@
     },
     "processing": {
         "address": "http://d8-tprocweb1.humo.lab",
-        "token": ""
+        "token": "",
+        "extra": {
+            "agreed_expdate_yymm": "3004",
+            "agreed_expdate_yyyymmdd": "20300430"
+        }
     }
-
 }

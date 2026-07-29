@@ -93,7 +93,7 @@ func DeleteCardAcctLinkG2b(input models.MDIface) (resp interface{}, err error) {
 
 	for _, v := range input.GetRecords() {
 		//TODO: доделать
-		cardInfo, err := GetCardBasicAndAccsInfo(v.PAN, "3004")
+		cardInfo, err := GetCardBasicAndAccsInfo(v.PAN, config.Config.Processing.Extra["agreed_expdate_yymm"])
 		if err != nil {
 			logger.Warnf("[SERVICE] D8 G2b DELETE CRDACC getCardInfo error: %v", err)
 			continue

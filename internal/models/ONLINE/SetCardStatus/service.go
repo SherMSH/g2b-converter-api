@@ -14,7 +14,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	}
 
 	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
-		sb.SoapRq.Req.ExpirationDate = "3004"
+		sb.SoapRq.Req.ExpirationDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
 	}
 	if len(sb.SoapRq.Req.ChangeReason) == 0 {
 		sb.SoapRq.Req.ChangeReason = "forced status change via converter"

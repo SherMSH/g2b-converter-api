@@ -87,7 +87,7 @@ func RelinkPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err 
 		}
 		currentExpDate, _ := utils.ConvertDDMMYYYYtoYYYYMMDD(currentExpDate)
 		if config.Config.App.DebugMode {
-			currentExpDate = "20300430"
+			currentExpDate = config.Config.Processing.Extra["agreed_expdate_yyyymmdd"]
 		} else {
 			//TODO: определение expDate по PAN
 			currentExpDate = ""

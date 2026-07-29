@@ -65,6 +65,7 @@ type Job struct {
 }
 
 type System struct {
-	Address string `json:"address"`
-	Token   string `json:"token"`
+	Address string            `json:"address"`
+	Token   string            `json:"token"`
+	Extra   map[string]string `json:"extra"`
 }

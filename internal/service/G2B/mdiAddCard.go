@@ -88,7 +88,7 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 		}
 		dbExpDate, _ := utils.ConvertDDMMYYYYtoYYYYMMDD(v.CancelDate)
 		if config.Config.App.DebugMode {
-			dbExpDate = "20300430"
+			dbExpDate = config.Config.Processing.Extra["agreed_expdate_yyyymmdd"]
 		}
 		cardRec := d8corp.MdiRecordDetails{
 			IssRectype:           "CARD",
@@ -164,7 +164,7 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 
 	tmpExpDate := time.Now().Add(18 * 30 * 24 * time.Hour).Format("20060102")
 	if config.Config.App.DebugMode {
-		tmpExpDate = "20300430"
+		tmpExpDate = config.Config.Processing.Extra["agreed_expdate_yyyymmdd"]
 	}
 	for _, v := range input.GetRecords() {
 		var nameInLat, lastNameinLat string
@@ -261,8 +261,8 @@ func ReissueCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, cards []d8co
 
 		dbExpDate, _ := utils.ConvertDDMMYYYYtoYYYYMMDD(v.CancelDate)
 		if config.Config.App.DebugMode {
-			dbExpDate = "20300430"
-			currentExpDate = "3004"
+			dbExpDate = config.Config.Processing.Extra["agreed_expdate_yyyymmdd"]
+			currentExpDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
 		}
 		// GetCardInfo to get custcode and accnum
 		curCard, err := GetCardBasicAndAccsInfo(v.PAN, currentExpDate)
