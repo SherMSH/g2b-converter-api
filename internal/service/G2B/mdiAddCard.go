@@ -21,6 +21,10 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	recNums := utils.NewSequence()
 	for _, v := range input.GetRecords() {
 		var secret, mobTel, firstName, lastName, nameInLat, lastNameinLat string
+		company := "ARV"
+		if v.Company != "1000" && v.Company != "" {
+			company = v.Company
+		}
 		if len(v.SecretInfo.Items) != 0 {
 			secret = v.SecretInfo.Items[0].Value
 		}
@@ -46,7 +50,7 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			IssRectype:               "CUSTOMER",
 			IssRecaction:             "ADD",
 			IssRecnum:                recNums.NextVal(),
-			IssCompanyRegnr:          "ARV",
+			IssCompanyRegnr:          company,
 			DbCustomerTypeCode:       "0",
 			DbCustomerCustcode:       v.ExtID,
 			DbCustomerFirstName:      firstName,
