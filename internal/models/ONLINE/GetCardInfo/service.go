@@ -9,7 +9,7 @@ import (
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
-		sb.SoapRq.Req.ExpirationDate = "3004"
+		sb.SoapRq.Req.ExpirationDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
 	}
 	cardInfo, err := service.GetCardInfo(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
 	if err != nil {

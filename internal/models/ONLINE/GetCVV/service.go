@@ -9,7 +9,7 @@ import (
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpDate) == 0 {
-		sb.SoapRq.Req.ExpDate = "3004"
+		sb.SoapRq.Req.ExpDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
 	}
 	cvvData, err := service.GetCVVG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpDate)
 	if err != nil {
