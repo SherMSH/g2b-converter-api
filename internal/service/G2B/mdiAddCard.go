@@ -296,7 +296,7 @@ func ReissueCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, cards []d8co
 			IssCompanyRegnr:      "ARV",
 			IssImpPvki:           3,
 			IssGenPin:            1,
-			KlLkeyAlias:          v.ExternalID,
+			KlLkeyAlias:          "NEW_" + v.ExternalID + "_" + utils.GenerateTimestampID(),
 			DbCustomerCustcode:   curCard.CardBasicInfo.CustomerCode,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      firstAccNum,
