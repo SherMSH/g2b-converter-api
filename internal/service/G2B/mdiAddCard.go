@@ -26,7 +26,7 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			company = v.Company
 		}
 		if len(v.SecretInfo.Items) != 0 {
-			secret = v.SecretInfo.Items[0].Value
+			secret = utils.TajikToCyrillic(v.SecretInfo.Items[0].Value)
 		}
 		names := strings.Split(strings.TrimSpace(v.LatFIO), " ")
 		if len(names) > 1 {

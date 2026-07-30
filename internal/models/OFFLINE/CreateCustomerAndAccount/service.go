@@ -18,7 +18,7 @@ func CreateCustomersAndAccountsG2b(input Root) (resp interface{}, err error) {
 	for _, v := range input.Records {
 		var secret, mobTel, firstName, lastName, nameInLat, lastNameinLat string
 		if len(v.SecretInfo.Items) != 0 {
-			secret = v.SecretInfo.Items[0].Value
+			secret = utils.TajikToCyrillic(v.SecretInfo.Items[0].Value)
 		}
 		names := strings.Split(strings.TrimSpace(v.LatFIO), " ")
 		if len(names) > 1 {
