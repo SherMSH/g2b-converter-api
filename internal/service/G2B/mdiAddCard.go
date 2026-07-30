@@ -26,7 +26,7 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			company = v.Company
 		}
 		if len(v.SecretInfo.Items) != 0 {
-			secret = v.SecretInfo.Items[0].Value
+			secret = utils.TajikToCyrillic(v.SecretInfo.Items[0].Value)
 		}
 		names := strings.Split(strings.TrimSpace(v.LatFIO), " ")
 		if len(names) > 1 {
@@ -296,7 +296,7 @@ func ReissueCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, cards []d8co
 			IssCompanyRegnr:      "ARV",
 			IssImpPvki:           3,
 			IssGenPin:            1,
-			KlLkeyAlias:          "NEW_" + v.ExternalID + "_" + utils.GenerateTimestampID(),
+			KlLkeyAlias:          v.ExternalID + "_" + utils.GenerateTimestampID(),
 			DbCustomerCustcode:   curCard.CardBasicInfo.CustomerCode,
 			DbCdproductCdproduct: "ARVDBT",
 			DbAccountAccnum:      firstAccNum,
