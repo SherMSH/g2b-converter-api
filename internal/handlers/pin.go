@@ -30,3 +30,24 @@ func SetPIN(c *gin.Context) {
 	}
 
 }
+
+// VerifyPIN проверяет PIN по карте.
+//
+// Неверный PIN - это не ошибка сервиса, поэтому отвечаем 200 с признаком
+// verified: клиенту нужно отличать «PIN не подошёл» от «проверить не удалось».
+// Учтите, что неудачные попытки увеличивают счётчик неверных вводов в
+// процессинге и в итоге блокируют карту.
+func VerifyPIN(c *gin.Context) {
+	var req PinChangeReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Errorf("Error binding PinChageReq: %v", err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Error binding PinChageReq"})
+		return
+	}
+
+	if err := service.VerifyPinG2b(req.PAN, req.PIN, req.ExpiryDate); err != nil {
+		c.JSON(http.StatusOK, gin.H{"verified": false, "reason": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"verified": true})
+}

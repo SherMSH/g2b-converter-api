@@ -41,45 +41,36 @@ func countBits(b byte) int {
 	return count
 }
 
+// ReadPublicKey читает публичный RSA-ключ из файла.
+//
+// Поддерживаются оба представления, в которых процессинг отдаёт транспортный
+// ключ: PKIX (SubjectPublicKeyInfo) и PKCS#1, как в сыром DER, так и в PEM.
+// Транспортный ключ D8 приходит в PKCS#1, поэтому разбор только через PKIX
+// на нём не работает.
 func ReadPublicKey(filename string) (*rsa.PublicKey, error) {
-	// data, err := os.ReadFile(filename)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if key, err := x509.ParsePKIXPublicKey(data); err == nil {
-	// 	pub, ok := key.(*rsa.PublicKey)
-	// 	if !ok {
-	// 		return nil, fmt.Errorf("%s: not an RSA public key", filename)
-	// 	}
-	// 	return pub, nil
-	// }
-	// return x509.ParsePKCS1PublicKey(data)
-
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("read file: %w", err)
 	}
 
-	// Парсим DER
-	key, err := x509.ParsePKIXPublicKey(data)
-	if err != nil {
-		// Пробуем парсить как PKCS1
-		block, _ := pem.Decode(data)
-		if block != nil {
-			key, err = x509.ParsePKIXPublicKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("parse PEM: %w", err)
-			}
-		} else {
-			return nil, fmt.Errorf("parse DER: %w", err)
+	// PEM - разбираем тело блока, иначе считаем содержимое сырым DER
+	der := data
+	if block, _ := pem.Decode(data); block != nil {
+		der = block.Bytes
+	}
+
+	if key, err := x509.ParsePKIXPublicKey(der); err == nil {
+		rsaKey, ok := key.(*rsa.PublicKey)
+		if !ok {
+			return nil, fmt.Errorf("%s: not an RSA public key", filename)
 		}
+		return rsaKey, nil
 	}
 
-	rsaKey, ok := key.(*rsa.PublicKey)
-	if !ok {
-		return nil, fmt.Errorf("not an RSA public key")
+	rsaKey, err := x509.ParsePKCS1PublicKey(der)
+	if err != nil {
+		return nil, fmt.Errorf("parse public key %s: %w", filename, err)
 	}
-
 	return rsaKey, nil
 }
 
@@ -89,8 +80,19 @@ func EncryptWithRSA(publicKey *rsa.PublicKey, data []byte) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, publicKey, data)
 }
 
-// EncryptWith3DES шифрует данные 3DES ключом в режиме ECB
+// EncryptWith3DES шифрует данные 3DES ключом в режиме ECB.
+//
+// Generate3DESKey отдаёт двойной ключ (16 байт), а Go принимает только тройной,
+// поэтому ключ разворачивается в K1|K2|K1 - обычная схема 3DES EDE2.
 func EncryptWith3DES(key, data []byte) ([]byte, error) {
+	if len(key) == ZPKBytes {
+		expanded, err := expand2Key3DES(key)
+		if err != nil {
+			return nil, err
+		}
+		key = expanded
+	}
+
 	// Создаем 3DES шифр
 	block, err := des.NewTripleDESCipher(key)
 	if err != nil {

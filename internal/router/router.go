@@ -31,6 +31,7 @@ func Init(h *handlers.Handler) *gin.Engine {
 		soap.GET("/convFile/:filename", handlers.GetConvFile)
 
 		soap.POST("/SetPIN", handlers.SetPIN)
+		soap.POST("/VerifyPIN", handlers.VerifyPIN)
 
 		d8procweb := soap.Group("/d8-proc-web")
 		d8procweb.Use(middlewares.D8ProcWebAuth())

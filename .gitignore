@@ -1,2 +1,4 @@
 .gitignore
 internal/config/config.json
+
+fimi_old
