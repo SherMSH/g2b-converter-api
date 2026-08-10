@@ -43,5 +43,5 @@ func ParseAuth(xmlData string) (*AuthRequest, error) {
 
 var ClerksMap map[string]string = map[string]string{
 	"davronjon.boltaboev@arvand.tj": "4799726cbd1037e3a3d1f767ca1a4d297c9fb354664e02ad4a1573f4ebede80b",
-	"onlinebankapp":                 "1dd83a10f9c9d67e22ae2695a01e43a9718be02b1ab7c60cd1d24bdfd8b9e896",
+	"onlinebankapp":                 "121e5d4c52fbc4a8606e5b26e1cb705ea32a0a11e8a2242efe001364f553e2d0",
 }

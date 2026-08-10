@@ -55,6 +55,10 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 	trnData := &d8corp.TrnData{}
 	logger.Infof("AuthorizeTransaction req ExpDate: %s", input.GetExpDate())
 
+	if input.GetTxnType() == "" {
+		return nil, fmt.Errorf("unsupported transaction type")
+	}
+
 	req := d8corp.AuthTxReq{
 		CardKey: d8corp.CardKey{
 			Pan:        input.GetPan(),
@@ -70,6 +74,11 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 		MessageFunction:    0,    //0-Request, 2-Advice
 		DestinationAccType: "00",
 		// BusinessAppId:      "TBI", //TBI - Financial Institution offered Bank-Initiated P2P Money Transfer
+	}
+
+	if err := fillTransferFields(&req, input); err != nil {
+		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction transfer err: %v", err)
+		return nil, err
 	}
 
 	jsonReq, err := json.Marshal(req)

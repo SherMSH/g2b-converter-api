@@ -33,6 +33,18 @@ type TrnInputIface interface {
 	GetAcceptorID() string
 }
 
+// TrnTransferIface - дополнительные реквизиты перевода.
+//
+// Реализуется теми же моделями, что и TrnInputIface, но только для операций
+// TRANSF_*: у обычной покупки получателя нет. Проверяется приведением типа,
+// поэтому остальные операции интерфейс реализовывать не обязаны.
+type TrnTransferIface interface {
+	GetRecipientPan() string
+	GetRecipientAccount() string
+	GetSenderAccount() string
+	GetDestinationAccountType() string
+}
+
 type MDIface interface {
 	GetRecords() []models.MRecord
 	GetRecordsCount() int

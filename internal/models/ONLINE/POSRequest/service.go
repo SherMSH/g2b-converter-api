@@ -14,6 +14,12 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		logger.Errorf("PosReq error: Wrong 'Amount' field value")
 		return nil, fmt.Errorf("PosReq error: Wrong 'Amount' field value")
 	}
+	// Тип операции проверяем до InitiateTransaction: незачем занимать ссылку
+	// в процессинге под запрос, который всё равно будет отклонён
+	if body.SoapRq.Req.GetTxnType() == "" {
+		logger.Errorf("PosReq error: unsupported TranCode %v", body.SoapRq.Req.TranCode)
+		return nil, fmt.Errorf("PosReq error: unsupported 'TranCode' value")
+	}
 	ectxNum, err := service.InitiateTransaction()
 	if err != nil {
 		logger.Errorf("POS req {InitiateTransaction} error: %v", err)

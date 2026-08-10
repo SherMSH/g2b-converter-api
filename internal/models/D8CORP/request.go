@@ -76,6 +76,10 @@ type AuthTxReq struct {
 	RecipientFirstName string        `json:"recipientfirstName,omitempty"`
 	RecipientLastName  string        `json:"recipientlastName,omitempty"`
 	RecipientAccount   string        `json:"recipientAccount,omitempty"`
+	RecipientCardKey   *CardKey      `json:"recipientCardKey,omitempty"`
+	SenderAccount      string        `json:"senderAccount,omitempty"`
+	SourceAccount      string        `json:"sourceAccount,omitempty"`
+	SourceAccountType  string        `json:"sourceAccountType,omitempty"`
 	DestinationAccType string        `json:"destinationAccountType,omitempty"`
 	SenderFundsrc      string        `json:"senderFundsrc,omitempty"`
 	BusinessAppId      string        `json:"businessAppId,omitempty"`

@@ -41,11 +41,15 @@ type Request struct {
 
 	PAN string `xml:"PAN" json:"pan"`
 
-	FromAccount  string `xml:"FromAccount" json:"from_account"`
-	FromAcctType string `xml:"FromAcctType" json:"from_acct_type"`
-	// ToAccount    string  `xml:"ToAccount" json:"to_account"`
-	ToAcctType string  `xml:"ToAcctType" json:"to_acct_type"`
-	Amount     float64 `xml:"Amount" json:"amount"`
+	// Карта получателя в переводах: FIMI передаёт её вторым набором полей
+	PAN2 string `xml:"PAN2" json:"pan2"`
+	MBR2 string `xml:"MBR2" json:"mbr2"`
+
+	FromAccount  string  `xml:"FromAccount" json:"from_account"`
+	FromAcctType string  `xml:"FromAcctType" json:"from_acct_type"`
+	ToAccount    string  `xml:"ToAccount" json:"to_account"`
+	ToAcctType   string  `xml:"ToAcctType" json:"to_acct_type"`
+	Amount       float64 `xml:"Amount" json:"amount"`
 
 	CVV       string `xml:"CVV" json:"cvv"`
 	CVV2      string `xml:"CVV2" json:"cvv2"`
@@ -112,19 +116,58 @@ type TranCode int
 // - POS Prepaid Pass(171),
 
 const (
-	Credit TranCode = 140
-	Debit  TranCode = 175
+	Credit   TranCode = 140
+	P2P      TranCode = 135
+	Transfer TranCode = 149
+	Debit    TranCode = 175
 )
 
+// GetTxnType определяет тип операции D8 по коду операции FIMI.
+//
+// Для переводов конкретный тип зависит от того, чем заданы стороны:
+// карта получателя (PAN2) или счёт (ToAccount/FromAccount).
+//
+// Неизвестный код возвращает пустое значение - авторизация такую операцию
+// отклонит. Раньше любой нераспознанный код молча превращался в SALES, то есть
+// в списание.
 func (req Request) GetTxnType() utils.TxnType {
 	switch req.TranCode {
 	case Credit:
 		return utils.Deposit
 	case Debit:
 		return utils.Sales
+	case P2P, Transfer:
+		switch {
+		case req.PAN2 != "" && req.FromAccount != "":
+			return utils.A2C
+		case req.ToAccount != "":
+			return utils.C2A
+		case req.PAN2 != "":
+			return utils.C2C
+		default:
+			return ""
+		}
 	default:
-		return utils.Sales
+		return ""
 	}
+}
+
+// Реквизиты перевода: реализация models.TrnTransferIface
+
+func (req Request) GetRecipientPan() string {
+	return req.PAN2
+}
+
+func (req Request) GetRecipientAccount() string {
+	return req.ToAccount
+}
+
+func (req Request) GetSenderAccount() string {
+	return req.FromAccount
+}
+
+func (req Request) GetDestinationAccountType() string {
+	return req.ToAcctType
 }
 
 func (req Request) GetPan() string {
