@@ -1,5 +1,7 @@
 package utils
 
+import "strconv"
+
 var AccountTypes = map[string]string{
 	"":   "unknown",
 	"00": "1",  // Checking (Расчётный / Текущий счёт)
@@ -94,4 +96,14 @@ var TranCodes = map[int]string{
 	// 93 Customer Authentication
 	// 94 PIN unblock (EMV only)
 	// 95 Application unblock
+}
+
+// TranCode переводит код операции D8 в код TWO.
+// Коды, которых нет в TranCodes, отдаются как есть - терять их хуже,
+// чем отдать партнёру незнакомое значение.
+func TranCode(code int) string {
+	if v, ok := TranCodes[code]; ok {
+		return v
+	}
+	return strconv.Itoa(code)
 }
