@@ -63,6 +63,10 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	}
 	if len(cardRows) != 0 {
 		cardTrns, err = service.GetCardTransactionHistory(cardRows[0].PAN, dateFrom.Format("20060102150405"), dateTo.Format("20060102150405"), size)
+		if err != nil {
+			logger.Errorf("[SERVICE] getAcctStatement history err: %v", err)
+			return nil, err
+		}
 	}
 
 	soapResp = new(Envelope)
@@ -78,7 +82,14 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		Ver:          "1.0",
 	}
 
-	for i, v := range cardTrns.CardTransactions {
+	// У счёта может не быть карт, а значит и карточной истории: отдаём пустую выписку
+	var trns []d8corp.CardTransaction
+	if cardTrns != nil {
+		trns = cardTrns.CardTransactions
+	}
+	resp.Statement.Rows = make([]Row, 0, len(trns))
+
+	for i, v := range trns {
 		operDate, _ := time.ParseInLocation("20060102", v.BusDate, time.Local)
 		tranTime, _ := time.ParseInLocation("20060102150405", v.When_created[:14], time.Local)
 
