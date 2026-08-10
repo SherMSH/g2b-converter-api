@@ -15,6 +15,7 @@ type trnInput struct {
 	recipientAccount string
 	senderAccount    string
 	destAccType      string
+	businessAppId    string
 }
 
 func (i trnInput) GetTxnType() utils.TxnType         { return i.txnType }
@@ -30,6 +31,7 @@ func (i trnInput) GetRecipientPan() string           { return i.recipientPan }
 func (i trnInput) GetRecipientAccount() string       { return i.recipientAccount }
 func (i trnInput) GetSenderAccount() string          { return i.senderAccount }
 func (i trnInput) GetDestinationAccountType() string { return i.destAccType }
+func (i trnInput) GetBusinessAppId() string          { return i.businessAppId }
 
 const (
 	senderPan    = "5058270530003879"
@@ -131,5 +133,68 @@ func TestFillTransferFieldsMissingFields(t *testing.T) {
 				t.Errorf("ожидалась ошибка, запрос собран: %+v", tt.req)
 			}
 		})
+	}
+}
+
+func TestFillTransferFieldsBusinessAppId(t *testing.T) {
+	tests := []struct {
+		name    string
+		txnType utils.TxnType
+		in      trnInput
+		want    string
+	}{
+		{
+			name:    "C2C по умолчанию person-to-person",
+			txnType: utils.C2C,
+			in:      trnInput{txnType: utils.C2C, recipientPan: recipientPan},
+			want:    "TPP",
+		},
+		{
+			name:    "C2A по умолчанию между счетами",
+			txnType: utils.C2A,
+			in:      trnInput{txnType: utils.C2A, recipientAccount: someAccount},
+			want:    "TAA",
+		},
+		{
+			name:    "значение партнёра важнее умолчания",
+			txnType: utils.C2C,
+			in:      trnInput{txnType: utils.C2C, recipientPan: recipientPan, businessAppId: "TCP"},
+			want:    "TCP",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := d8corp.AuthTxReq{TxnType: tt.txnType}
+			if err := fillTransferFields(&req, tt.in); err != nil {
+				t.Fatalf("неожиданная ошибка: %v", err)
+			}
+			if req.BusinessAppId != tt.want {
+				t.Errorf("businessAppId = %q, want %q", req.BusinessAppId, tt.want)
+			}
+		})
+	}
+}
+
+// Спецификация запрещает тип счёта получателя "03" для TRANSF_C2A
+func TestFillTransferFieldsC2ARejectsCardAccountType(t *testing.T) {
+	req := d8corp.AuthTxReq{TxnType: utils.C2A}
+	in := trnInput{txnType: utils.C2A, recipientAccount: someAccount, destAccType: cardAccountType}
+
+	if err := fillTransferFields(&req, in); err == nil {
+		t.Error("ожидалась ошибка на тип счёта 03 для C2A")
+	}
+}
+
+// Для переводов на карту тип счёта получателя обязан быть "03"
+func TestFillTransferFieldsCardDestinationType(t *testing.T) {
+	req := d8corp.AuthTxReq{TxnType: utils.C2C, DestinationAccType: "00"}
+	in := trnInput{txnType: utils.C2C, recipientPan: recipientPan}
+
+	if err := fillTransferFields(&req, in); err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+	if req.DestinationAccType != cardAccountType {
+		t.Errorf("destinationAccountType = %q, want %q", req.DestinationAccType, cardAccountType)
 	}
 }

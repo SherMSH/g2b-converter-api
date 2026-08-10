@@ -43,6 +43,7 @@ type TrnTransferIface interface {
 	GetRecipientAccount() string
 	GetSenderAccount() string
 	GetDestinationAccountType() string
+	GetBusinessAppId() string
 }
 
 type MDIface interface {

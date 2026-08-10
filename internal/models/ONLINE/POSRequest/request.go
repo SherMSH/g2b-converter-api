@@ -45,6 +45,10 @@ type Request struct {
 	PAN2 string `xml:"PAN2" json:"pan2"`
 	MBR2 string `xml:"MBR2" json:"mbr2"`
 
+	// Назначение перевода (Appendix D спецификации D8): если партнёр не прислал,
+	// подставляется значение по типу операции
+	BusinessApplicationIdent string `xml:"BusinessApplicationIdent" json:"business_application_ident"`
+
 	FromAccount  string  `xml:"FromAccount" json:"from_account"`
 	FromAcctType string  `xml:"FromAcctType" json:"from_acct_type"`
 	ToAccount    string  `xml:"ToAccount" json:"to_account"`
@@ -168,6 +172,10 @@ func (req Request) GetSenderAccount() string {
 
 func (req Request) GetDestinationAccountType() string {
 	return req.ToAcctType
+}
+
+func (req Request) GetBusinessAppId() string {
+	return req.BusinessApplicationIdent
 }
 
 func (req Request) GetPan() string {
