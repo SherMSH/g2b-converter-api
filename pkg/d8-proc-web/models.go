@@ -39,8 +39,8 @@ type AccountData struct {
 	Accnum      string  `json:"accnum,omitempty"`
 	AvlBal      float64 `json:"avlbal,omitempty"`
 	BlkAmt      float64 `json:"blkamt,omitempty"`
-	AvlbalUnset float64 `json:"avlbal_unset,omitempty"`
-	BlkamtUnset float64 `json:"blkamt_usnset,omitempty"`
+	AvlbalUnset float64 `json:"avlbal_unsent,omitempty"`
+	BlkamtUnset float64 `json:"blkamt_unsent,omitempty"`
 	OpenDate    string  `json:"opendate,omitempty"`
 	LastUsage   string  `json:"lastusage,omitempty"`
 	Statcode    string  `json:"statcode,omitempty"`
