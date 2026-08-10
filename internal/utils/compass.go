@@ -98,6 +98,16 @@ var TranCodes = map[int]string{
 	// 95 Application unblock
 }
 
+// Currency переводит числовой код валюты в буквенный.
+// Для пустого кода возвращает пустую строку, а не заглушку "unknown":
+// внутренние литералы справочника не должны утекать партнёру.
+func Currency(code string) string {
+	if code == "" {
+		return ""
+	}
+	return Currencies[code]
+}
+
 // TranCode переводит код операции D8 в код TWO.
 // Коды, которых нет в TranCodes, отдаются как есть - терять их хуже,
 // чем отдать партнёру незнакомое значение.

@@ -91,7 +91,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			OperDate:        operDate(rec.DateLocal),
 			TranTime:        tstamp(rec.TstampInsert),
 			OrigTime:        tstamp(rec.TstampInsert),
-			Currency:        currency(rec.NewState.Currency),
+			Currency:        utils.Currency(rec.NewState.Currency),
 			CurrencyISOCode: rec.NewState.Currency,
 			MBR:             "0",
 			OnlineIssuerFee: "0",
@@ -125,7 +125,7 @@ func enrich(row *Row, trn d8corp.TransactionDetails) {
 	row.TermCity = trn.CrdacptlocCity
 	row.TermCountry = trn.CrdacptlocCountry
 	row.OrigAmount = fmt.Sprintf("%.2f", trn.Amtbill)
-	row.OrigCurrency = currency(trn.Curbill)
+	row.OrigCurrency = utils.Currency(trn.Curbill)
 	row.OrigCurrencyISOCode = trn.Curbill
 	if trn.EcTxRefno != "" {
 		row.Origin = trn.EcTxRefno
@@ -142,14 +142,6 @@ func frontId(rec d8corp.AccountLog) string {
 		return strconv.Itoa(rec.TlId)
 	}
 	return strconv.FormatInt(rec.Id, 10)
-}
-
-// currency переводит числовой код в буквенный, не подставляя заглушку "unknown"
-func currency(code string) string {
-	if code == "" {
-		return ""
-	}
-	return utils.Currencies[code]
 }
 
 func operDate(dateLocal string) string {
