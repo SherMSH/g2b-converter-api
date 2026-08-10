@@ -42,7 +42,13 @@ func Signin() (*http.Response, error) {
 	if resp.StatusCode != 200 {
 		return resp, nil
 	}
-	config.Config.Processing.Token = resp.Header["Set-Cookie"][0]
+
+	cookies := resp.Header.Values("Set-Cookie")
+	if len(cookies) == 0 {
+		logger.Warnf("%s: response without Set-Cookie header", loginURL)
+		return resp, nil
+	}
+	config.Config.Processing.Token = cookies[0]
 	return resp, nil
 }
 
@@ -52,10 +58,10 @@ func Signout() (*http.Response, error) {
 	}
 	logoutURL := config.Config.Processing.Address + "/api/logout"
 
-	logger.Infof("trying %v... {timeout is %v seconds}", logoutURL, Client.Timeout)
 	if Client == nil {
 		Init()
 	}
+	logger.Infof("trying %v... {timeout is %v seconds}", logoutURL, Client.Timeout)
 
 	resp, err := Client.Post(logoutURL, "application/json", nil)
 	if err != nil {

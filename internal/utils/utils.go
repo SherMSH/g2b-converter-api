@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
@@ -152,17 +153,17 @@ func GenerateRandomInt63() int64 {
 	return int64(binary.BigEndian.Uint64(buf[:]) & 0x7FFFFFFFFFFFFFFF)
 }
 
-// Функция для восстановления испорченной кириллицы
+// FixCyrillic восстанавливает кириллицу, испорченную тем, что байты UTF-8
+// были прочитаны как windows-1251. Обратное кодирование в windows-1251
+// возвращает исходные байты UTF-8.
 func FixCyrillic(mangled string) string {
-	var result string
 	encoder := charmap.Windows1251.NewEncoder()
-	win1251, _, err := transform.String(encoder, mangled)
+	restored, _, err := transform.String(encoder, mangled)
 	if err != nil {
-		decoder := charmap.Windows1251.NewDecoder()
-		result, _, err = transform.String(decoder, win1251)
-		if err != nil {
-			return mangled // возвращаем как есть в случае ошибки
-		}
+		return mangled // строка не сводится к windows-1251, отдаём как есть
 	}
-	return result
+	if !utf8.ValidString(restored) {
+		return mangled // это не испорченный UTF-8, портить не надо
+	}
+	return restored
 }

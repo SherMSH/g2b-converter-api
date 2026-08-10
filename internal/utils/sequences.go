@@ -4,7 +4,7 @@ type sequencer struct {
 	value int
 }
 
-func (s sequencer) NextVal() int {
+func (s *sequencer) NextVal() int {
 	s.value++
 	return s.value
 }
