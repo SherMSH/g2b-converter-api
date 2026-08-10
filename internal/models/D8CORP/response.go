@@ -309,3 +309,43 @@ type TerminalPhysicalAddress struct {
 	Url            string `json:"url"`
 	AdditionalInfo string `json:"additionalInfo"`
 }
+
+// AccountStatementData - ответ xmiss/getAccountStatement (7.30.2).
+type AccountStatementData struct {
+	StartState AccountState `json:"startState"`
+	EndState   AccountState `json:"endState"`
+	AccountLog []AccountLog `json:"accountLog"`
+}
+
+// AccountState - состояние счёта на границе периода выписки (7.30.2.1).
+type AccountState struct {
+	TypeCode     string  `json:"typeCode"`
+	Currency     string  `json:"currency"`
+	AvlBal       float64 `json:"avlBal"`
+	BlkAmt       float64 `json:"blkAmt"`
+	AvlBalUnsent float64 `json:"avlBalUnsent"`
+	BlkAmtUnsent float64 `json:"blkAmtUnsent"`
+	OpenDate     string  `json:"openDate"`
+	LastUsage    string  `json:"lastUsage"`
+	StatCode     string  `json:"statCode"`
+	CrLimit      float64 `json:"crLimit"`
+	BalIncr      float64 `json:"balIncr"`
+	BalIncrExp   string  `json:"balIncrExp"`
+}
+
+// AccountLog - запись движения по счёту (7.30.2.2).
+// RecordType: 1 - онлайн-транзакция, 2 - клиринг, 3 - balimp,
+// 4 - rule chain script, 5 - корректировка баланса через XAPI, 6 - правка через GUI.
+type AccountLog struct {
+	Id           int64        `json:"id"`
+	OldState     AccountState `json:"oldState"`
+	NewState     AccountState `json:"newState"`
+	TstampInsert string       `json:"tstampInsert"`
+	DateLocal    string       `json:"dateLocal"`
+	TlId         int          `json:"tlId"`
+	RecordType   int          `json:"recordType"`
+	Description  string       `json:"description"`
+	ProcName     string       `json:"procName"`
+	UserName     string       `json:"userName"`
+	ExtTxnId     string       `json:"extTxnId"`
+}

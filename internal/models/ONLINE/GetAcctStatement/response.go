@@ -50,6 +50,7 @@ type Row struct {
 	TermName            string `xml:"m0:TermName"`
 	TermSIC             string `xml:"m0:TermSIC"`
 	TermLocation        string `xml:"m0:TermLocation"`
+	Remain              string `xml:"m0:Remain"`
 	ApprovalCode        string `xml:"m0:ApprovalCode"`
 	SeqNo               string `xml:"m0:SeqNo"`
 	TermCountry         string `xml:"m0:TermCountry"`

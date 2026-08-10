@@ -92,6 +92,31 @@ type ChkTxStatusReq struct {
 	TlId      int    `json:"tlId,omitempty"`
 }
 
+// AccountKey - ключ счёта (5.3.6 спецификации D8).
+// В запросе должен присутствовать ровно один набор: либо Id, либо
+// AccountNumber + Currency.
+type AccountKey struct {
+	Id            int    `json:"id,omitempty"`
+	AccountNumber string `json:"accountNumber,omitempty"`
+	Currency      string `json:"currency,omitempty"`
+}
+
+// PagingAdvanced - постраничная навигация вида size+page (4.x спецификации).
+// Не может использоваться вместе с PagingParams.
+type PagingAdvanced struct {
+	Size int `json:"size"`
+	Page int `json:"page"`
+}
+
+// GetAccountStatementReq - запрос выписки по счёту (7.30).
+// Даты в формате YYYYMMDD.
+type GetAccountStatementReq struct {
+	AccountKey     AccountKey     `json:"accountKey"`
+	DateFrom       string         `json:"dateFrom"`
+	DateTo         string         `json:"dateTo"`
+	PagingAdvanced PagingAdvanced `json:"pagingAdvanced"`
+}
+
 type CardKey struct {
 	Lkey       int    `json:"lkeyId,omitempty"`
 	Pan        string `json:"pan,omitempty"`

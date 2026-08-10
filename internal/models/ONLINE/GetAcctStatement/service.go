@@ -11,63 +11,60 @@ import (
 	"time"
 )
 
+const defaultStatementSize = 10
+
+// Svc собирает выписку по счёту.
+//
+// Источник данных - xmiss/getAccountStatement (7.30): он отдаёт движения самого
+// счёта, включая операции, прошедшие мимо карты. Строки, связанные с
+// транзакциями, дополняются реквизитами из getTransactionDetails - в выписке
+// счёта нет ни кода авторизации, ни данных терминала.
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	d8procweb.Signin()
 	defer d8procweb.Signout()
+
 	dateFrom, errPrsFrom := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.FromTime, time.Local)
 	if errPrsFrom != nil {
 		dateFrom = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
-		logger.Errorf("Date `From` parsing error: %v; setting default: %v", err, dateFrom.Format("2006-01-02T15:04:05"))
+		logger.Errorf("Date `From` parsing error: %v; setting default: %v", errPrsFrom, dateFrom.Format("2006-01-02T15:04:05"))
 	}
 	dateTo, errPrsTo := time.ParseInLocation("2006-01-02T15:04:05", sb.SoapRq.Req.ToTime, time.Local)
 	if errPrsTo != nil {
-		dateTo = time.Date(2038, 01, 19, 3, 14, 7, 0, time.UTC)
-		logger.Errorf("Date `To` parsing error: %v; setting default: %v", err, dateTo.Format("2006-01-02T15:04:05"))
+		dateTo = time.Date(2038, 1, 19, 3, 14, 7, 0, time.UTC)
+		logger.Errorf("Date `To` parsing error: %v; setting default: %v", errPrsTo, dateTo.Format("2006-01-02T15:04:05"))
 	}
 
+	size, err := strconv.Atoi(sb.SoapRq.Req.Count)
+	if err != nil || size <= 0 {
+		logger.Errorf("[SERVICE] getAcctStatement req error: wrong Count param! Setting default: %d;", defaultStatementSize)
+		size = defaultStatementSize
+	}
+
+	// Счёт ищем, чтобы получить валюту: ключ getAccountStatement - номер + валюта
 	foundAcc, err := service.GetAcctInfoG2b(sb.SoapRq.Req.Account)
 	if err != nil {
 		return nil, err
 	}
 
-	cards, err := service.GetCardsListG2b(foundAcc.Custcode, foundAcc.Currcode)
+	statement, err := service.GetAccountStatementG2b(
+		foundAcc.Accnum,
+		foundAcc.Currcode,
+		dateFrom.Format("20060102"),
+		dateTo.Format("20060102"),
+		size, 1,
+	)
 	if err != nil {
 		return nil, err
 	}
-	var cardRows []CardRow
-	for _, v := range cards {
-		var cardPan string
-		switch v.PAN {
-		case "":
-			cardPan = v.LkeyDisplay
-		default:
-			cardPan = v.PAN
-		}
-		cardRows = append(cardRows, CardRow{
-			PAN:    cardPan,
-			MBR:    "0",
-			Status: utils.CardStatuses[v.StatCode],
-			Type:   utils.CardTypes[v.ProductType],
-		},
-		)
-	}
 
-	var (
-		size     int
-		cardTrns *d8corp.CardInfoData
-	)
-	size, err = strconv.Atoi(sb.SoapRq.Req.Count)
-	if err != nil {
-		logger.Errorf("[SERVICE] getAcctStatement req error: wrong Count param! Setting default: 10;")
-		size = 10
-	}
-	if len(cardRows) != 0 {
-		cardTrns, err = service.GetCardTransactionHistory(cardRows[0].PAN, dateFrom.Format("20060102150405"), dateTo.Format("20060102150405"), size)
-		if err != nil {
-			logger.Errorf("[SERVICE] getAcctStatement history err: %v", err)
-			return nil, err
+	// Детали нужны только строкам, порождённым транзакциями
+	refs := make([]service.TxRef, 0, len(statement.AccountLog))
+	for _, rec := range statement.AccountLog {
+		if rec.TlId != 0 {
+			refs = append(refs, service.TxRef{TlId: rec.TlId})
 		}
 	}
+	details := service.GetTransactionDetailsBatch(refs)
 
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"
@@ -81,48 +78,30 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		TranId:       utils.GenerateTimestampID(),
 		Ver:          "1.0",
 	}
+	resp.Statement.Rows = make([]Row, 0, len(statement.AccountLog))
 
-	// У счёта может не быть карт, а значит и карточной истории: отдаём пустую выписку
-	var trns []d8corp.CardTransaction
-	if cardTrns != nil {
-		trns = cardTrns.CardTransactions
-	}
-	resp.Statement.Rows = make([]Row, 0, len(trns))
-	approvals := service.GetApprovalCodes(trns)
+	for i, rec := range statement.AccountLog {
+		row := Row{
+			FrontId:         frontId(rec),
+			Type:            "1",
+			Description:     rec.Description,
+			Origin:          rec.ExtTxnId,
+			Amount:          fmt.Sprintf("%.2f", rec.NewState.AvlBal-rec.OldState.AvlBal),
+			Remain:          fmt.Sprintf("%.2f", rec.NewState.AvlBal),
+			OperDate:        operDate(rec.DateLocal),
+			TranTime:        tstamp(rec.TstampInsert),
+			OrigTime:        tstamp(rec.TstampInsert),
+			Currency:        currency(rec.NewState.Currency),
+			CurrencyISOCode: rec.NewState.Currency,
+			MBR:             "0",
+			OnlineIssuerFee: "0",
+			SeqNo:           strconv.Itoa(i + 1),
+		}
 
-	for i, v := range trns {
-		operDate, _ := time.ParseInLocation("20060102", v.BusDate, time.Local)
-		tranTime, _ := time.ParseInLocation("20060102150405", v.When_created[:14], time.Local)
-
-		resp.Statement.Rows = append(resp.Statement.Rows, Row{
-			FrontId:             fmt.Sprintf("%d", v.TlId),
-			Origin:              v.EcTxRefno, //"XAPI/00005GSLZE4o2Ddn2iCG7KrtMmnxg5Va",
-			Type:                "1",         // 1–финансовая, 2–внутридоговорная, 3–авторизационная
-			OperCode:            utils.TranCode(v.Txncode),
-			Description:         fmt.Sprintf("%s %s", v.CrdactplocName, v.EcTxRefno), //"*Dushanbe RRP XAPI/00005GSLZE4o2Ddn2iCG7KrtMmnxg5Va",
-			Amount:              fmt.Sprintf("%.2f", v.TxnAmount),
-			OperDate:            operDate.Format("2006-01-02"),
-			TranTime:            tranTime.Format("2006-01-02T15:04:05"),
-			OrigAmount:          fmt.Sprintf("%.2f", v.Amtbill),
-			OrigCurrency:        utils.Currencies[v.Curbill],
-			PAN:                 v.Lkey.Pan,
-			MBR:                 "0",
-			TermClass:           v.TermType,
-			TermName:            v.TermCode,
-			TermSIC:             fmt.Sprintf("%d", v.CrdacptBus),
-			TermLocation:        v.CrdactplocName,
-			ApprovalCode:        approvals[v.TlId],
-			SeqNo:               fmt.Sprintf("%v", i),
-			TermCountry:         v.CrdactplocCountry,
-			TermCity:            v.CrdactplocCity,
-			OnlineIssuerFee:     "0",
-			OrigTime:            tranTime.Format("2006-01-02T15:04:05"),
-			Currency:            utils.Currencies[v.TxnCurrency],
-			TermRetailerName:    v.CrdactplocName,
-			CurrencyISOCode:     v.TxnCurrency,
-			OrigCurrencyISOCode: v.Curbill,
-		})
-		resp.Statement.Rows[i].SeqNo = fmt.Sprintf("%d", i+1)
+		if trn, ok := details[rec.TlId]; ok {
+			enrich(&row, trn)
+		}
+		resp.Statement.Rows = append(resp.Statement.Rows, row)
 	}
 
 	soapResp.Body = RespBody{
@@ -131,4 +110,63 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		},
 	}
 	return soapResp, nil
+}
+
+// enrich дополняет строку выписки реквизитами транзакции: их нет в движении по счёту
+func enrich(row *Row, trn d8corp.TransactionDetails) {
+	row.OperCode = utils.TranCode(trn.TxnCode)
+	row.ApprovalCode = trn.Aprvlcode
+	row.PAN = trn.Lkey.Pan
+	row.TermClass = trn.Termtype
+	row.TermName = trn.TermCode
+	row.TermSIC = strconv.Itoa(trn.CrdacptBus)
+	row.TermLocation = trn.CrdacptlocName
+	row.TermRetailerName = trn.CrdacptlocName
+	row.TermCity = trn.CrdacptlocCity
+	row.TermCountry = trn.CrdacptlocCountry
+	row.OrigAmount = fmt.Sprintf("%.2f", trn.Amtbill)
+	row.OrigCurrency = currency(trn.Curbill)
+	row.OrigCurrencyISOCode = trn.Curbill
+	if trn.EcTxRefno != "" {
+		row.Origin = trn.EcTxRefno
+	}
+	if row.Description == "" {
+		row.Description = trn.CrdacptlocName
+	}
+}
+
+// frontId - идентификатор строки: транзакция, если движение её породило,
+// иначе идентификатор записи журнала счёта
+func frontId(rec d8corp.AccountLog) string {
+	if rec.TlId != 0 {
+		return strconv.Itoa(rec.TlId)
+	}
+	return strconv.FormatInt(rec.Id, 10)
+}
+
+// currency переводит числовой код в буквенный, не подставляя заглушку "unknown"
+func currency(code string) string {
+	if code == "" {
+		return ""
+	}
+	return utils.Currencies[code]
+}
+
+func operDate(dateLocal string) string {
+	t, err := time.ParseInLocation("20060102", dateLocal, time.Local)
+	if err != nil {
+		return ""
+	}
+	return t.Format("2006-01-02")
+}
+
+func tstamp(tstampInsert string) string {
+	if len(tstampInsert) < 14 {
+		return ""
+	}
+	t, err := time.ParseInLocation("20060102150405", tstampInsert[:14], time.Local)
+	if err != nil {
+		return ""
+	}
+	return t.Format("2006-01-02T15:04:05")
 }
