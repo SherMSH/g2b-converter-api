@@ -25,7 +25,6 @@
         "address": "http://d8-tprocweb1.humo.lab",
         "token": "",
         "extra": {
-            "cvv_address": "http://d8-prod-proc-web1.humo.lab",
             "agreed_expdate_yymm": "3004",
             "agreed_expdate_yyyymmdd": "20300430"
         }
