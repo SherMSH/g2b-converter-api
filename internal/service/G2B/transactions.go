@@ -72,7 +72,7 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction request sending err: %v", err)
 		return nil, err
 	}
-	logger.Infof("[SERVICE] D8 G2b authorizeTransaction resp status: %v, body: %v", status, string(data))
+	logger.Infof("[SERVICE] D8 G2b authorizeTransaction resp status: %v, body: %v (req %v)", status, string(data), string(jsonReq))
 
 	err = json.Unmarshal(data, resp)
 	if err != nil {

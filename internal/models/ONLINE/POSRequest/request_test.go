@@ -56,3 +56,13 @@ func TestGetTxnType(t *testing.T) {
 		})
 	}
 }
+
+func TestGetTxnTypeCheckCard(t *testing.T) {
+	req := Request{TranCode: CheckCard, CVV2: "123"}
+	if got := req.GetTxnType(); got != utils.Accver {
+		t.Errorf("проверка карты должна давать ACCVER, а даёт %q", got)
+	}
+	if req.GetCvv2() != "123" {
+		t.Errorf("CVV2 не отдаётся: %q", req.GetCvv2())
+	}
+}

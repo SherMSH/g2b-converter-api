@@ -120,10 +120,11 @@ type TranCode int
 // - POS Prepaid Pass(171),
 
 const (
-	Credit   TranCode = 140
-	P2P      TranCode = 135
-	Transfer TranCode = 149
-	Debit    TranCode = 175
+	Credit    TranCode = 140
+	P2P       TranCode = 135
+	Transfer  TranCode = 149
+	Debit     TranCode = 175
+	CheckCard TranCode = 116
 )
 
 // GetTxnType определяет тип операции D8 по коду операции FIMI.
@@ -140,6 +141,9 @@ func (req Request) GetTxnType() utils.TxnType {
 		return utils.Deposit
 	case Debit:
 		return utils.Sales
+	case CheckCard:
+		// Проверка карты: нулевая авторизация, попутно валидирует CVV2
+		return utils.Accver
 	case P2P, Transfer:
 		switch {
 		case req.PAN2 != "" && req.FromAccount != "":
@@ -176,6 +180,10 @@ func (req Request) GetDestinationAccountType() string {
 
 func (req Request) GetBusinessAppId() string {
 	return req.BusinessApplicationIdent
+}
+
+func (req Request) GetCvv2() string {
+	return req.CVV2
 }
 
 func (req Request) GetPan() string {

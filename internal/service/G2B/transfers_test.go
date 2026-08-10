@@ -16,6 +16,7 @@ type trnInput struct {
 	senderAccount    string
 	destAccType      string
 	businessAppId    string
+	cvv2             string
 }
 
 func (i trnInput) GetTxnType() utils.TxnType         { return i.txnType }
@@ -32,6 +33,7 @@ func (i trnInput) GetRecipientAccount() string       { return i.recipientAccount
 func (i trnInput) GetSenderAccount() string          { return i.senderAccount }
 func (i trnInput) GetDestinationAccountType() string { return i.destAccType }
 func (i trnInput) GetBusinessAppId() string          { return i.businessAppId }
+func (i trnInput) GetCvv2() string                   { return i.cvv2 }
 
 const (
 	senderPan    = "5058270530003879"
@@ -196,5 +198,37 @@ func TestFillTransferFieldsCardDestinationType(t *testing.T) {
 	}
 	if req.DestinationAccType != cardAccountType {
 		t.Errorf("destinationAccountType = %q, want %q", req.DestinationAccType, cardAccountType)
+	}
+}
+
+// Проверка счёта обязана уходить с нулевой суммой, а CVV2 - доходить до D8:
+// без него процессинг не проверит код безопасности.
+func TestBuildAuthTxReqAccver(t *testing.T) {
+	in := trnInput{txnType: utils.Accver, pan: senderPan, cvv2: "123"}
+
+	req, err := BuildAuthTxReq(in, "XAPI/ref")
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+	if req.TxnAmount != 0 {
+		t.Errorf("сумма проверки счёта = %v, want 0", req.TxnAmount)
+	}
+	if req.Cvv2 != "123" {
+		t.Errorf("CVV2 не попал в запрос: %q", req.Cvv2)
+	}
+}
+
+func TestBuildAuthTxReqPassesCvv2ForSales(t *testing.T) {
+	in := trnInput{txnType: utils.Sales, pan: senderPan, cvv2: "456"}
+
+	req, err := BuildAuthTxReq(in, "XAPI/ref")
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+	if req.Cvv2 != "456" {
+		t.Errorf("CVV2 не попал в запрос покупки: %q", req.Cvv2)
+	}
+	if req.TxnAmount == 0 {
+		t.Error("сумма покупки не должна обнуляться")
 	}
 }

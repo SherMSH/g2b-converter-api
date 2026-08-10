@@ -10,15 +10,17 @@ import (
 
 func PosReq(body *Body) (soapResp *Envelope, err error) {
 	//Basic checkups
-	if body.SoapRq.Req.Amount <= 0. {
-		logger.Errorf("PosReq error: Wrong 'Amount' field value")
-		return nil, fmt.Errorf("PosReq error: Wrong 'Amount' field value")
-	}
 	// Тип операции проверяем до InitiateTransaction: незачем занимать ссылку
 	// в процессинге под запрос, который всё равно будет отклонён
-	if body.SoapRq.Req.GetTxnType() == "" {
+	txnType := body.SoapRq.Req.GetTxnType()
+	if txnType == "" {
 		logger.Errorf("PosReq error: unsupported TranCode %v", body.SoapRq.Req.TranCode)
 		return nil, fmt.Errorf("PosReq error: unsupported 'TranCode' value")
+	}
+	// Проверка карты идёт нулевой суммой, для остальных операций она обязательна
+	if txnType != utils.Accver && body.SoapRq.Req.Amount <= 0. {
+		logger.Errorf("PosReq error: Wrong 'Amount' field value")
+		return nil, fmt.Errorf("PosReq error: Wrong 'Amount' field value")
 	}
 	ectxNum, err := service.InitiateTransaction()
 	if err != nil {
@@ -52,12 +54,26 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		logger.Errorf("[SERVICE] POSRequest error getting trn details")
 	}
 	if trnDetails != nil {
-		cardInfo, _ = service.GetCardInfo(trn.Lkey.Pan, trnDetails.Details.DateExp)
-		if len(cardInfo.CardAccounts) != 0 {
+		cardInfo, err = service.GetCardInfo(trn.Lkey.Pan, trnDetails.Details.DateExp)
+		if err != nil {
+			logger.Errorf("[SERVICE] POSRequest error getting card info: %v", err)
+		}
+		if cardInfo != nil && len(cardInfo.CardAccounts) != 0 {
 			accnum = cardInfo.CardAccounts[0].AccountNumber
 			avlbal = cardInfo.CardAccounts[0].AvlBal
 			blkamt = cardInfo.CardAccounts[0].BlkAmt
 		}
+	}
+
+	// Детали и данные карты могли не прийти: собираем ответ из того, что есть
+	var accountCurrency, balanceCurrency, billCurrency, toAcct string
+	if cardInfo != nil {
+		accountCurrency = utils.Currency(cardInfo.CardBasicInfo.Currcode)
+	}
+	if trnDetails != nil {
+		balanceCurrency = utils.Currency(trnDetails.Details.TxnCurrency)
+		billCurrency = utils.Currency(trnDetails.Details.Curbill)
+		toAcct = trnDetails.Details.DestinationAccountType
 	}
 
 	soapResp = &Envelope{
@@ -73,15 +89,15 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					Ver:          "1.0",
 					Echo:         body.SoapRq.Req.Echo,
 
-					AccountCurrency:      utils.Currency(cardInfo.CardBasicInfo.Currcode),
+					AccountCurrency:      accountCurrency,
 					ApprovalCode:         trn.TransactionResponse.ApprovalCode,
 					AuthRespCode:         body.SoapRq.Req.RespCode,
 					AuthRespCodeCategory: "0",
 					AvailBalance:         fmt.Sprintf("%.2f", avlbal),
-					BalanceCurrency:      utils.Currency(trnDetails.Details.TxnCurrency),
+					BalanceCurrency:      balanceCurrency,
 					BonusDebt:            "0",
 					CVxOK:                "-1",
-					Currency:             utils.Currency(trnDetails.Details.Curbill),
+					Currency:             billCurrency,
 					Fee:                  "",
 					FromAcct:             accnum,
 					IssuerFee:            "",
@@ -89,7 +105,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					MaskBalances:         "0",
 					RelatedTran:          RelatedTran{},
 					ThisTranId:           body.SoapRq.Req.ThisTranId,
-					ToAcct:               trnDetails.Details.DestinationAccountType,
+					ToAcct:               toAcct,
 				},
 			},
 		},

@@ -31,6 +31,7 @@ type TrnInputIface interface {
 	GetCurrency() string
 	GetTerminal() string
 	GetAcceptorID() string
+	GetCvv2() string
 }
 
 // TrnTransferIface - дополнительные реквизиты перевода.

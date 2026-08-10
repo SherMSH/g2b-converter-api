@@ -35,6 +35,12 @@ func BuildAuthTxReq(input models.TrnInputIface, ecTxRefNo string) (d8corp.AuthTx
 		CrdacptBus:         5999, //Card Acceptor Business Code
 		MessageFunction:    0,    //0-Request, 2-Advice
 		DestinationAccType: "00",
+		Cvv2:               input.GetCvv2(),
+	}
+
+	// Проверка счёта: сумма обязана быть нулевой (8.5)
+	if req.TxnType == utils.Accver {
+		req.TxnAmount = 0
 	}
 
 	if err := fillTransferFields(&req, input); err != nil {
