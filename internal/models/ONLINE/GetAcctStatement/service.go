@@ -88,6 +88,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		trns = cardTrns.CardTransactions
 	}
 	resp.Statement.Rows = make([]Row, 0, len(trns))
+	approvals := service.GetApprovalCodes(trns)
 
 	for i, v := range trns {
 		operDate, _ := time.ParseInLocation("20060102", v.BusDate, time.Local)
@@ -110,7 +111,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 			TermName:            v.TermCode,
 			TermSIC:             fmt.Sprintf("%d", v.CrdacptBus),
 			TermLocation:        v.CrdactplocName,
-			ApprovalCode:        fmt.Sprintf("%06d", v.Stan),
+			ApprovalCode:        approvals[v.TlId],
 			SeqNo:               fmt.Sprintf("%v", i),
 			TermCountry:         v.CrdactplocCountry,
 			TermCity:            v.CrdactplocCity,
