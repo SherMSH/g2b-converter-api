@@ -153,16 +153,21 @@ func GetTransactionStatus(tlId int, ecTxRefNo string) (*d8corp.CommonResp, error
 // ReverseTransaction сгенерирует операцию отмены и поместит ее в фоновую очередь для выполнения
 // ВАЖНО: Перед вызовом reverseTransaction необходимо вызвать сервис xkernel/initiateTransaction и получить новый ecTxRefNo
 // Номер ссылки исходной транзакции в поле originalEcTxRefno
-func ReverseTransaction(input models.TrnInputIface, ecTxRefNo, originalEcTxRefno string) (*d8corp.CommonResp, error) {
+// ReverseTransaction создаёт отмену ранее проведённой операции (8.6).
+//
+// ecTxRefNo - новая ссылка, полученная через InitiateTransaction: по
+// спецификации реверсал требует собственного номера. originalEcTxRefno -
+// ссылка отменяемой операции.
+func ReverseTransaction(ecTxRefNo, originalEcTxRefno string, amount float64, currency string, reasonCode int) (*d8corp.CommonResp, error) {
 	resp := &d8corp.CommonResp{}
 	trnData := &d8corp.TxResponseData{}
 
 	req := d8corp.ReverceTxReq{
 		EcTxRefno:         ecTxRefNo,
 		OriginalEcTxRefno: originalEcTxRefno,
-		ReasonCode:        4000,
-		ReversalAmount:    input.GetAmount(),
-		TxnCurrency:       input.GetCurrency(),
+		ReasonCode:        reasonCode,
+		ReversalAmount:    amount,
+		TxnCurrency:       currency,
 	}
 
 	jsonReq, err := json.Marshal(req)
@@ -171,17 +176,21 @@ func ReverseTransaction(input models.TrnInputIface, ecTxRefNo, originalEcTxRefno
 		return nil, fmt.Errorf("[SERVICE] D8 G2b reverseTransaction REQ marshaling err")
 	}
 
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/authorizeTransaction", jsonReq, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/reverseTransaction", jsonReq, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b reverseTransaction request sending err: %v", err)
 		return nil, err
 	}
-	logger.Infof("[SERVICE] D8 G2b reverseTransaction resp status: %v, body: %v", status, string(data))
+	logger.Infof("[SERVICE] D8 G2b reverseTransaction resp status: %v, body: %v (req %v)", status, string(data), string(jsonReq))
 
 	err = json.Unmarshal(data, resp)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b reverseTransaction RESP marshaling err: %v", err)
 		return nil, err
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b reverseTransaction RESP status %+v", resp.Status)
+		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 	err = json.Unmarshal(resp.Data, trnData)
 	if err != nil {

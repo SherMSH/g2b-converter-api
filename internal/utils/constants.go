@@ -28,6 +28,7 @@ const (
 	SetCardPersonRq       RqBodyType = "SetCardPersonRq"
 	// SetCardStatusRq       RqBodyType = "SetCardStatusRq"
 	//
+	ReverseTransactionRq     RqBodyType = "ReverseTransactionRq"
 	RemoveCMSAbonentRq       RqBodyType = "RemoveCMSAbonentRq"
 	RemovePersonCMSAbonentRq RqBodyType = "RemovePersonCMSAbonentRq"
 	ResetBadPINTriesRq       RqBodyType = "ResetBadPINTriesRq"
@@ -53,6 +54,7 @@ var BodyTypes = []RqBodyType{
 	UpdateCard2AcctLinkRq,
 	DeleteCard2AcctLinkRq,
 	SetCardPersonRq,
+	ReverseTransactionRq,
 	RemoveCMSAbonentRq,
 	RemovePersonCMSAbonentRq,
 	ResetBadPINTriesRq,

@@ -18,6 +18,7 @@ import (
 	posrequestrq "converterapi/internal/models/ONLINE/POSRequest"
 	relinkpreissuedcards "converterapi/internal/models/ONLINE/RelinkPreIssuedCards"
 	removecmsabonent "converterapi/internal/models/ONLINE/RemoveCMSAbonent"
+	reversetransaction "converterapi/internal/models/ONLINE/ReverseTransaction"
 	removepersoncmsabonent "converterapi/internal/models/ONLINE/RemovePersonCMSAbonent"
 	resetbadpintries "converterapi/internal/models/ONLINE/ResetBadPINTries"
 	setcardstatus "converterapi/internal/models/ONLINE/SetCardStatus"
@@ -265,6 +266,19 @@ func D8Converter(c *gin.Context) {
 		resp, err = unmBody.Body.Call()
 		if err != nil {
 			SendSoapFault(c, 400, "Client", err.Error())
+			return
+		}
+	case utils.ReverseTransactionRq:
+		var unmBody reversetransaction.Body
+		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
+		if err != nil {
+			logger.Errorf("reversetransaction.Body unmarshal err: %v", err)
+			SendSoapFault(c, 500, "Client", "Internal server error")
+			return
+		}
+		resp, err = unmBody.Call()
+		if err != nil {
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.RemoveCMSAbonentRq:
