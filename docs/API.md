@@ -72,6 +72,8 @@ Middleware `D8ProcWebAuth` выполняет `Signin()` до обработчи
 
 `Content-Type` обязан быть одним из: `application/soap+xml`, `text/xml`, `application/xml`. Иначе — `415` простым текстом.
 
+Порядок проверок важен: `ClerkAuth` отрабатывает **до** обработчика, поэтому `415` можно получить только с валидными учётными данными. Запрос с неразбираемым телом и любым `Content-Type` вернёт `500 Auth error`, а не `415`.
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
