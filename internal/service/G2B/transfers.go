@@ -12,6 +12,37 @@ import (
 // прямо запрещает для TRANSF_C2A.
 const cardAccountType = "03"
 
+// BuildAuthTxReq собирает запрос авторизации.
+//
+// Вынесен отдельно, потому что xkernel/calculateAcqCommission принимает ровно
+// тот же запрос, что и xkernel/authorizeTransaction (8.8).
+func BuildAuthTxReq(input models.TrnInputIface, ecTxRefNo string) (d8corp.AuthTxReq, error) {
+	if input.GetTxnType() == "" {
+		return d8corp.AuthTxReq{}, fmt.Errorf("unsupported transaction type")
+	}
+
+	req := d8corp.AuthTxReq{
+		CardKey: d8corp.CardKey{
+			Pan:        input.GetPan(),
+			ExpiryDate: input.GetExpDate(),
+		},
+		EcTxRefno:          ecTxRefNo,
+		TxnType:            input.GetTxnType(),
+		TxnAmount:          input.GetAmount(),
+		TxnCurrency:        input.GetCurrency(),
+		TermCode:           input.GetTerminal(),
+		CrdacptID:          input.GetAcceptorID(),
+		CrdacptBus:         5999, //Card Acceptor Business Code
+		MessageFunction:    0,    //0-Request, 2-Advice
+		DestinationAccType: "00",
+	}
+
+	if err := fillTransferFields(&req, input); err != nil {
+		return d8corp.AuthTxReq{}, err
+	}
+	return req, nil
+}
+
 // fillTransferFields дополняет запрос авторизации реквизитами перевода и
 // проверяет обязательные комбинации полей (8.5 спецификации D8).
 //

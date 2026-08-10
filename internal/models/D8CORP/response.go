@@ -349,3 +349,18 @@ type AccountLog struct {
 	UserName     string       `json:"userName"`
 	ExtTxnId     string       `json:"extTxnId"`
 }
+
+// AcqCommissionData - ответ xkernel/calculateAcqCommission (8.8).
+type AcqCommissionData struct {
+	AcqCommissionItems []AcqCommissionItem `json:"acqCommissionItems"`
+	TotalCommAmount    float64             `json:"totalCommAmount"`
+	CommCurrency       string              `json:"commCurrency"`
+	EcTxRefno          string              `json:"ecTxRefno"`
+}
+
+// AcqCommissionItem - одна составляющая комиссии эквайрера.
+type AcqCommissionItem struct {
+	AmtComm     float64 `json:"amtComm"`
+	AmtSource   float64 `json:"amtSource"`
+	DefCommCode string  `json:"defCommCode"`
+}
