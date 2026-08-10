@@ -19,7 +19,7 @@ type GetCardInfoReq struct {
 	CardKey                 CardKey `json:"cardKey"`
 	ReqCardBasicInfo        bool    `json:"reqCardBasicInfo,omitempty"`
 	ReqCardAccounts         bool    `json:"reqCardAccounts,omitempty"`
-	ReqCardLimits           bool    `josn:"reqCardLimits,omitempty"`
+	ReqCardLimits           bool    `json:"reqCardLimits,omitempty"`
 	ReqCardAccountLimits    bool    `json:"reqCardAccountLimits,omitempty"`
 	ReqCardAuthRestrictions bool    `json:"reqCardAuthRestrictions,omitempty"`
 	ReqCardTransactions     bool    `json:"reqCardTransactions,omitempty"`

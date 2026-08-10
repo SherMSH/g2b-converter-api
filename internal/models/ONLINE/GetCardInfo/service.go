@@ -115,7 +115,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	resp.RequiredPasswordVersion = "1"
 	resp.RiskControlDisabled = "0"
 	resp.RiskLevel = "1"
-	resp.Status = "1" //cardInfo.CardBasicInfo.StatCode
+	resp.Status = utils.CardStatuses[cardInfo.CardBasicInfo.StatCode]
 	resp.TmpECStatus = "-1"
 	resp.Type = utils.CardTypes[cardInfo.CardBasicInfo.ProductType]
 	soapResp.Body = RespBody{

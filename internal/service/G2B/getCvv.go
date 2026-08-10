@@ -29,7 +29,14 @@ func GetCVVG2b(pan, expdate string) (cvvData *d8corp.CVVData, err error) {
 		return nil, fmt.Errorf("[SERVICE] D8 G2b GetCVV2 REQ marshaling err")
 	}
 	logger.Infof("[SERVICE] D8 G2b GetCVV2 REQ %v", string(jsonReq))
-	data, status, err := utils.SendRequest("POST", "http://d8-prod-proc-web1.humo.lab"+"/xapi/miss/1.0/getCVV2", jsonReq, utils.D8HeadersMap) // "перенапрвление в прод (HSM)"
+	// CVV2 считает HSM, который может стоять не на том же контуре, что остальной
+	// процессинг. Адрес задаётся processing.extra.cvv_address; если не задан -
+	// идём на общий processing.address.
+	cvvAddress := config.Config.Processing.Extra["cvv_address"]
+	if cvvAddress == "" {
+		cvvAddress = config.Config.Processing.Address
+	}
+	data, status, err := utils.SendRequest("POST", cvvAddress+"/xapi/miss/1.0/getCVV2", jsonReq, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b GetCVV2 request sending err: %v", err)
 		return nil, err

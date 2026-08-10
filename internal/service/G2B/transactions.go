@@ -125,7 +125,7 @@ func GetTransactionStatus(tlId int, ecTxRefNo string) (*d8corp.CommonResp, error
 		return nil, fmt.Errorf("[SERVICE] D8 G2b GetTransactionStatus REQ marshaling err")
 	}
 
-	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/authorizeTransaction", jsonReq, utils.D8HeadersMap)
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/kernel/1.0/getTransactionStatus", jsonReq, utils.D8HeadersMap)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b GetTransactionStatus request sending err: %v", err)
 		return nil, err
