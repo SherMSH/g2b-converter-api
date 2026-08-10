@@ -77,15 +77,20 @@ Middleware `D8ProcWebAuth` выполняет `Signin()` до обработчи
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
   <s:Body>
     <m:GetCardInfoRq xmlns:m="http://schemas.compassplus.com/two/1.0/fimi.xsd">
-      <Request Ver="1.0" Product="..." Echo="..." Clerk="..." Password="..."/>
-      <PAN>...</PAN>
-      <ExpirationDate>3004</ExpirationDate>
+      <Request Ver="1.0" Product="..." Echo="..." Session="..."
+               Clerk="..." Password="...">
+        <PAN>...</PAN>
+        <ExpirationDate>3004</ExpirationDate>
+      </Request>
     </m:GetCardInfoRq>
   </s:Body>
 </s:Envelope>
 ```
 
-Тип операции определяется по имени корневого тега тела (`GetCardInfoRq`), а не по URL или параметру.
+Два обязательных свойства структуры:
+
+- **тип операции** определяется по имени корневого тега тела (`GetCardInfoRq`), а не по URL или параметру;
+- **все поля payload — дочерние элементы `<Request>`**, а не соседние с ним. Если положить их рядом, `auth.ParseAuth` упадёт с `expected element type <Request> but have <PAN>` и запрос получит Fault `500 Auth error` ещё до диспетчеризации.
 
 ### ONLINE: успешный ответ
 
