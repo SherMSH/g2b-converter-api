@@ -18,15 +18,15 @@ func Start() {
 	scheduler := gocron.NewScheduler(time.UTC)
 	scheduler.SingletonMode()
 
+	if _, err := scheduler.Every(1).Hour().Do(signin); err != nil {
+		logger.Errorf("Signin JOB err %v", err)
+	}
 	if params.ConvScanner.IsOn {
 		if _, err := scheduler.Every(params.ConvScanner.Interval).Seconds().
 			// StartAt(time.Now().Local().Add(time.Duration(params.ConvScanner.Interval) * time.Second)).
 			Do(ConvScanner); err != nil {
 			logger.Errorf("ConvScanner JOB err %v", err)
 		}
-	}
-	if _, err := scheduler.Every(30).Seconds().Do(signin); err != nil {
-		logger.Errorf("Signin JOB err %v", err)
 	}
 	scheduler.StartAsync()
 }

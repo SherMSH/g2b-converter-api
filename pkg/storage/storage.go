@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+var once bool
+
 func LoadFile(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, err
@@ -24,19 +26,34 @@ func LoadFile(path string) ([]byte, error) {
 	return data, nil
 }
 
-// MoveFile копирует исходный файл в новое место и удалят его
+// MoveFile копирует исходный файл в новое место и удаляет его
 func MoveFile(sourcePath, destPath, base string, content []byte) (err error) {
 	// Проверяем, существует ли исходный файл
 	if _, err := os.Stat(sourcePath); os.IsNotExist(err) {
 		return fmt.Errorf("исходный файл не существует: %s", sourcePath)
 	}
 
-	// Копируем файл в сборник
-	collection := config.Config.App.Storage.Basepath + "/" + base
-	err = copyFile(sourcePath, collection)
+	if !once {
+		err = os.MkdirAll(config.Config.App.Storage.Basepath+config.Config.App.Storage.Backup, 0755)
+		if err != nil {
+			return fmt.Errorf("путь к Backup: %s", sourcePath)
+		}
+		err = os.MkdirAll(config.Config.App.Storage.Basepath+config.Config.App.Storage.Errors, 0755)
+		if err != nil {
+			return fmt.Errorf("путь к Errors: %s", sourcePath)
+		}
+		once = true
+	}
 
-	// Create создает файл или усекает (очищает) существующий
+	// Копируем файл в сборник
+	collection := config.Config.App.Storage.Basepath + config.Config.App.Storage.Backup + "/" + base
+	err = copyFile(sourcePath, collection)
+	if err != nil {
+		return fmt.Errorf("Oшибка отправки файла в Backup: %w", err)
+	}
+
 	if content != nil {
+		// Create создает файл или усекает (очищает) существующий
 		file, err := os.Create(sourcePath)
 		if err != nil {
 			return fmt.Errorf("Ошибка os.Create: %v", err)
@@ -44,6 +61,7 @@ func MoveFile(sourcePath, destPath, base string, content []byte) (err error) {
 
 		_, err = file.Write(content)
 		if err != nil {
+			file.Close()
 			return fmt.Errorf("Ошибка записи: %v", err)
 		}
 		file.Close()

@@ -30,6 +30,8 @@ type Storage struct {
 	Basepath string `json:"basepath"`
 	In       string `json:"in"`
 	Out      string `json:"out"`
+	Backup   string `json:"backup"`
+	Errors   string `json:"errors"`
 }
 
 type DefaultParams struct {

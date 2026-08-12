@@ -12,7 +12,9 @@
         "storage": {
             "basepath":"/app/files/d8-partnerapi_docs/Examples/OffLine",
             "in":"/in",
-            "out":"/out"
+            "out":"/out",
+            "backup": "/Backup",
+            "errors": "/errors"
         }
     },
     "jobs": {

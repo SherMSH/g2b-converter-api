@@ -57,6 +57,7 @@ func ConvScanner() {
 		destPath := config.Config.App.Storage.Basepath + config.Config.App.Storage.Out + "/" + base
 		content, err := reqOf.Call()
 		if err != nil {
+			destPath = config.Config.App.Storage.Basepath + config.Config.App.Storage.Errors + "/" + base
 			logger.Errorf("Converter Scanner service %v call error: %v", v, err)
 		}
 		logger.Infof("writin' %s: %s", string(v), content)
