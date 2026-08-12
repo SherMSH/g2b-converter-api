@@ -17,7 +17,14 @@ cd "$ROOT"
 BINARY="./converterApi"
 
 if [ "${1:-}" != "--no-build" ]; then
-    echo "Сборка..."
+    # go.mod требует 1.25, и при GOTOOLCHAIN=auto go подтягивает нужную версию
+    # сам. Но если в окружении жёстко задан GOROOT от другой версии (например,
+    # export GOROOT=/usr/local/go в /etc/profile.d/go.sh), сборка падает на
+    # каждом пакете с "compile: version ... does not match go tool version".
+    # Снимаем переменную: современный go определяет GOROOT самостоятельно.
+    unset GOROOT
+
+    echo "Сборка ($(go version | awk '{print $3}'))..."
     go build -o "$BINARY" cmd/main.go
 fi
 
