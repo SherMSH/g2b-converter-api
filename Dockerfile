@@ -1,5 +1,4 @@
 # Build stage
-
 FROM hub.docker.humo.lab/nexus-repository-golang-alpine3.23 AS builder
 ARG CI_JOB_TOKEN
 
