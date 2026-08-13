@@ -103,7 +103,7 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			DbAccountAccnum:      v.Account,
 			DbAccountCurrcode:    v.CurrencyNo,
 			DbCardaExpdate:       dbExpDate,
-			DbCardaStatcode:      "00",
+			DbCardaStatcode:      "03",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
 			DbCardaLimitCat:      "LIM01",

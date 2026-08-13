@@ -82,3 +82,35 @@ func ResetCardPINTriesG2b(pan, expDate string) (err error) {
 	}
 	return
 }
+
+func GeneratePIN(pan, expDate string) {
+	var resp *d8corp.CommonResp
+	req := d8corp.GetCardInfoReq{
+		CardKey: d8corp.CardKey{
+			Pan:        pan,
+			ExpiryDate: expDate,
+		},
+	}
+
+	jsonReq, err := json.Marshal(req)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GeneratePIN REQ marshaling err: %v", err)
+		return
+	}
+	data, status, err := utils.SendRequest("POST", config.Config.Processing.Address+"/xapi/miss/1.0/generatePIN", jsonReq, utils.D8HeadersMap)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GeneratePIN request sending err: %v", err)
+		return
+	}
+	logger.Infof("[SERVICE] D8 G2b GeneratePIN resp status: %v, body: %v", status, string(data))
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		logger.Errorf("[SERVICE] D8 G2b GeneratePIN RESP marshaling err: %v", err)
+		return
+	}
+	if resp.Status.Code != "0" {
+		logger.Errorf("[SERVICE] D8 G2b GeneratePIN RESP status %s", resp.Status.Code)
+		return
+	}
+}
