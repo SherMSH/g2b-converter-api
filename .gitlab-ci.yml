@@ -25,4 +25,4 @@ deploy:
     - g2b-runner
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - cd /srv/g2b && docker compose pull g2bmain && docker compose up -d g2bmain
+    - cd /srv/g2b && docker compose down g2bmain && docker compose pull g2bmain && docker compose up -d g2bmain
