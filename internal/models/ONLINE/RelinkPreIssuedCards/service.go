@@ -37,7 +37,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		return nil, err
 	}
 	// TODO: Update card for SetCardPerson
-	err = service.SetCardStatusG2b(sb.SetCardStatusRq.Req.PAN, sb.SetCardStatusRq.Req.ExpirityDate, sb.SetCardPersonRq.Req.Status, sb.SetCardPersonRq.Req.ChangeReason)
+	_, err = service.SetCardStatusG2b(sb.SetCardStatusRq.Req.PAN, sb.SetCardStatusRq.Req.ExpirityDate, sb.SetCardPersonRq.Req.Status, sb.SetCardPersonRq.Req.ChangeReason)
 	if err != nil {
 		return nil, err
 	}

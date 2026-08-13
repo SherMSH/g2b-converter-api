@@ -1,6 +1,7 @@
 package relinkpreissuedcardsout
 
 import (
+	"converterapi/internal/config"
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
@@ -36,12 +37,20 @@ func (r Root) Call() (respContent []byte, err error) {
 	}
 	service.DeleteCardAcctLinkG2b(r)
 	service.AddCardAcctLinkG2b(r)
+
+	var expDate string
+	if config.Config.App.DebugMode {
+		expDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
+	}
+
 	for i := range r.Records {
 		if len(mdiData.Details) > 0 {
 			if mdiData.Details[i].C_ACTIONCODE != "0" {
 				break
 			}
 		}
+
+		service.GeneratePIN(r.Records[i].PAN, expDate)
 		pck := models.Pack{
 			CustomerId:   r.Records[i].PCode,
 			CustomerCode: r.Records[i].ExtID,

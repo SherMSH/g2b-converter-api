@@ -302,7 +302,7 @@ func ReissueCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, cards []d8co
 			DbAccountAccnum:      firstAccNum,
 			DbAccountCurrcode:    curCard.CardBasicInfo.Currcode,
 			DbCardaExpdate:       dbExpDate,
-			DbCardaStatcode:      "00",
+			DbCardaStatcode:      "03",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
 			DbCardaLimitCat:      "LIM01",

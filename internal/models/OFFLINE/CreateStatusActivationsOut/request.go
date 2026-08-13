@@ -1,6 +1,9 @@
 package createstatusactivationsout
 
 import (
+	"converterapi/internal/config"
+	models "converterapi/internal/models/OFFLINE"
+	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"encoding/xml"
 )
@@ -8,18 +11,40 @@ import (
 // Root - корневой элемент XML
 type Root struct {
 	XMLName xml.Name `xml:"ROOT"`
-	Record  []Record `xml:"RECORD"`
+	Records []Record `xml:"RECORD"`
 }
 
 func (r Root) GetReqType() string {
 	return string(utils.CreateStatusActivationsOut)
 }
 
-func (r Root) Call() ([]byte, error) {
-	respContent, err := xml.Marshal(r)
-	if err != nil {
-		return []byte(err.Error()), err
+func (r Root) Call() (respContent []byte, err error) {
+	var expDate string
+	if config.Config.App.DebugMode {
+		expDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
 	}
+
+	newStatus := "00"
+	for i := range r.Records {
+		account := ""
+		cardInfo, err := service.SetCardStatusG2b(r.Records[i].PAN, expDate, newStatus, "activation of prepared card")
+		if err != nil {
+			continue
+		}
+		if len(cardInfo.CardAccounts) != 0 {
+			account = cardInfo.CardAccounts[0].AccountNumber
+		}
+		pck := models.Pack{
+			CustomerId:   cardInfo.CardBasicInfo.Lkey.LkeyAlias,
+			CustomerCode: cardInfo.CardBasicInfo.CustomerCode,
+			AccNum:       account,
+			CurrencyCode: "972",
+			LkeyAlias:    r.Records[i].ExternalID,
+			CardPan:      cardInfo.CardBasicInfo.Lkey.Pan,
+		}
+		respContent = append(respContent, pck.GetData()...)
+	}
+
 	return respContent, nil
 }
 

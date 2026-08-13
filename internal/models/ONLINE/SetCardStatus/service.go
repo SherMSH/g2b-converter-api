@@ -20,18 +20,9 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		sb.SoapRq.Req.ChangeReason = "forced status change via converter"
 	}
 
-	cardInfo, err := service.GetCardInfo(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
+	_, err = service.SetCardStatusG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate, statCodes[0], sb.SoapRq.Req.ChangeReason)
 	if err != nil {
 		return nil, err
-	}
-
-	err = service.SetCardStatusG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate, statCodes[0], sb.SoapRq.Req.ChangeReason)
-	if err != nil {
-		return nil, err
-	}
-
-	if cardInfo.CardBasicInfo.StatCode == "03" && statCodes[0] == "00" {
-		service.GeneratePIN(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpirationDate)
 	}
 
 	soapResp = new(Envelope)
