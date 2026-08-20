@@ -8,7 +8,6 @@
         "client_timeout_seconds": 30,
         "debug_mode": true,
         "api_key": "kFTu+r!AAFNQ",
-        "processing": "d8",
         "storage": {
             "basepath":"/app/files/d8-partnerapi_docs/Examples/OffLine",
             "in":"/in",
@@ -20,7 +19,11 @@
     "jobs": {
         "conv_scanner": {
             "is_on": true,
-            "interval_seconds": 60
+            "interval": 60
+        },
+        "trn_importer": {
+            "is_on": true,
+            "interval": 24
         }
     },
     "processing": {
@@ -29,6 +32,12 @@
         "extra": {
             "agreed_expdate_yymm": "3004",
             "agreed_expdate_yyyymmdd": "20300430"
+        },
+        "sftp":{
+            "name": "g2b",
+            "host": "192.168.186.4",
+            "port": "22",
+            "token": "password"
         }
     }
 }

@@ -13,7 +13,6 @@ type App struct {
 	DebugMode            bool          `json:"debug_mode"`
 	DefaultParams        DefaultParams `json:"default_params"`
 	ApiKey               string        `json:"api_key"`
-	Processing           string        `json:"processing"`
 	Storage              Storage       `json:"storage"`
 }
 
@@ -58,11 +57,12 @@ type Envelope struct {
 
 type Jobs struct {
 	ConvScanner Job `json:"conv_scanner"`
+	TrnImporter Job `json:"trn_importer"`
 }
 
 type Job struct {
 	IsOn       bool `json:"is_on"`
-	Interval   int  `json:"interval_seconds"`
+	Interval   int  `json:"interval"`
 	QueryLimit int  `json:"query_limit"`
 }
 
@@ -70,4 +70,5 @@ type System struct {
 	Address string            `json:"address"`
 	Token   string            `json:"token"`
 	Extra   map[string]string `json:"extra"`
+	SFTP    Server            `json:"sftp"`
 }

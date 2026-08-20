@@ -23,9 +23,17 @@ func Start() {
 	}
 	if params.ConvScanner.IsOn {
 		if _, err := scheduler.Every(params.ConvScanner.Interval).Seconds().
-			// StartAt(time.Now().Local().Add(time.Duration(params.ConvScanner.Interval) * time.Second)).
+			StartAt(time.Now().Local().Add(time.Duration(params.ConvScanner.Interval) * time.Second)).
 			Do(ConvScanner); err != nil {
 			logger.Errorf("ConvScanner JOB err %v", err)
+		}
+	}
+	if params.TrnImporter.IsOn {
+		// startAt := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day()+1, 1, 0, 0, 0, time.Local)
+		if _, err := scheduler.Every(params.TrnImporter.Interval).Hours().
+			// StartAt(startAt).
+			Do(TrnImporter); err != nil {
+			logger.Errorf("TrnImporter JOB err %v", err)
 		}
 	}
 	scheduler.StartAsync()

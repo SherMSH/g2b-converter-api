@@ -65,14 +65,14 @@ var BodyTypes = []RqBodyType{
 type OfflineReqType string
 
 const (
-	CreateCardsOut                          OfflineReqType = "CreateCardsOut_*.xml"
-	CreateCustomerAndAccount                OfflineReqType = "CreateCustomerAndAccount_*.xml"
-	CreateOrganizations                     OfflineReqType = "CreateOrganizations_*.xml"
-	CreatePreIssuedCards                    OfflineReqType = "CreatePreIssuedCards_*.xml"
-	CreateStatusActivationsOut              OfflineReqType = "CreateStatusActivationsOut_*.xml"
-	ReissueCardsOut                         OfflineReqType = "ReissueCardsOut_*.xml"
-	RelinkPreIssuedCardsOut                 OfflineReqType = "RelinkPreIssuedCardsOut_*.xml"
-	RelinkPreIssuedCardStatusActivationsOut OfflineReqType = "RelinkPreIssuedCardStatusActivationsOut_*.xml"
+	CreateCardsOut                          OfflineReqType = "CreateCardsOut*.xml"
+	CreateCustomerAndAccount                OfflineReqType = "CreateCustomerAndAccount*.xml"
+	CreateOrganizations                     OfflineReqType = "CreateOrganizations*.xml"
+	CreatePreIssuedCards                    OfflineReqType = "CreatePreIssuedCards*.xml"
+	CreateStatusActivationsOut              OfflineReqType = "CreateStatusActivationsOut*.xml"
+	ReissueCardsOut                         OfflineReqType = "ReissueCardsOut*.xml"
+	RelinkPreIssuedCardsOut                 OfflineReqType = "RelinkPreIssuedCardsOut*.xml"
+	RelinkPreIssuedCardStatusActivationsOut OfflineReqType = "RelinkPreIssuedCardStatusActivationsOut*.xml"
 )
 
 var OfflineReqTypes = []OfflineReqType{
