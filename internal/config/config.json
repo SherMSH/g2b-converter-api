@@ -34,10 +34,10 @@
             "agreed_expdate_yyyymmdd": "20300430"
         },
         "sftp":{
-            "name": "g2b",
+            "name": "g2b_importer",
             "host": "192.168.186.4",
             "port": "22",
-            "token": "password"
+            "token": "0lB96#Q3IouuS7"
         }
     }
 }
