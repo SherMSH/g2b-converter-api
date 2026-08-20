@@ -23,7 +23,7 @@
         },
         "trn_importer": {
             "is_on": true,
-            "interval": 24
+            "interval": 60
         }
     },
     "processing": {

@@ -30,7 +30,7 @@ func Start() {
 	}
 	if params.TrnImporter.IsOn {
 		// startAt := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day()+1, 1, 0, 0, 0, time.Local)
-		if _, err := scheduler.Every(params.TrnImporter.Interval).Hours().
+		if _, err := scheduler.Every(params.TrnImporter.Interval).Seconds().
 			// StartAt(startAt).
 			Do(TrnImporter); err != nil {
 			logger.Errorf("TrnImporter JOB err %v", err)
