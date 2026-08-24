@@ -99,8 +99,8 @@ func RelinkPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err 
 			IssRecaction:       "UPDATE",
 			IssRecnum:          recNums.NextVal(),
 			IssCompanyRegnr:    "ARV",
-			IssImpPvki:         3,
-			IssGenPin:          1,
+			IssImpPvki:         1,
+			IssGenPin:          0,
 			IssCardaExpdateNew: newExpDate,
 
 			KlLKeyClr:      v.PAN,
