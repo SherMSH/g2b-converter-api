@@ -24,17 +24,17 @@ const defaultReasonCode = 4000
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	req := sb.SoapRq.Req
 
-	if len(req.Id) == 0 {
-		return nil, fmt.Errorf("wrong mandatory field `fimi1:Id`")
+	if len(req.TranNumber) == 0 {
+		return nil, fmt.Errorf("wrong mandatory field `m0:TranNumber`")
 	}
 
-	original, err := service.GetTransactionDetailsG2b(req.Id, "")
+	original, err := service.GetTransactionDetailsG2b(req.TranNumber, "")
 	if err != nil {
-		logger.Errorf("[SERVICE] reverseTransaction: original tx %s not found: %v", req.Id, err)
+		logger.Errorf("[SERVICE] reverseTransaction: original tx %s not found: %v", req.TranNumber, err)
 		return nil, err
 	}
 	if original.Details.EcTxRefno == "" {
-		return nil, fmt.Errorf("original transaction %s has no ecTxRefno", req.Id)
+		return nil, fmt.Errorf("original transaction %s has no ecTxRefno", req.TranNumber)
 	}
 
 	amount := original.Details.TxnAmount
@@ -84,7 +84,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 				TranId:       utils.GenerateTimestampID(),
 				Ver:          "1.0",
 
-				ThisTranId:   req.Id,
+				ThisTranId:   utils.GenerateTimestampID(),
 				AuthRespCode: resp.Status.RspCode,
 				AuthRespText: resp.Status.Message,
 				ExtRespCode:  resp.Status.Code,
