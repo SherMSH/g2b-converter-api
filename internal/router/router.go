@@ -19,7 +19,7 @@ func Init(h *handlers.Handler) *gin.Engine {
 	v1 := router.Group("/g2b/mobile/v1")
 	v1.Use(middlewares.ClerkAuth(), middlewares.CheckApiKey())
 	{
-		v1.POST("/d8convert", handlers.D8Converter)
+		v1.POST("/d8convert", handlers.D8MobileConvert)
 	}
 
 	clerk := router.Group("/g2b")
