@@ -46,7 +46,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	// Собираем SoapEnvelope Response
 	var (
 		cardInfo       *d8corp.CardInfoData
-		accnum         string
+		accnum, cvok   string
 		avlbal, blkamt float64
 	)
 	trnDetails, err := service.GetTransactionDetailsG2b(fmt.Sprintf("%d", trn.TransactionResponse.TlId), trn.TransactionResponse.EcTxRefno)
@@ -76,6 +76,11 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		toAcct = trnDetails.Details.DestinationAccountType
 	}
 
+	cvok = "-1"
+	if txnType == utils.Accver || txnType == utils.Balance {
+		cvok = "1"
+	}
+
 	soapResp = &Envelope{
 		XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
 		XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
@@ -96,7 +101,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					AvailBalance:         fmt.Sprintf("%.2f", avlbal),
 					BalanceCurrency:      balanceCurrency,
 					BonusDebt:            "0",
-					CVxOK:                "-1",
+					CVxOK:                cvok,
 					Currency:             billCurrency,
 					Fee:                  "",
 					FromAcct:             accnum,
