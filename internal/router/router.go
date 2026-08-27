@@ -16,6 +16,12 @@ func Init(h *handlers.Handler) *gin.Engine {
 	router.StaticFile("/favicon.ico", "./internal/app/files/favicon.ico")
 	router.MaxMultipartMemory = 10 << 20 // 10 MiB
 
+	v1 := router.Group("/g2b/mobile/v1")
+	v1.Use(middlewares.ClerkAuth(), middlewares.CheckApiKey())
+	{
+		v1.POST("/d8convert", handlers.D8Converter)
+	}
+
 	clerk := router.Group("/g2b")
 	clerk.Use(middlewares.ClerkAuth())
 	{
