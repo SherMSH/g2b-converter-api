@@ -9,7 +9,7 @@ import (
 
 // transportKeyPath - публичный ключ процессинга для шифрования одноразового
 // DES-ключа. Путь относительный, поэтому сервис обязан запускаться из корня.
-var transportKeyPath = "internal/app/files/transport_setpin.der"
+var transportKeyPath = "/app/files/certification/transport_setpin.der"
 
 // buildPinRequest собирает запрос с зашифрованным PIN-блоком.
 //

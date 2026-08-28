@@ -11,6 +11,7 @@ services:
       - /srv/g2b/files/errors:/app/files/d8-partnerapi_docs/Examples/OffLine/errors
       - /srv/g2b/files/in:/app/files/d8-partnerapi_docs/Examples/OffLine/in
       - /srv/g2b/files/out:/app/files/d8-partnerapi_docs/Examples/OffLine/out
+      - /home/sherzodm/certification:/app/files/certification
     command: sh -c './converterApi >> /app/logs/app.log 2>&1'
     networks:
       - default_net
