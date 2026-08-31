@@ -1,10 +1,19 @@
 package changepin
 
-import "converterapi/internal/utils"
+import (
+	service "converterapi/internal/service/G2B"
+	"converterapi/internal/utils"
+	"fmt"
+)
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
+	//Basic checkup
+	if len(sb.SoapRq.Req.PAN) == 0 {
+		return nil, fmt.Errorf("400 Bad request. Empty pan")
+	}
 
-	//TODO: добавить setPIN-начинку
+	expdate, err := service.GetExpDateByPan(sb.SoapRq.Req.PAN)
+	service.GeneratePIN(sb.SoapRq.Req.PAN, expdate)
 
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"

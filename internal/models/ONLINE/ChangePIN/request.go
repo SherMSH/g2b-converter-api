@@ -22,4 +22,7 @@ type Request struct {
 	Session  string `xml:"Session,attr" json:"session"`
 	Clerk    string `xml:"Clerk,attr" json:"clerk"`
 	Password string `xml:"Password,attr" json:"password"`
+
+	PAN string `xml:"PAN" json:"pan"`
+	MBR string `xml:"MBR" json:"mbr"`
 }

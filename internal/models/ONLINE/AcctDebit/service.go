@@ -12,8 +12,8 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		TranId:       "",
 		Ver:          "1.0",
 
-		ApprovalCode:  "780D1O",
-		AvailBalance:  321.22,
+		ApprovalCode:  "",
+		AvailBalance:  0.00,
 		LedgerBalance: 0.00,
 	}
 	return

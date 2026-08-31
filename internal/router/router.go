@@ -19,6 +19,7 @@ func Init(h *handlers.Handler) *gin.Engine {
 	v1 := router.Group("/g2b/mobile/v1")
 	v1.Use(middlewares.ClerkAuth(), middlewares.CheckApiKey())
 	{
+		v1.GET("/ping", ping)
 		v1.POST("/d8convert", handlers.D8MobileConvert)
 	}
 

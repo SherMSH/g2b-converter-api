@@ -126,7 +126,7 @@ func GetExpFromTrack(trck2 string) string {
 	return data[1][:4]
 }
 
-func GetExpFormat4(expdate string) string {
+func ConvertYYYYMMDDtoYYMM(expdate string) string {
 	if len(expdate) < 5 {
 		return expdate
 	}

@@ -83,6 +83,10 @@ type CardInfoData struct {
 	CardNotifications    []CardNotification    `json:"cardNotifications"`
 }
 
+type CardList struct {
+	Cards []CardBasicInfo `json:"cardList"`
+}
+
 type CardBasicInfo struct {
 	Lkey             Lkey   `json:"lkey"`
 	ExpiryDate       string `json:"expiryDate"`
