@@ -199,8 +199,8 @@ func TrnImporter() {
 	defer mutx.Unlock()
 	logger.Infof("[JOBS] TRN files importer")
 
-	remoteDir := "d8/g2b/proc/out"
-	localDir := "/srv/g2b/files/trn/d8"
+	remoteDir := "out"
+	localDir := "/home/sherzodm/trn/d8" //"/srv/g2b/files/trn/d8"
 
 	filter := func(filename string) bool {
 		return strings.HasSuffix(filename, ".json")
