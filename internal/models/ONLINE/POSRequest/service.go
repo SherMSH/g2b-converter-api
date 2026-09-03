@@ -109,7 +109,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					LedgerBalance:        fmt.Sprintf("%.2f", avlbal+blkamt),
 					MaskBalances:         "0",
 					RelatedTran:          RelatedTran{},
-					ThisTranId:           body.SoapRq.Req.ThisTranId,
+					ThisTranId:           fmt.Sprintf("%d", trn.TransactionResponse.TlId),
 					ToAcct:               toAcct,
 				},
 			},

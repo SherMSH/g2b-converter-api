@@ -5,6 +5,7 @@ import (
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"encoding/xml"
 )
 
@@ -19,13 +20,18 @@ func (r Root) GetReqType() string {
 }
 
 func (r Root) Call() (respContent []byte, err error) {
-	var expDate string
-	if config.Config.App.DebugMode {
-		expDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
-	}
-
 	newStatus := "00"
+
 	for i := range r.Records {
+		if len(r.Records[i].PAN) == 0 {
+			continue
+		}
+		expDate, err := service.GetExpDateByPan(r.Records[i].PAN)
+		if err != nil {
+			logger.Warnf("[SERVICE] CreateStatusActivationsOut warning! GetExpDateByPan error: %v", err)
+			expDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
+			err = nil
+		}
 		account := ""
 		cardInfo, err := service.SetCardStatusG2b(r.Records[i].PAN, expDate, newStatus, "activation of prepared card")
 		if err != nil {

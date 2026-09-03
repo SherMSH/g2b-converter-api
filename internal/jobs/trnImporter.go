@@ -199,7 +199,7 @@ func TrnImporter() {
 	defer mutx.Unlock()
 	logger.Infof("[JOBS] TRN files importer")
 
-	remoteDir := "out"
+	remoteDir := "/out"
 	localDir := "/home/sherzodm/trn/d8" //"/srv/g2b/files/trn/d8"
 
 	filter := func(filename string) bool {
