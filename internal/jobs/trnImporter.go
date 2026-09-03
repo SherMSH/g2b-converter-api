@@ -102,10 +102,10 @@ func importSingleFile(client *sftp.Client, remotePath, localDir string) error {
 	fileName := filepath.Base(remotePath)
 	localPath := filepath.Join(localDir, fileName)
 
-	// Проверяем, не существует ли уже файл локально
-	if _, err := os.Stat(localPath); err == nil {
-		return fmt.Errorf("локальный файл уже существует: %s", localPath)
-	}
+	// // Проверяем, не существует ли уже файл локально
+	// if _, err := os.Stat(localPath); err == nil {
+	// 	return fmt.Errorf("локальный файл уже существует: %s", localPath)
+	// }
 
 	// Открываем удаленный файл
 	remoteFile, err := client.Open(remotePath)
@@ -151,7 +151,7 @@ func ImportAllFilesWithFilter(remoteDir, localDir string, filter func(string) bo
 	}
 	defer client.Close()
 
-	tracker, err := NewImportedFilesTracker(localDir)
+	tracker, err := NewImportedFilesTracker(localDir + "/../success")
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,6 @@ func ImportAllFilesWithFilter(remoteDir, localDir string, filter func(string) bo
 
 		// Применяем фильтр
 		if filter != nil && !filter(fileName) {
-			fmt.Printf("Файл %s не соответствует фильтру, пропускаем\n", fileName)
 			continue
 		}
 
@@ -179,7 +178,7 @@ func ImportAllFilesWithFilter(remoteDir, localDir string, filter func(string) bo
 			continue
 		}
 
-		remotePath := filepath.Join(remoteDir, fileName)
+		remotePath := remoteDir + "/" + fileName
 		if err := importSingleFile(client, remotePath, localDir); err != nil {
 			fmt.Printf("Ошибка импорта %s: %v\n", fileName, err)
 			continue
@@ -199,14 +198,14 @@ func TrnImporter() {
 	defer mutx.Unlock()
 	logger.Infof("[JOBS] TRN files importer")
 
-	remoteDir := "/out"
-	localDir := "/home/sherzodm/trn/d8" //"/srv/g2b/files/trn/d8"
+	remoteDir := config.Config.Jobs.TrnImporter.Extra["remote"]
+	localDir := config.Config.Jobs.TrnImporter.Extra["local"]
 
 	filter := func(filename string) bool {
 		return strings.HasSuffix(filename, ".json")
 	}
 
 	if err := ImportAllFilesWithFilter(remoteDir, localDir, filter); err != nil {
-		fmt.Printf("Ошибка импорта с фильтром: %v\n", err)
+		fmt.Printf("Ошибка импорта: %v\n", err)
 	}
 }

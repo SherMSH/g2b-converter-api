@@ -23,7 +23,11 @@
         },
         "trn_importer": {
             "is_on": true,
-            "interval": 60
+            "interval": 25,
+            "extra": {
+                "remote": "out",
+                "local": "/app/files/trn/d8"
+            }
         }
     },
     "processing": {

@@ -61,9 +61,10 @@ type Jobs struct {
 }
 
 type Job struct {
-	IsOn       bool `json:"is_on"`
-	Interval   int  `json:"interval"`
-	QueryLimit int  `json:"query_limit"`
+	IsOn       bool              `json:"is_on"`
+	Interval   int               `json:"interval"`
+	QueryLimit int               `json:"query_limit"`
+	Extra      map[string]string `json:"extra"`
 }
 
 type System struct {
