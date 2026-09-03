@@ -5,6 +5,7 @@ import (
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"encoding/xml"
 	"fmt"
 )
@@ -38,12 +39,17 @@ func (r Root) Call() (respContent []byte, err error) {
 	service.DeleteCardAcctLinkG2b(r)
 	service.AddCardAcctLinkG2b(r)
 
-	var expDate string
-	if config.Config.App.DebugMode {
-		expDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
-	}
-
 	for i := range r.Records {
+		if len(r.Records[i].PAN) == 0 {
+			continue
+		}
+		expDate, err := service.GetExpDateByPan(r.Records[i].PAN)
+		if err != nil {
+			logger.Warnf("[SERVICE] RelinkPreissuedCardsOut warning! GetExpDateByPan error: %v", err)
+			expDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
+			err = nil
+		}
+
 		if len(mdiData.Details) > 0 {
 			if mdiData.Details[i].C_ACTIONCODE != "0" {
 				break

@@ -4,12 +4,21 @@ import (
 	"converterapi/internal/config"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"fmt"
 )
 
 func Svc(sb *Body) (soapResp *Envelope, err error) {
-	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpDate) == 0 {
-		sb.SoapRq.Req.ExpDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
+	if len(sb.SoapRq.Req.PAN) == 0 {
+		return nil, fmt.Errorf("Bad Request: empty PAN field")
+	}
+	if len(sb.SoapRq.Req.ExpDate) == 0 {
+		sb.SoapRq.Req.ExpDate, err = service.GetExpDateByPan(sb.SoapRq.Req.PAN)
+		if err != nil {
+			logger.Warnf("[SERVICE] GetCVV warning! GetExpDateByPan error: %v", err)
+			sb.SoapRq.Req.ExpDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
+			err = nil
+		}
 	}
 	cvvData, err := service.GetCVVG2b(sb.SoapRq.Req.PAN, sb.SoapRq.Req.ExpDate)
 	if err != nil {

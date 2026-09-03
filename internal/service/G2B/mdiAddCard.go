@@ -259,10 +259,14 @@ func ReissueCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, cards []d8co
 			continue
 		}
 
+		currentExpDate, err = GetExpDateByPan(v.PAN)
+		if err != nil {
+			currentExpDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
+		}
+
 		dbExpDate, _ := utils.ConvertDDMMYYYYtoYYYYMMDD(v.CancelDate)
 		if config.Config.App.DebugMode {
 			dbExpDate = config.Config.Processing.Extra["agreed_expdate_yyyymmdd"]
-			currentExpDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
 		}
 		// GetCardInfo to get custcode and accnum
 		curCard, err := GetCardBasicAndAccsInfo(v.PAN, currentExpDate)

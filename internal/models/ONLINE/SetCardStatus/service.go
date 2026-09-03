@@ -4,6 +4,7 @@ import (
 	"converterapi/internal/config"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"fmt"
 )
 
@@ -13,9 +14,18 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		return nil, fmt.Errorf("Status %v is not supported!", sb.SoapRq.Req.Status)
 	}
 
-	if config.Config.App.DebugMode && len(sb.SoapRq.Req.ExpirationDate) == 0 {
-		sb.SoapRq.Req.ExpirationDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
+	if len(sb.SoapRq.Req.PAN) == 0 {
+		return nil, fmt.Errorf("Bad Request: empty PAN field")
 	}
+	if len(sb.SoapRq.Req.ExpirationDate) == 0 {
+		sb.SoapRq.Req.ExpirationDate, err = service.GetExpDateByPan(sb.SoapRq.Req.PAN)
+		if err != nil {
+			logger.Warnf("[SERVICE] GetCardInfo warning! GetExpDateByPan error: %v", err)
+			sb.SoapRq.Req.ExpirationDate = config.Config.Processing.Extra["agreed_expdate_yymm"]
+			err = nil
+		}
+	}
+
 	if len(sb.SoapRq.Req.ChangeReason) == 0 {
 		sb.SoapRq.Req.ChangeReason = "forced status change via converter"
 	}
