@@ -17,8 +17,8 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		logger.Errorf("PosReq error: unsupported TranCode %v", body.SoapRq.Req.TranCode)
 		return nil, fmt.Errorf("PosReq error: unsupported 'TranCode' value")
 	}
-	// Проверка карты идёт нулевой суммой, для остальных операций она обязательна
-	if txnType != utils.Accver && body.SoapRq.Req.Amount <= 0. {
+	// Проверка карты и баланса идёт нулевой суммой, для остальных операций она обязательна
+	if txnType != utils.Accver && txnType != utils.Balance && body.SoapRq.Req.Amount <= 0. {
 		logger.Errorf("PosReq error: Wrong 'Amount' field value")
 		return nil, fmt.Errorf("PosReq error: Wrong 'Amount' field value")
 	}
