@@ -1,6 +1,7 @@
 package posrequestrq
 
 import (
+	d8corp "converterapi/internal/models/D8CORP"
 	"converterapi/internal/utils"
 	"testing"
 )
@@ -64,5 +65,45 @@ func TestGetTxnTypeCheckCard(t *testing.T) {
 	}
 	if req.GetCvv2() != "123" {
 		t.Errorf("CVV2 не отдаётся: %q", req.GetCvv2())
+	}
+}
+
+// Процессинг часто отвечает общим отказом (Do not honour -> 50). По таблице
+// партнёра код должен определяться статусом карты: скомпрометирована -> 75.
+func TestRefineDeclineCode(t *testing.T) {
+	card := func(statCode, acctStatus string) *d8corp.CardInfoData {
+		return &d8corp.CardInfoData{
+			CardBasicInfo: d8corp.CardBasicInfo{StatCode: statCode},
+			CardAccounts:  []d8corp.CardAccount{{StatCode: acctStatus}},
+		}
+	}
+
+	tests := []struct {
+		name    string
+		code    string
+		card    *d8corp.CardInfoData
+		isDebit bool
+		want    string
+	}{
+		{"общий отказ по скомпрометированной карте", "50", card("08", "00"), true, "75"},
+		{"мошенническое использование тоже 75", "50", card("16", "00"), true, "75"},
+		{"неизвестный отказ по утерянной карте", "68", card("12", "00"), true, "40"},
+		{"украденная карта", "50", card("13", "00"), false, "41"},
+		{"истёкшая карта", "50", card("11", "00"), true, "51"},
+		{"ограниченная карта, расход", "50", card("10", "00"), true, "58"},
+		{"ограниченная карта, зачисление - статус не мешает", "50", card("10", "00"), false, "50"},
+		{"закрытый счёт при активной карте", "50", card("00", "09"), true, "56"},
+		{"только приход, расход", "50", card("00", "02"), true, "55"},
+		{"конкретная причина не подменяется", "59", card("08", "00"), true, "59"},
+		{"неверный PIN не подменяется", "53", card("08", "00"), true, "53"},
+		{"без данных карты код остаётся прежним", "50", nil, true, "50"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := refineDeclineCode(tt.code, tt.card, tt.isDebit); got != tt.want {
+				t.Errorf("refineDeclineCode(%q) = %q, want %q", tt.code, got, tt.want)
+			}
+		})
 	}
 }

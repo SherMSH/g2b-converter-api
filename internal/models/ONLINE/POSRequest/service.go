@@ -84,17 +84,8 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	// парой code/rspcode - переводим по справочнику.
 	authRespCode := utils.AuthRespCode(trn.TransactionResponse.ActionCode, trn.TransactionResponse.RspCode)
 
-	// Если операция отклонена, а причина обобщена до внешнего отказа, уточняем её
-	// по статусу карты и счёта: партнёру важна конкретная причина.
-	if !utils.IsApproved(trn.TransactionResponse.ActionCode) && authRespCode == utils.TwoExternalDecline && cardInfo != nil {
-		if code := utils.CardStatusRespCode(utils.CardStatuses[cardInfo.CardBasicInfo.StatCode], isDebit(txnType)); code != "" {
-			authRespCode = code
-		} else if len(cardInfo.CardAccounts) != 0 {
-			acctStatus := utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode]
-			if code := utils.AccountStatusRespCode(acctStatus, isDebit(txnType)); code != "" {
-				authRespCode = code
-			}
-		}
+	if !utils.IsApproved(trn.TransactionResponse.ActionCode) {
+		authRespCode = refineDeclineCode(authRespCode, cardInfo, isDebit(txnType))
 	}
 
 	// Причина отказа обязана быть в каждом неуспешном ответе. Процессинг её
@@ -200,4 +191,37 @@ func buildDeclineReason(authRespCode string, cardInfo *d8corp.CardInfoData, isDe
 		}
 	}
 	return fmt.Sprintf("Transaction declined with response code %s", authRespCode)
+}
+
+// refineDeclineCode уточняет код отказа по статусу карты и счёта.
+//
+// Процессинг часто отвечает общим отказом - "Do not honour" или неизвестным
+// кодом, - и партнёр получает 50 или 68 вместо настоящей причины. По таблице
+// партнёра код определяется статусом: скомпрометирована - 75, потеряна - 40,
+// украдена - 41 и так далее. Поэтому статус карты важнее общего кода.
+//
+// Конкретные коды процессинга (недостаточно средств, неверный PIN) не трогаем:
+// они точнее любого статуса.
+func refineDeclineCode(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
+	if cardInfo == nil || !isGenericDecline(authRespCode) {
+		return authRespCode
+	}
+
+	if code := utils.CardStatusRespCode(utils.CardStatuses[cardInfo.CardBasicInfo.StatCode], isDebit); code != "" {
+		return code
+	}
+	if len(cardInfo.CardAccounts) != 0 {
+		acctStatus := utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode]
+		if code := utils.AccountStatusRespCode(acctStatus, isDebit); code != "" {
+			return code
+		}
+	}
+	return authRespCode
+}
+
+// isGenericDecline - отказ без конкретной причины: "несанкционированное
+// использование" и "отказ внешнего хоста". Оба ничего не говорят о том, что
+// именно не так с картой.
+func isGenericDecline(authRespCode string) bool {
+	return authRespCode == "50" || authRespCode == utils.TwoExternalDecline
 }
