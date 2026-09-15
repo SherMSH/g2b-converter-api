@@ -34,6 +34,21 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		logger.Errorf("PosReq error: Wrong 'Amount' field value")
 		return nil, fmt.Errorf("PosReq error: Wrong 'Amount' field value")
 	}
+	// Статус карты и счёта проверяем до обращения к процессингу.
+	//
+	// По документу партнёра ответ на POSRequest определяется статусом: истёкшая
+	// карта - 51, требующая обращения к эмитенту - 71 и так далее. Процессинг
+	// такие операции пропускает и списывает средства, поэтому проверять после
+	// авторизации поздно: деньги уже ушли, а партнёру надо вернуть отказ.
+	preCard, err := service.GetCardInfo(body.SoapRq.Req.PAN, body.SoapRq.Req.GetExpDate())
+	if err != nil {
+		logger.Warnf("[SERVICE] POSRequest: статус карты не проверен: %v", err)
+	}
+	if code := statusDeclineCode(preCard, isDebit(txnType)); code != "" {
+		logger.Warnf("[SERVICE] POSRequest declined by status: TWO %s, PAN %s", code, preCard.CardBasicInfo.Lkey.MaskedPan)
+		return statusDeclineResponse(body, code, preCard, isDebit(txnType)), nil
+	}
+
 	ectxNum, err := service.InitiateTransaction()
 	if err != nil {
 		logger.Errorf("POS req {InitiateTransaction} error: %v", err)
@@ -68,16 +83,18 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	if err != nil {
 		logger.Errorf("[SERVICE] POSRequest error getting trn details")
 	}
+	// Данные карты запрашиваем заново: партнёру нужны балансы на момент после
+	// авторизации, а preCard получена до неё.
 	if trnDetails != nil {
 		cardInfo, err = service.GetCardInfo(trn.Lkey.Pan, trnDetails.Details.DateExp)
 		if err != nil {
 			logger.Errorf("[SERVICE] POSRequest error getting card info: %v", err)
 		}
-		if cardInfo != nil && len(cardInfo.CardAccounts) != 0 {
-			accnum = cardInfo.CardAccounts[0].AccountNumber
-			avlbal = cardInfo.CardAccounts[0].AvlBal
-			blkamt = cardInfo.CardAccounts[0].BlkAmt
-		}
+	}
+	if cardInfo != nil && len(cardInfo.CardAccounts) != 0 {
+		accnum = cardInfo.CardAccounts[0].AccountNumber
+		avlbal = cardInfo.CardAccounts[0].AvlBal
+		blkamt = cardInfo.CardAccounts[0].BlkAmt
 	}
 
 	// Код ответа авторизатора партнёр ждёт в кодировке TWO, а процессинг отвечает
@@ -224,4 +241,59 @@ func refineDeclineCode(authRespCode string, cardInfo *d8corp.CardInfoData, isDeb
 // именно не так с картой.
 func isGenericDecline(authRespCode string) bool {
 	return authRespCode == "50" || authRespCode == utils.TwoExternalDecline
+}
+
+// statusDeclineCode возвращает код отказа, если статус карты или счёта
+// запрещает операцию. Пустая строка означает, что статусы операции не мешают.
+func statusDeclineCode(cardInfo *d8corp.CardInfoData, isDebit bool) string {
+	if cardInfo == nil {
+		return ""
+	}
+	if code := utils.CardStatusRespCode(utils.CardStatuses[cardInfo.CardBasicInfo.StatCode], isDebit); code != "" {
+		return code
+	}
+	if len(cardInfo.CardAccounts) != 0 {
+		if code := utils.AccountStatusRespCode(utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode], isDebit); code != "" {
+			return code
+		}
+	}
+	return ""
+}
+
+// statusDeclineResponse собирает отказ по статусу карты или счёта.
+//
+// Транзакция в процессинг не отправлялась, поэтому в ответе нет ни номера
+// операции, ни кода авторизации, ни балансов - только причина отказа.
+func statusDeclineResponse(body *Body, authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) *Envelope {
+	var accnum string
+	if cardInfo != nil && len(cardInfo.CardAccounts) != 0 {
+		accnum = cardInfo.CardAccounts[0].AccountNumber
+	}
+
+	return &Envelope{
+		XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
+		XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
+		XmlnsM0: "http://schemas.compassplus.com/two/1.0/fimi_types.xsd",
+		Body: RespBody{
+			POSRequestRp: POSRequestRp{
+				Response: Response{
+					Product:      body.SoapRq.Req.Product,
+					ResponseAttr: "1",
+					TranId:       utils.GenerateTimestampID(),
+					Ver:          "1.0",
+					Echo:         body.SoapRq.Req.Echo,
+
+					AccountCurrency:      utils.Currency(cardInfo.CardBasicInfo.Currcode),
+					AuthRespCode:         authRespCode,
+					AuthRespCodeCategory: "0",
+					BonusDebt:            "0",
+					CVxOK:                "-1",
+					DeclineReason:        buildDeclineReason(authRespCode, cardInfo, isDebit),
+					FromAcct:             accnum,
+					MaskBalances:         "0",
+					RelatedTran:          RelatedTran{},
+				},
+			},
+		},
+	}
 }
