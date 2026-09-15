@@ -120,19 +120,28 @@ const (
 
 type D8TxStatus string
 
+// Статусы транзакции по Appendix B спецификации D8.
+//
+// Значения 2-5 раньше были расставлены неверно: 2 считался «завершена»,
+// 3 - «отклонена», хотя по спецификации 2 - это отказ, а 3 - одобрение.
+// Из-за этого одобренные операции помечались ошибкой.
 const (
-	InProgress D8TxStatus = "1"
-	Complete   D8TxStatus = "2"
-	Rejected   D8TxStatus = "3"
-	Approved   D8TxStatus = "4"
-	Partial    D8TxStatus = "5"
+	InProgress        D8TxStatus = "1" // получена в онлайне, статус не финальный
+	Rejected          D8TxStatus = "2" // завершена, отклонена
+	Approved          D8TxStatus = "3" // завершена, одобрена
+	ApprovedGotRev    D8TxStatus = "4" // одобрена, получен полный реверс
+	ApprovedGotPrtRev D8TxStatus = "5" // одобрена, получен частичный реверс
 
 	AdviceLogNotProcessed D8TxStatus = "6"
 	AdviceLogRejected     D8TxStatus = "7"
 	AdviceLogApproved     D8TxStatus = "8"
 
-	GotRev           D8TxStatus = "12"
-	GotPrtRev        D8TxStatus = "13"
+	LoggedForOffline  D8TxStatus = "9"  // записана для офлайн-обработки
+	OfflineApplied    D8TxStatus = "10" // офлайн, применена к счёту
+	OfflineNotApplied D8TxStatus = "11" // офлайн, применить к счёту не удалось
+
+	GotRev           D8TxStatus = "12" // завершена, отклонена, получен реверс
+	GotPrtRev        D8TxStatus = "13" // завершена, отклонена, получен частичный реверс
 	InProgressGotRev D8TxStatus = "14"
 	GotPartialRev    D8TxStatus = "15"
 

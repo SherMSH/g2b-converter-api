@@ -1,6 +1,7 @@
 package gettransinfo
 
 import (
+	d8corp "converterapi/internal/models/D8CORP"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
@@ -58,15 +59,14 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 	// отмечаем сбои обработки: системные ошибки и незавершённые статусы.
 	txStatus := utils.D8TxStatus(strconv.Itoa(trn.Details.TxStatus))
 	txError := "0"
-	if trn.Details.ActionCode == "9" || txStatus == utils.Rejected || txStatus == utils.AdviceLogRejected {
+	if trn.Details.ActionCode == "9" ||
+		txStatus == utils.OfflineNotApplied ||
+		txStatus == utils.AdviceLogNotProcessed ||
+		txStatus == utils.AdviceLogNotProceed {
 		txError = "1"
 	}
 
-	// Операция уже отменена реверсом: идентификатора реверса процессинг не
-	// отдаёт, но сам факт партнёру важен
-	if txStatus == utils.GotRev || txStatus == utils.GotPrtRev || txStatus == utils.GotPartialRev {
-		logger.Warnf("[SERVICE] GetTransInfo: транзакция %d отменена реверсом, RevRequestId процессинг не возвращает", trn.Details.TlId)
-	}
+	revRequestId := reversalLink(trn.Details)
 	tranListArr := []TranListRow{
 		{
 			Id:                   fmt.Sprintf("%d", trn.Details.TlId),
@@ -95,7 +95,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 			CurrencyAcct:         trn.Details.Curbill,
 			AmountAcct:           fmt.Sprintf("%.2f", trn.Details.Amtbill),
 			ExchangeRateAcct:     fmt.Sprintf("%.2f", trn.Details.Ratebill),
-			RevRequestId:         "",
+			RevRequestId:         revRequestId,
 			Error:                txError,
 			OrigType:             "9",
 			TermFIName:           trn.Details.CrdacptID,
@@ -153,4 +153,29 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 	soapResp.Body.GetTransInfoRp.Response.MaskBalances = "0"
 	soapResp.Body.GetTransInfoRp.Response.TranList.Rows = tranListArr
 	return
+}
+
+// reversalLink возвращает ссылку между операцией и её реверсом - поле
+// RevRequestId контракта FIMI.
+//
+// По документу партнёра смысл поля зависит от того, что за операция:
+// у обычной транзакции это ссылка на её реверс, у реверса - на оригинал.
+// В D8 оба направления берутся из разных мест (5.3.3, 8.4):
+//   - idorg заполнен у самого реверса и указывает на оригинал;
+//   - transactionGroups с типом 2 связывает оригинал с реверсом.
+func reversalLink(d d8corp.TransactionDetails) string {
+	if d.Idorg != 0 {
+		return strconv.Itoa(d.Idorg)
+	}
+	for _, group := range d.TransactionGroups {
+		if group.GroupType != d8corp.GroupTypeReversalLinkage {
+			continue
+		}
+		for _, related := range group.Transactions {
+			if related.TlId != d.TlId {
+				return strconv.Itoa(related.TlId)
+			}
+		}
+	}
+	return ""
 }

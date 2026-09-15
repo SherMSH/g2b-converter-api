@@ -96,3 +96,49 @@ func TestAccountStatusRespCode(t *testing.T) {
 		})
 	}
 }
+
+// Семейство 9 - это «ошибки обработки», но не все они системные: часть несёт
+// обычную причину отказа и не должна схлопываться в 54.
+func TestAuthRespCodeErrorFamily(t *testing.T) {
+	tests := []struct {
+		rspcode string
+		want    string
+		name    string
+	}{
+		{"09", TwoSystemError, "системный сбой"},
+		{"58", "59", "недостаточно средств"},
+		{"59", "53", "неверный PIN"},
+		{"56", "52", "неверный номер карты"},
+		{"51", "51", "истёк срок действия"},
+		{"14", "15", "оригинал не найден"},
+		{"12", "72", "эмитент недоступен"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := AuthRespCode("9", tt.rspcode); got != tt.want {
+				t.Errorf("AuthRespCode(9, %s) = %q, want %q", tt.rspcode, got, tt.want)
+			}
+		})
+	}
+}
+
+// Служебные коды уровня сервиса тоже должны доходить до партнёра осмысленными
+func TestAuthRespCodeServiceLevel(t *testing.T) {
+	cases := map[string]string{"D/00": "52", "D/04": "15", "D/07": "56", "C/43": "74"}
+	for key, want := range cases {
+		code, rspcode := key[:1], key[2:]
+		if got := AuthRespCode(code, rspcode); got != want {
+			t.Errorf("AuthRespCode(%s, %s) = %q, want %q", code, rspcode, got, want)
+		}
+	}
+}
+
+// Изъятие карты по утере и краже
+func TestAuthRespCodePickupLostStolen(t *testing.T) {
+	if got := AuthRespCode("2", "08"); got != "40" {
+		t.Errorf("утерянная карта -> %q, want 40", got)
+	}
+	if got := AuthRespCode("2", "09"); got != "41" {
+		t.Errorf("украденная карта -> %q, want 41", got)
+	}
+}

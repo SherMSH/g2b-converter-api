@@ -95,6 +95,73 @@ var d8AuthRespCodes = map[string]string{
 	"2/05": "71", // Acceptor contact security
 	"2/06": "62", // PIN tries exceeded
 	"2/07": "71", // Special conditions
+	"2/08": "40", // Lost card
+	"2/09": "41", // Stolen card
+	"2/10": "75", // Suspect counterfeit
+	"2/85": "81", // CVV validation error
+
+	// Ошибки обработки. Не все из них системные: часть несёт обычную причину
+	// отказа, и сваливать их в 54 было бы потерей смысла.
+	"9/02": "82", // Invalid transaction
+	"9/03": "82", // Re-enter transaction
+	"9/04": "74", // Format error
+	"9/05": "69", // Acquirer not supported -> No sharing
+	"9/06": "23", // Cutover in progress
+	"9/07": "72", // Issuer/switch inoperative -> Destination not available
+	"9/08": "73", // Destination not found -> Routing error
+	"9/09": TwoSystemError,
+	"9/10": "72", // Issuer signed off
+	"9/11": "72", // Issuer timed out
+	"9/12": "72", // Issuer unavailable
+	"9/13": "82", // Duplicate transaction
+	"9/14": "15", // Unable to trace original transaction -> Original transaction not found
+	"9/15": TwoSystemError,
+	"9/16": TwoSystemError, // MAC incorrect
+	"9/17": TwoSystemError, // MAC key sync error
+	"9/18": TwoSystemError, // No comms keys available
+	"9/19": TwoSystemError, // Encryption key sync error
+	"9/20": "50",           // Security error, try again
+	"9/21": "50",           // Security error, no action
+	"9/22": TwoSystemError, // Message out of sequence
+	"9/23": "4",            // Request in progress -> Postponed
+	"9/40": "74",           // Invalid transaction date
+	"9/50": "50",           // Disagreement
+	"9/51": "51",           // Card expired
+	"9/52": "75",           // Suspected fraud
+	"9/53": "58",           // Restricted card
+	"9/54": "98",           // Invalid merchant
+	"9/55": "67",           // Invalid amount
+	"9/56": "52",           // Invalid card number
+	"9/57": "55",           // Unacceptable fee
+	"9/58": "59",           // Insufficient funds
+	"9/59": "53",           // Bad PIN
+	"9/60": "57",           // Trans not allowed to cardholder
+	"9/61": "69",           // Trans not allowed to terminal
+	"9/62": "61",           // Exceeds amount limit
+	"9/63": "50",           // Security violation
+	"9/64": "60",           // Exceeds frequency limit
+	"9/65": "50",           // Violation of law
+	"9/66": TwoSystemError, // Reconciliation error
+	"9/67": TwoSystemError, // MAC incorrect
+	"9/68": TwoSystemError, // MAC key sync error
+	"9/69": TwoSystemError, // No comms key available
+	"9/70": TwoSystemError, // Encryption key sync error
+	"9/71": "50",           // Security error, try again
+	"9/72": "50",           // Security error, no action
+	"9/73": TwoSystemError, // Message out of sequence
+
+	// Служебные коды уровня сервиса
+	"D/00": "52", // Card not found -> Invalid card
+	"D/01": "50", // Card is in invalid status
+	"D/02": "82", // Status change transition not allowed
+	"D/03": "56", // Card not linked to Account -> Ineligible account
+	"D/04": "15", // Transaction not found -> Original transaction not found
+	"D/05": "52", // Lkey not found
+	"D/06": "15", // Invalid ecTxRefno
+	"D/07": "56", // Invalid account
+	"C/42": "74", // Clear PAN not allowed in request -> Format error
+	"C/43": "74", // CVV2 not allowed in request
+	"C/44": TwoSystemError,
 }
 
 // AuthRespCode переводит ответ процессинга в код ответа авторизатора TWO.
@@ -109,11 +176,11 @@ func AuthRespCode(code, rspcode string) string {
 	switch code {
 	case "0":
 		return TwoApproved
-	case "9":
-		return TwoSystemError
 	case "":
 		return TwoNone
 	default:
+		// Сюда попадают неизвестные коды всех семейств, включая 9 (ошибки
+		// обработки): известные из них разобраны в таблице выше.
 		return TwoExternalDecline
 	}
 }

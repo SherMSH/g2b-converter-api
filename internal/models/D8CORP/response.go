@@ -244,6 +244,31 @@ type CVVData struct {
 type Transaction struct {
 	Details TransactionDetails `json:"transaction"`
 }
+// TransactionGroup - связь операции с другими (5.3.3 спецификации).
+// GroupType: 2 - связь реверса с оригиналом, 3 - связь возврата e-comm,
+// 4 - преавторизация и её завершение, 6 - авторизация и клиринг.
+type TransactionGroup struct {
+	GroupId      int                `json:"groupId"`
+	GroupType    int                `json:"groupType"`
+	Transactions []TransactionBasic `json:"transactions"`
+}
+
+// TransactionBasic - краткие сведения об операции внутри группы (5.3.4).
+type TransactionBasic struct {
+	TlId       int     `json:"tlId"`
+	EcTxRefNo  string  `json:"ecTxRefNo"`
+	IdOrg      int     `json:"idOrg"`
+	FnCode     int     `json:"fnCode"`
+	TxStatus   int     `json:"txStatus"`
+	TxnAmount  float64 `json:"txnAmount"`
+	ActionCode string  `json:"actionCode"`
+	RspCode    string  `json:"rspCode"`
+	ReasonCode int     `json:"reasonCode"`
+}
+
+// GroupTypeReversalLinkage - связь реверса с оригинальной операцией
+const GroupTypeReversalLinkage = 2
+
 type TransactionDetails struct {
 	TlId                    int                     `json:"tlId"`
 	EcTxRefno               string                  `json:"ecTxRefno"`
@@ -293,6 +318,10 @@ type TransactionDetails struct {
 	MerchantPhysicalAddress MerchantPhysicalAddress `json:"merchantPhysicalAddress"`
 	TerminalPhysicalAddress TerminalPhysicalAddress `json:"terminalPhysicalAddress"`
 	DestinationAccountType  string                  `json:"destinationAccountType"`
+	// Идентификатор оригинальной операции: заполняется у реверсов и возвратов
+	Idorg int `json:"idorg"`
+	// Связанные операции: для реверса и оригинала - группа с GroupType 2
+	TransactionGroups []TransactionGroup `json:"transactionGroups"`
 }
 
 type MerchantPhysicalAddress struct {
