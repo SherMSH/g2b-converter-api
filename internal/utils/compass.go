@@ -45,25 +45,25 @@ var CardStatuses = map[string]string{
 	"13": "3",  // Card reported stolen -> Stolen
 	"14": "9",  // Customer closed -> Closed
 	"15": "9",  // Bank cancelled -> Closed (закрыта банком)
-	"16": "4",  // Card used fraudulent -> Restricted (скомпрометирована/мошенничество)
+	"16": "8",  // Card used fraudulent -> Compromised (заподозрена в мошенничестве)
 	"17": "10", // Referral -> Referral (Работает c запросом к эмитенту)
 	"20": "1",  //  ATM Operator card -> Open (активна, как ATM оператора)
 }
 
 // ReverseCardStatuses - обратный маппинг: TWO код -> список внешних кодов
 var ReverseCardStatuses = map[string][]string{
-	"0":  {"14"}, // Not active
-	"1":  {"00"}, // Open
-	"2":  {"12"}, // Lost
-	"3":  {"13"}, // Stolen
-	"4":  {"16"}, // Restricted (ограничена)
-	"5":  {"05"}, // VIP
-	"6":  {"06"}, // Open Domestic
-	"8":  {"08"}, // Compromised
-	"9":  {"15"}, // Closed
-	"10": {"17"}, // Referral (Необходим дополнительный запрос к эмитенту)
-	"12": {"03"}, // Declared (Не издана)
-	"15": {"11"}, // Expired
+	"0":  {"14"},       // Not active
+	"1":  {"00"},       // Open
+	"2":  {"12"},       // Lost
+	"3":  {"13"},       // Stolen
+	"4":  {"10"},       // Restricted: зачисление разрешено, расход запрещён
+	"5":  {"05"},       // VIP
+	"6":  {"06"},       // Open Domestic
+	"8":  {"08", "16"}, // Compromised: скомпрометирована либо использована мошеннически
+	"9":  {"15"},       // Closed
+	"10": {"17"},       // Referral (Необходим дополнительный запрос к эмитенту)
+	"12": {"03"},       // Declared (Не издана)
+	"15": {"11"},       // Expired
 }
 
 var Currencies = map[string]string{

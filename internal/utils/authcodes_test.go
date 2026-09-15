@@ -54,8 +54,9 @@ func TestIsApprovedAndRetainCard(t *testing.T) {
 // Коды по статусу карты из таблицы «Статусы карты в TWO и коды ответов
 // авторизатора». Статусы 1, 5 и 6 операции не запрещают.
 func TestCardStatusRespCodes(t *testing.T) {
+	// Статус 4 зависит от направления операции и проверяется отдельно
 	want := map[string]string{
-		"0": "50", "2": "40", "3": "41", "4": "58",
+		"0": "50", "2": "40", "3": "41",
 		"8": "75", "9": "50", "10": "71", "12": "50", "15": "51",
 	}
 	for status, code := range want {
@@ -140,5 +141,36 @@ func TestAuthRespCodePickupLostStolen(t *testing.T) {
 	}
 	if got := AuthRespCode("2", "09"); got != "41" {
 		t.Errorf("украденная карта -> %q, want 41", got)
+	}
+}
+
+// Статус 4 (Restricted) разрешает зачисление и запрещает расход
+func TestCardStatusRespCodeRestricted(t *testing.T) {
+	if got := CardStatusRespCode("4", true); got != "58" {
+		t.Errorf("расход по ограниченной карте -> %q, want 58", got)
+	}
+	if got := CardStatusRespCode("4", false); got != "" {
+		t.Errorf("зачисление на ограниченную карту не запрещено, получено %q", got)
+	}
+	// Остальные статусы направление не учитывают
+	if got := CardStatusRespCode("8", false); got != "75" {
+		t.Errorf("скомпрометированная карта -> %q, want 75", got)
+	}
+	if got := CardStatusRespCode("1", true); got != "" {
+		t.Errorf("открытая карта не запрещает операции, получено %q", got)
+	}
+}
+
+// D8 statcode 16 - «использована мошеннически», по таблице партнёра это
+// статус 8 (скомпрометирована), а не 4 (ограничена)
+func TestCardStatusesFraudulent(t *testing.T) {
+	if got := CardStatuses["16"]; got != "8" {
+		t.Errorf("statCode 16 -> %q, want 8", got)
+	}
+	if got := CardStatuses["08"]; got != "8" {
+		t.Errorf("statCode 08 -> %q, want 8", got)
+	}
+	if got := CardStatuses["10"]; got != "4" {
+		t.Errorf("statCode 10 -> %q, want 4", got)
 	}
 }

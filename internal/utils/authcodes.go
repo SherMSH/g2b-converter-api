@@ -205,12 +205,55 @@ var CardStatusRespCodes = map[string]string{
 	"0":  "50", // Not active
 	"2":  "40", // Lost
 	"3":  "41", // Stolen
-	"4":  "58", // Restricted - запрещены отдельные операции
 	"8":  "75", // Compromised
 	"9":  "50", // Closed
 	"10": "71", // Referral - нужен запрос к эмитенту
 	"12": "50", // Declared - не издана
 	"15": "51", // Expired
+}
+
+// CardStatusNames - названия статусов карты в TWO.
+// Нужны для текста причины отказа: партнёр ждёт формулировку вида
+// "Response for card status 'Lost' ...".
+var CardStatusNames = map[string]string{
+	"0":  "Not active",
+	"1":  "Open",
+	"2":  "Lost",
+	"3":  "Stolen",
+	"4":  "Restricted",
+	"5":  "VIP",
+	"6":  "Open Domestic",
+	"8":  "Compromised",
+	"9":  "Closed",
+	"10": "Referral",
+	"12": "Declared",
+	"15": "Expired",
+}
+
+// AccountStatusNames - названия статусов счёта в TWO.
+var AccountStatusNames = map[string]string{
+	"0": "Inactive",
+	"1": "Open",
+	"2": "Deposit only",
+	"3": "Open primary account",
+	"4": "Deposit only primary account",
+	"5": "Information only",
+	"9": "Closed",
+}
+
+// CardStatusRespCode возвращает код отказа по статусу карты.
+//
+// Статус 4 (Restricted) разрешает зачисление и запрещает расход, поэтому
+// зависит от направления операции - как и статусы счёта «только приход».
+// Пустая строка означает, что статус карты операцию не запрещает.
+func CardStatusRespCode(status string, isDebit bool) string {
+	if code, ok := CardStatusRespCodes[status]; ok {
+		return code
+	}
+	if isDebit && status == "4" {
+		return "58" // Restricted Card
+	}
+	return ""
 }
 
 // AccountStatusRespCodes - код ответа авторизатора по статусу счёта TWO.

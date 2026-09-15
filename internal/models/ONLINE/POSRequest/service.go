@@ -87,7 +87,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	// Если операция отклонена, а причина обобщена до внешнего отказа, уточняем её
 	// по статусу карты и счёта: партнёру важна конкретная причина.
 	if !utils.IsApproved(trn.TransactionResponse.ActionCode) && authRespCode == utils.TwoExternalDecline && cardInfo != nil {
-		if code, ok := utils.CardStatusRespCodes[utils.CardStatuses[cardInfo.CardBasicInfo.StatCode]]; ok {
+		if code := utils.CardStatusRespCode(utils.CardStatuses[cardInfo.CardBasicInfo.StatCode], isDebit(txnType)); code != "" {
 			authRespCode = code
 		} else if len(cardInfo.CardAccounts) != 0 {
 			acctStatus := utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode]
@@ -95,6 +95,14 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 				authRespCode = code
 			}
 		}
+	}
+
+	// Причина отказа обязана быть в каждом неуспешном ответе. Процессинг её
+	// заполняет не всегда, поэтому при пустом сообщении собираем текст сами -
+	// по статусу карты или счёта, а если и он ни при чём, по коду ответа.
+	declineReason := trn.DeclineReason
+	if !utils.IsApproved(trn.TransactionResponse.ActionCode) && declineReason == "" {
+		declineReason = buildDeclineReason(authRespCode, cardInfo, isDebit(txnType))
 	}
 
 	if !utils.IsApproved(trn.TransactionResponse.ActionCode) {
@@ -150,7 +158,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					BonusDebt:            "0",
 					CVxOK:                cvok,
 					Currency:             billCurrency,
-					DeclineReason:        trn.DeclineReason,
+					DeclineReason:        declineReason,
 					Fee:                  "",
 					FromAcct:             accnum,
 					IssuerFee:            "",
@@ -164,4 +172,32 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		},
 	}
 	return soapResp, nil
+}
+
+// buildDeclineReason собирает текст причины отказа, когда процессинг прислал
+// пустое сообщение.
+//
+// Формат повторяет тот, что партнёр видит от TWO:
+// "Response for card status 'Lost' in authorization scheme #1. Card #505827******0016".
+// Если статус карты и счёта операцию не запрещают, причина неизвестна - тогда
+// отдаём хотя бы код ответа, но не оставляем поле пустым.
+func buildDeclineReason(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
+	if cardInfo != nil {
+		maskedPan := cardInfo.CardBasicInfo.Lkey.MaskedPan
+
+		cardStatus := utils.CardStatuses[cardInfo.CardBasicInfo.StatCode]
+		if utils.CardStatusRespCode(cardStatus, isDebit) != "" {
+			return fmt.Sprintf("Response for card status '%s' in authorization scheme #1. Card #%s",
+				utils.CardStatusNames[cardStatus], maskedPan)
+		}
+
+		if len(cardInfo.CardAccounts) != 0 {
+			acctStatus := utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode]
+			if utils.AccountStatusRespCode(acctStatus, isDebit) != "" {
+				return fmt.Sprintf("Response for account status '%s' in authorization scheme #1. Account #%s",
+					utils.AccountStatusNames[acctStatus], cardInfo.CardAccounts[0].AccountNumber)
+			}
+		}
+	}
+	return fmt.Sprintf("Transaction declined with response code %s", authRespCode)
 }
