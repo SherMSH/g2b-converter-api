@@ -29,6 +29,11 @@ type TrnData struct {
 	TransactionResponse TransactionResponse `json:"transactionResponse"`
 	Lkey                Lkey                `json:"lkey"`
 	RecipientLkey       Lkey                `json:"recipientLkey"`
+
+	// DeclineReason - текст причины отказа из status.message ответа процессинга.
+	// В самих данных операции его нет, но партнёру он нужен отдельным полем,
+	// поэтому переносится сюда при разборе ответа.
+	DeclineReason string `json:"-"`
 }
 
 type TransactionResponse struct {

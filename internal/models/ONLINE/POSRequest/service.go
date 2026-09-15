@@ -119,6 +119,15 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		cvok = "1"
 	}
 
+	// Балансы отдаём только по одобренной операции. Отказ означает, что карта
+	// или счёт не допущены к работе, и раскрывать по ним остатки не следует -
+	// особенно при запросе баланса, ради которого операция и делалась.
+	availBalance, ledgerBalance := "", ""
+	if utils.IsApproved(trn.TransactionResponse.ActionCode) {
+		availBalance = fmt.Sprintf("%.2f", avlbal)
+		ledgerBalance = fmt.Sprintf("%.2f", avlbal+blkamt)
+	}
+
 	soapResp = &Envelope{
 		XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
 		XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
@@ -136,15 +145,16 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					ApprovalCode:         trn.TransactionResponse.ApprovalCode,
 					AuthRespCode:         authRespCode,
 					AuthRespCodeCategory: "0",
-					AvailBalance:         fmt.Sprintf("%.2f", avlbal),
+					AvailBalance:         availBalance,
 					BalanceCurrency:      balanceCurrency,
 					BonusDebt:            "0",
 					CVxOK:                cvok,
 					Currency:             billCurrency,
+					DeclineReason:        trn.DeclineReason,
 					Fee:                  "",
 					FromAcct:             accnum,
 					IssuerFee:            "",
-					LedgerBalance:        fmt.Sprintf("%.2f", avlbal+blkamt),
+					LedgerBalance:        ledgerBalance,
 					MaskBalances:         "0",
 					RelatedTran:          RelatedTran{},
 					ThisTranId:           fmt.Sprintf("%d", trn.TransactionResponse.TlId),

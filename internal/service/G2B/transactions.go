@@ -110,6 +110,9 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 	if trnData.TransactionResponse.RspCode == "" {
 		trnData.TransactionResponse.RspCode = resp.Status.RspCode
 	}
+	if !utils.IsApproved(resp.Status.Code) {
+		trnData.DeclineReason = resp.Status.Message
+	}
 	return trnData, nil
 }
 

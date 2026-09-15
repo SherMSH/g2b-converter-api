@@ -38,6 +38,7 @@ type Response struct {
 	BonusDebt            string      `xml:"m0:BonusDebt"`
 	CVxOK                string      `xml:"m0:CVxOK"`
 	Currency             string      `xml:"m0:Currency"`
+	DeclineReason        string      `xml:"m0:DeclineReason,omitempty"`
 	Fee                  string      `xml:"m0:Fee"`
 	FromAcct             string      `xml:"m0:FromAcct"`
 	IssuerFee            string      `xml:"m0:IssuerFee"`
