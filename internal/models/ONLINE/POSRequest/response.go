@@ -29,24 +29,24 @@ type Response struct {
 	TranId       string `xml:"TranId,attr"`
 	Ver          string `xml:"Ver,attr"`
 
-	AccountCurrency      string      `xml:"m0:AccountCurrency"`
-	ApprovalCode         string      `xml:"m0:ApprovalCode"`
+	AccountCurrency      string      `xml:"m0:AccountCurrency,omitempty"`
+	ApprovalCode         string      `xml:"m0:ApprovalCode,omitempty"`
 	AuthRespCode         string      `xml:"m0:AuthRespCode"`
 	AuthRespCodeCategory string      `xml:"m0:AuthRespCodeCategory"`
-	AvailBalance         string      `xml:"m0:AvailBalance"`
+	AvailBalance         string      `xml:"m0:AvailBalance,omitempty"`
 	BalanceCurrency      string      `xml:"m0:BalanceCurrency"`
 	BonusDebt            string      `xml:"m0:BonusDebt"`
 	CVxOK                string      `xml:"m0:CVxOK"`
 	Currency             string      `xml:"m0:Currency"`
 	DeclineReason        string      `xml:"m0:DeclineReason,omitempty"`
 	Fee                  string      `xml:"m0:Fee"`
-	FromAcct             string      `xml:"m0:FromAcct"`
-	IssuerFee            string      `xml:"m0:IssuerFee"`
-	LedgerBalance        string      `xml:"m0:LedgerBalance"`
+	FromAcct             string      `xml:"m0:FromAcct,omitempty"`
+	IssuerFee            string      `xml:"m0:IssuerFee,omitempty"`
+	LedgerBalance        string      `xml:"m0:LedgerBalance,omitempty"`
 	MaskBalances         string      `xml:"m0:MaskBalances"`
 	RelatedTran          RelatedTran `xml:"m0:RelatedTran"`
 	ThisTranId           string      `xml:"m0:ThisTranId"`
-	ToAcct               string      `xml:"m0:ToAcct"`
+	ToAcct               string      `xml:"m0:ToAcct,omitempty"`
 }
 
 type RelatedTran struct {

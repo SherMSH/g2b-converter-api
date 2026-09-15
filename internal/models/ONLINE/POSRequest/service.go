@@ -7,13 +7,19 @@ import (
 	"converterapi/pkg/logger"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
-// isDebit - операция списывает средства со счёта.
-// Статусы счёта «только приход» отклоняют именно расход.
+// isDebit - операция расходует средства.
+//
+// Статусы «только приход» - у карты 4, у счёта 2 и 4 - отклоняют именно расход.
+// По эталонным ответам партнёра на карте со статусом 4 проходят запрос баланса
+// (117) и зачисление (140), а проверка карты (116), перевод (135) и платёж
+// (175) отклоняются кодом 58. Поэтому проверка карты считается расходной:
+// она выполняется перед списанием и по ограниченной карте не разрешена.
 func isDebit(txnType utils.TxnType) bool {
 	switch txnType {
-	case utils.Deposit, utils.A2C, utils.H2C, utils.Balance, utils.Accver:
+	case utils.Deposit, utils.A2C, utils.H2C, utils.Balance:
 		return false
 	default:
 		return true
@@ -120,13 +126,15 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	}
 
 	// Детали и данные карты могли не прийти: собираем ответ из того, что есть
+	// Валюты в POS-ответе партнёр ждёт числовыми кодами (972), в отличие от
+	// выписок, где используется буквенный код
 	var accountCurrency, balanceCurrency, billCurrency, toAcct string
 	if cardInfo != nil {
-		accountCurrency = utils.Currency(cardInfo.CardBasicInfo.Currcode)
+		accountCurrency = cardInfo.CardBasicInfo.Currcode
 	}
 	if trnDetails != nil {
-		balanceCurrency = utils.Currency(trnDetails.Details.TxnCurrency)
-		billCurrency = utils.Currency(trnDetails.Details.Curbill)
+		balanceCurrency = trnDetails.Details.TxnCurrency
+		billCurrency = trnDetails.Details.Curbill
 		toAcct = trnDetails.Details.DestinationAccountType
 	}
 
@@ -167,9 +175,9 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					CVxOK:                cvok,
 					Currency:             billCurrency,
 					DeclineReason:        declineReason,
-					Fee:                  "",
+					Fee:                  "0",
 					FromAcct:             accnum,
-					IssuerFee:            "",
+					IssuerFee:            "0",
 					LedgerBalance:        ledgerBalance,
 					MaskBalances:         "0",
 					RelatedTran:          RelatedTran{},
@@ -191,56 +199,35 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 // отдаём хотя бы код ответа, но не оставляем поле пустым.
 func buildDeclineReason(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
 	if cardInfo != nil {
-		maskedPan := cardInfo.CardBasicInfo.Lkey.MaskedPan
-
 		cardStatus := utils.CardStatuses[cardInfo.CardBasicInfo.StatCode]
 		if utils.CardStatusRespCode(cardStatus, isDebit) != "" {
 			return fmt.Sprintf("Response for card status '%s' in authorization scheme #1. Card #%s",
-				utils.CardStatusNames[cardStatus], maskedPan)
+				utils.CardStatusNames[cardStatus], maskPan(cardInfo.CardBasicInfo.Lkey.Pan))
 		}
 
 		if len(cardInfo.CardAccounts) != 0 {
-			acctStatus := utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode]
-			if utils.AccountStatusRespCode(acctStatus, isDebit) != "" {
-				return fmt.Sprintf("Response for account status '%s' in authorization scheme #1. Account #%s",
-					utils.AccountStatusNames[acctStatus], cardInfo.CardAccounts[0].AccountNumber)
+			acct := cardInfo.CardAccounts[0]
+			acctStatus := utils.AccountStatuses[acct.StatCode]
+			switch {
+			// Неактивный и закрытый счёт партнёр видит отдельной формулировкой
+			case acctStatus == "0" || acctStatus == "9":
+				return fmt.Sprintf("Account #%s is inactive or closed (GetPrimaryAccount)", acct.AccountNumber)
+			case utils.AccountStatusRespCode(acctStatus, isDebit) != "":
+				return fmt.Sprintf("Status '%s' of account #%s is not appropriate for this transaction (GetPrimaryAccount)",
+					acctStatus, acct.AccountNumber)
 			}
 		}
 	}
 	return fmt.Sprintf("Transaction declined with response code %s", authRespCode)
 }
 
-// refineDeclineCode уточняет код отказа по статусу карты и счёта.
-//
-// Процессинг часто отвечает общим отказом - "Do not honour" или неизвестным
-// кодом, - и партнёр получает 50 или 68 вместо настоящей причины. По таблице
-// партнёра код определяется статусом: скомпрометирована - 75, потеряна - 40,
-// украдена - 41 и так далее. Поэтому статус карты важнее общего кода.
-//
-// Конкретные коды процессинга (недостаточно средств, неверный PIN) не трогаем:
-// они точнее любого статуса.
-func refineDeclineCode(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
-	if cardInfo == nil || !isGenericDecline(authRespCode) {
-		return authRespCode
+// maskPan приводит номер карты к виду 976249******4049 - так он выглядит в
+// текстах причин, которые партнёр получает от TWO.
+func maskPan(pan string) string {
+	if len(pan) < 10 {
+		return pan
 	}
-
-	if code := utils.CardStatusRespCode(utils.CardStatuses[cardInfo.CardBasicInfo.StatCode], isDebit); code != "" {
-		return code
-	}
-	if len(cardInfo.CardAccounts) != 0 {
-		acctStatus := utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode]
-		if code := utils.AccountStatusRespCode(acctStatus, isDebit); code != "" {
-			return code
-		}
-	}
-	return authRespCode
-}
-
-// isGenericDecline - отказ без конкретной причины: "несанкционированное
-// использование" и "отказ внешнего хоста". Оба ничего не говорят о том, что
-// именно не так с картой.
-func isGenericDecline(authRespCode string) bool {
-	return authRespCode == "50" || authRespCode == utils.TwoExternalDecline
+	return pan[:6] + strings.Repeat("*", len(pan)-10) + pan[len(pan)-4:]
 }
 
 // statusDeclineCode возвращает код отказа, если статус карты или счёта
@@ -265,9 +252,11 @@ func statusDeclineCode(cardInfo *d8corp.CardInfoData, isDebit bool) string {
 // Транзакция в процессинг не отправлялась, поэтому в ответе нет ни номера
 // операции, ни кода авторизации, ни балансов - только причина отказа.
 func statusDeclineResponse(body *Body, authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) *Envelope {
-	var accnum string
-	if cardInfo != nil && len(cardInfo.CardAccounts) != 0 {
-		accnum = cardInfo.CardAccounts[0].AccountNumber
+	// Транзакции не было, поэтому валюту берём из запроса партнёра, а при её
+	// отсутствии - из данных карты
+	currency := body.SoapRq.Req.Currency
+	if currency == "" && cardInfo != nil {
+		currency = cardInfo.CardBasicInfo.Currcode
 	}
 
 	return &Envelope{
@@ -283,17 +272,45 @@ func statusDeclineResponse(body *Body, authRespCode string, cardInfo *d8corp.Car
 					Ver:          "1.0",
 					Echo:         body.SoapRq.Req.Echo,
 
-					AccountCurrency:      utils.Currency(cardInfo.CardBasicInfo.Currcode),
 					AuthRespCode:         authRespCode,
 					AuthRespCodeCategory: "0",
+					BalanceCurrency:      currency,
 					BonusDebt:            "0",
 					CVxOK:                "-1",
+					Currency:             currency,
 					DeclineReason:        buildDeclineReason(authRespCode, cardInfo, isDebit),
-					FromAcct:             accnum,
+					Fee:                  "0",
 					MaskBalances:         "0",
 					RelatedTran:          RelatedTran{},
+					ToAcct:               body.SoapRq.Req.ToAcctType,
 				},
 			},
 		},
 	}
+}
+
+// refineDeclineCode уточняет код отказа по статусу карты и счёта.
+//
+// Процессинг часто отвечает общим отказом - "Do not honour" или неизвестным
+// кодом, - и партнёр получает 50 или 68 вместо настоящей причины. По таблице
+// партнёра код определяется статусом: скомпрометирована - 75, потеряна - 40,
+// украдена - 41 и так далее. Поэтому статус карты важнее общего кода.
+//
+// Конкретные коды процессинга (недостаточно средств, неверный PIN) не трогаем:
+// они точнее любого статуса.
+func refineDeclineCode(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
+	if cardInfo == nil || !isGenericDecline(authRespCode) {
+		return authRespCode
+	}
+	if code := statusDeclineCode(cardInfo, isDebit); code != "" {
+		return code
+	}
+	return authRespCode
+}
+
+// isGenericDecline - отказ без конкретной причины: "несанкционированное
+// использование" и "отказ внешнего хоста". Оба ничего не говорят о том, что
+// именно не так с картой.
+func isGenericDecline(authRespCode string) bool {
+	return authRespCode == "50" || authRespCode == utils.TwoExternalDecline
 }
