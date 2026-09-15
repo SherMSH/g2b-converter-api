@@ -107,3 +107,44 @@ func TestRefineDeclineCode(t *testing.T) {
 		})
 	}
 }
+
+// Связанные операции берутся из transactionGroups процессинга: тип 2 - реверс,
+// тип 5 - части P2P-перевода. Сама операция в список не попадает.
+func TestRelatedTran(t *testing.T) {
+	details := &d8corp.Transaction{Details: d8corp.TransactionDetails{
+		TlId: 1500,
+		TransactionGroups: []d8corp.TransactionGroup{{
+			GroupId:   142,
+			GroupType: d8corp.GroupTypeReversalLinkage,
+			Transactions: []d8corp.TransactionBasic{
+				{TlId: 1500, TxnCode: 0, ActionCode: "0", RspCode: "00"},
+				{TlId: 1504, TxnCode: 21, ActionCode: "0", RspCode: "00"},
+			},
+		}},
+	}}
+
+	got := relatedTran(details)
+	if len(got.Rows) != 1 {
+		t.Fatalf("ожидалась одна связанная операция, получено %d", len(got.Rows))
+	}
+	row := got.Rows[0]
+	if row.RelatedTranId != "1504" {
+		t.Errorf("RelatedTranId = %q, want 1504", row.RelatedTranId)
+	}
+	if row.RelatedTranCode != "140" {
+		t.Errorf("RelatedTranCode = %q, want 140 (код операции переведён в кодировку TWO)", row.RelatedTranCode)
+	}
+	if row.RelatedAuthRespCode != "1" {
+		t.Errorf("RelatedAuthRespCode = %q, want 1", row.RelatedAuthRespCode)
+	}
+}
+
+func TestRelatedTranEmpty(t *testing.T) {
+	if rows := relatedTran(nil).Rows; rows != nil {
+		t.Errorf("без деталей операции связей быть не должно: %+v", rows)
+	}
+	details := &d8corp.Transaction{Details: d8corp.TransactionDetails{TlId: 1}}
+	if rows := relatedTran(details).Rows; rows != nil {
+		t.Errorf("без групп связей быть не должно: %+v", rows)
+	}
+}

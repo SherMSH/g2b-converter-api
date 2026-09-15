@@ -180,7 +180,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 					IssuerFee:            "0",
 					LedgerBalance:        ledgerBalance,
 					MaskBalances:         "0",
-					RelatedTran:          RelatedTran{},
+					RelatedTran:          relatedTran(trnDetails),
 					ThisTranId:           fmt.Sprintf("%d", trn.TransactionResponse.TlId),
 					ToAcct:               toAcct,
 				},
@@ -313,4 +313,34 @@ func refineDeclineCode(authRespCode string, cardInfo *d8corp.CardInfoData, isDeb
 // именно не так с картой.
 func isGenericDecline(authRespCode string) bool {
 	return authRespCode == "50" || authRespCode == utils.TwoExternalDecline
+}
+
+// relatedTran заполняет блок связанных операций.
+//
+// Процессинг возвращает связи в transactionGroups: тип 2 связывает операцию с
+// её реверсом, тип 5 - части P2P-перевода, тип 4 - преавторизацию с
+// завершением. Партнёр ждёт их в RelatedTran с тем же смыслом, поэтому
+// переносим как есть - идентификаторы настоящие, из ответа процессинга.
+func relatedTran(details *d8corp.Transaction) RelatedTran {
+	if details == nil {
+		return RelatedTran{}
+	}
+
+	rows := make([]Rows, 0)
+	for _, group := range details.Details.TransactionGroups {
+		for _, related := range group.Transactions {
+			if related.TlId == details.Details.TlId {
+				continue // сама операция, а не связанная с ней
+			}
+			rows = append(rows, Rows{
+				RelatedTranId:       strconv.Itoa(related.TlId),
+				RelatedTranCode:     utils.TranCode(related.TxnCode),
+				RelatedAuthRespCode: utils.AuthRespCode(related.ActionCode, related.RspCode),
+			})
+		}
+	}
+	if len(rows) == 0 {
+		return RelatedTran{}
+	}
+	return RelatedTran{Rows: rows}
 }

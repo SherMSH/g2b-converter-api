@@ -264,6 +264,7 @@ type TransactionBasic struct {
 	EcTxRefNo  string  `json:"ecTxRefNo"`
 	IdOrg      int     `json:"idOrg"`
 	FnCode     int     `json:"fnCode"`
+	TxnCode    int     `json:"txnCode"`
 	TxStatus   int     `json:"txStatus"`
 	TxnAmount  float64 `json:"txnAmount"`
 	ActionCode string  `json:"actionCode"`
