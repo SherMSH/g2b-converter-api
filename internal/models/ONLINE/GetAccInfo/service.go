@@ -3,6 +3,7 @@ package getaccinfo
 import (
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"fmt"
 )
 
@@ -14,26 +15,27 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 	if err != nil {
 		return nil, err
 	}
-	cards, err := service.GetCardsListG2b(foundAcc.Custcode, foundAcc.Currcode)
+	// Карты берём по счёту, а не по клиенту: у клиента может быть несколько
+	// счетов, и карты остальных к запрошенному счёту отношения не имеют.
+	cards, err := service.GetAccountCardListG2b(foundAcc.Accnum, foundAcc.Currcode)
 	if err != nil {
 		return nil, err
 	}
 	var cardRows []CardRow
 	for _, v := range cards {
-		var cardPan string
-		switch v.PAN {
-		case "":
-			cardPan = v.LkeyDisplay
-		default:
-			cardPan = v.PAN
+		// Маскированный номер вместо PAN партнёру бесполезен, а статус карты
+		// без данных превращается в заглушку справочника - такую строку
+		// пропускаем, чтобы не отдавать заведомо негодные реквизиты.
+		if v.Lkey.Pan == "" || v.StatCode == "" {
+			logger.Warnf("[SERVICE] GetAcctInfo: карта lkeyId %d пропущена, нет PAN или статуса", v.Lkey.LkeyId)
+			continue
 		}
 		cardRows = append(cardRows, CardRow{
-			PAN:    cardPan,
+			PAN:    v.Lkey.Pan,
 			MBR:    "0",
 			Status: utils.CardStatuses[v.StatCode],
 			Type:   utils.CardTypes[v.ProductType],
-		},
-		)
+		})
 	}
 	soapResp = new(Envelope)
 	soapResp.XmlnsM0 = "http://schemas.compassplus.com/two/1.0/fimi_types.xsd"

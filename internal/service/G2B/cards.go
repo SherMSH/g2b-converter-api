@@ -34,7 +34,15 @@ func GetCardsListG2b(custcode, currcode string) (foundCards []d8procweb.CardData
 	}
 
 	for i, v := range foundCards {
-		cardInfo, _ := GetCardBasicInfo(v.LkeyID, "", utils.ConvertYYYYMMDDtoYYMM(v.Expdate))
+		// В CardKey допустим ровно один набор реквизитов (5.3.5): либо lkeyId,
+		// либо PAN со сроком действия. Мы передавали lkeyId вместе со сроком, и
+		// при расхождении срока процессинг отвечал "Card not found" - карта
+		// оставалась без PAN и статуса.
+		cardInfo, err := GetCardBasicInfo(v.LkeyID, "", "")
+		if err != nil {
+			logger.Warnf("[SERVICE] GetCardsList: данные карты lkeyId %d не получены: %v", v.LkeyID, err)
+			continue
+		}
 		if cardInfo != nil {
 			foundCards[i].PAN = cardInfo.CardBasicInfo.Lkey.Pan
 			foundCards[i].StatCode = cardInfo.CardBasicInfo.StatCode

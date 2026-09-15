@@ -121,6 +121,12 @@ type GetAccountStatementReq struct {
 	PagingAdvanced PagingAdvanced `json:"pagingAdvanced"`
 }
 
+// GetAccountCardListReq - запрос карт, привязанных к счёту (7.28).
+type GetAccountCardListReq struct {
+	AccountKey     AccountKey     `json:"accountKey"`
+	PagingAdvanced PagingAdvanced `json:"pagingAdvanced"`
+}
+
 type CardKey struct {
 	Lkey       int    `json:"lkeyId,omitempty"`
 	Pan        string `json:"pan,omitempty"`
