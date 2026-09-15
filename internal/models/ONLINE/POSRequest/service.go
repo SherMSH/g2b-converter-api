@@ -40,21 +40,6 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		logger.Errorf("PosReq error: Wrong 'Amount' field value")
 		return nil, fmt.Errorf("PosReq error: Wrong 'Amount' field value")
 	}
-	// Статус карты и счёта проверяем до обращения к процессингу.
-	//
-	// По документу партнёра ответ на POSRequest определяется статусом: истёкшая
-	// карта - 51, требующая обращения к эмитенту - 71 и так далее. Процессинг
-	// такие операции пропускает и списывает средства, поэтому проверять после
-	// авторизации поздно: деньги уже ушли, а партнёру надо вернуть отказ.
-	preCard, err := service.GetCardInfo(body.SoapRq.Req.PAN, body.SoapRq.Req.GetExpDate())
-	if err != nil {
-		logger.Warnf("[SERVICE] POSRequest: статус карты не проверен: %v", err)
-	}
-	if code := statusDeclineCode(preCard, isDebit(txnType)); code != "" {
-		logger.Warnf("[SERVICE] POSRequest declined by status: TWO %s, PAN %s", code, preCard.CardBasicInfo.Lkey.MaskedPan)
-		return statusDeclineResponse(body, code, preCard, isDebit(txnType)), nil
-	}
-
 	ectxNum, err := service.InitiateTransaction()
 	if err != nil {
 		logger.Errorf("POS req {InitiateTransaction} error: %v", err)
@@ -89,8 +74,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	if err != nil {
 		logger.Errorf("[SERVICE] POSRequest error getting trn details")
 	}
-	// Данные карты запрашиваем заново: партнёру нужны балансы на момент после
-	// авторизации, а preCard получена до неё.
+	// Данные карты нужны и для балансов, и для проверки статуса после авторизации
 	if trnDetails != nil {
 		cardInfo, err = service.GetCardInfo(trn.Lkey.Pan, trnDetails.Details.DateExp)
 		if err != nil {
@@ -107,19 +91,41 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	// парой code/rspcode - переводим по справочнику.
 	authRespCode := utils.AuthRespCode(trn.TransactionResponse.ActionCode, trn.TransactionResponse.RspCode)
 
-	if !utils.IsApproved(trn.TransactionResponse.ActionCode) {
+	declinedByStatus := ""
+	if utils.IsApproved(trn.TransactionResponse.ActionCode) {
+		// Процессинг пропускает операции по картам со статусами «истёк срок» и
+		// «нужен запрос к эмитенту», хотя по документу партнёра они должны
+		// отклоняться. Отменяем такую операцию и отдаём отказ: номер транзакции
+		// при этом настоящий, как в эталонных ответах.
+		declinedByStatus = statusDeclineCode(cardInfo, isDebit(txnType))
+		if declinedByStatus != "" {
+			if err := reverseApproved(trn, body.SoapRq.Req.Amount, body.SoapRq.Req.Currency); err != nil {
+				// Средства списаны, отменить не удалось. Сообщить об отказе
+				// значило бы разойтись с процессингом: у клиента деньги ушли, а
+				// партнёр считал бы операцию непрошедшей.
+				logger.Errorf("[SERVICE] POSRequest: операция %d одобрена процессингом вопреки статусу карты, отменить не удалось: %v",
+					trn.TransactionResponse.TlId, err)
+				declinedByStatus = ""
+			}
+		}
+	}
+
+	if declinedByStatus != "" {
+		authRespCode = declinedByStatus
+	} else if !utils.IsApproved(trn.TransactionResponse.ActionCode) {
 		authRespCode = refineDeclineCode(authRespCode, cardInfo, isDebit(txnType))
 	}
 
 	// Причина отказа обязана быть в каждом неуспешном ответе. Процессинг её
 	// заполняет не всегда, поэтому при пустом сообщении собираем текст сами -
 	// по статусу карты или счёта, а если и он ни при чём, по коду ответа.
+	declined := declinedByStatus != "" || !utils.IsApproved(trn.TransactionResponse.ActionCode)
 	declineReason := trn.DeclineReason
-	if !utils.IsApproved(trn.TransactionResponse.ActionCode) && declineReason == "" {
+	if declined && (declineReason == "" || declinedByStatus != "") {
 		declineReason = buildDeclineReason(authRespCode, cardInfo, isDebit(txnType))
 	}
 
-	if !utils.IsApproved(trn.TransactionResponse.ActionCode) {
+	if declined {
 		logger.Warnf("[SERVICE] POSRequest declined: D8 %s/%s -> TWO %s, tlId %d",
 			trn.TransactionResponse.ActionCode, trn.TransactionResponse.RspCode,
 			authRespCode, trn.TransactionResponse.TlId)
@@ -147,7 +153,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	// или счёт не допущены к работе, и раскрывать по ним остатки не следует -
 	// особенно при запросе баланса, ради которого операция и делалась.
 	availBalance, ledgerBalance := "", ""
-	if utils.IsApproved(trn.TransactionResponse.ActionCode) {
+	if !declined {
 		availBalance = fmt.Sprintf("%.2f", avlbal)
 		ledgerBalance = fmt.Sprintf("%.2f", avlbal+blkamt)
 	}
@@ -247,74 +253,6 @@ func statusDeclineCode(cardInfo *d8corp.CardInfoData, isDebit bool) string {
 	return ""
 }
 
-// statusDeclineResponse собирает отказ по статусу карты или счёта.
-//
-// Транзакция в процессинг не отправлялась, поэтому в ответе нет ни номера
-// операции, ни кода авторизации, ни балансов - только причина отказа.
-func statusDeclineResponse(body *Body, authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) *Envelope {
-	// Транзакции не было, поэтому валюту берём из запроса партнёра, а при её
-	// отсутствии - из данных карты
-	currency := body.SoapRq.Req.Currency
-	if currency == "" && cardInfo != nil {
-		currency = cardInfo.CardBasicInfo.Currcode
-	}
-
-	return &Envelope{
-		XmlnsS:  "http://www.w3.org/2003/05/soap-envelope",
-		XmlnsM1: "http://schemas.compassplus.com/two/1.0/fimi.xsd",
-		XmlnsM0: "http://schemas.compassplus.com/two/1.0/fimi_types.xsd",
-		Body: RespBody{
-			POSRequestRp: POSRequestRp{
-				Response: Response{
-					Product:      body.SoapRq.Req.Product,
-					ResponseAttr: "1",
-					TranId:       utils.GenerateTimestampID(),
-					Ver:          "1.0",
-					Echo:         body.SoapRq.Req.Echo,
-
-					AuthRespCode:         authRespCode,
-					AuthRespCodeCategory: "0",
-					BalanceCurrency:      currency,
-					BonusDebt:            "0",
-					CVxOK:                "-1",
-					Currency:             currency,
-					DeclineReason:        buildDeclineReason(authRespCode, cardInfo, isDebit),
-					Fee:                  "0",
-					MaskBalances:         "0",
-					RelatedTran:          RelatedTran{},
-					ToAcct:               body.SoapRq.Req.ToAcctType,
-				},
-			},
-		},
-	}
-}
-
-// refineDeclineCode уточняет код отказа по статусу карты и счёта.
-//
-// Процессинг часто отвечает общим отказом - "Do not honour" или неизвестным
-// кодом, - и партнёр получает 50 или 68 вместо настоящей причины. По таблице
-// партнёра код определяется статусом: скомпрометирована - 75, потеряна - 40,
-// украдена - 41 и так далее. Поэтому статус карты важнее общего кода.
-//
-// Конкретные коды процессинга (недостаточно средств, неверный PIN) не трогаем:
-// они точнее любого статуса.
-func refineDeclineCode(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
-	if cardInfo == nil || !isGenericDecline(authRespCode) {
-		return authRespCode
-	}
-	if code := statusDeclineCode(cardInfo, isDebit); code != "" {
-		return code
-	}
-	return authRespCode
-}
-
-// isGenericDecline - отказ без конкретной причины: "несанкционированное
-// использование" и "отказ внешнего хоста". Оба ничего не говорят о том, что
-// именно не так с картой.
-func isGenericDecline(authRespCode string) bool {
-	return authRespCode == "50" || authRespCode == utils.TwoExternalDecline
-}
-
 // relatedTran заполняет блок связанных операций.
 //
 // Процессинг возвращает связи в transactionGroups: тип 2 связывает операцию с
@@ -343,4 +281,55 @@ func relatedTran(details *d8corp.Transaction) RelatedTran {
 		return RelatedTran{}
 	}
 	return RelatedTran{Rows: rows}
+}
+
+// reverseApproved отменяет операцию, которую процессинг одобрил вопреки статусу
+// карты или счёта.
+//
+// Реверсу нужна собственная ссылка, поэтому сначала InitiateTransaction (8.6).
+// Операции с нулевой суммой - проверка карты и запрос баланса - средств не
+// двигают, отменять там нечего.
+func reverseApproved(trn *d8corp.TrnData, amount float64, currency string) error {
+	if amount <= 0 {
+		return nil
+	}
+	ecTxRefNo, err := service.InitiateTransaction()
+	if err != nil {
+		return fmt.Errorf("реверс не инициирован: %w", err)
+	}
+	if currency == "" {
+		currency = utils.TJSCurrency
+	}
+	_, err = service.ReverseTransaction(*ecTxRefNo, trn.TransactionResponse.EcTxRefno, amount, currency, reversalReasonStatus)
+	return err
+}
+
+// reversalReasonStatus - причина отмены: операция не соответствует условиям
+// проведения. Коды причин - Appendix C спецификации D8.
+const reversalReasonStatus = 4000
+
+// refineDeclineCode уточняет код отказа по статусу карты и счёта.
+//
+// Процессинг часто отвечает общим отказом - "Do not honour" или неизвестным
+// кодом, - и партнёр получает 50 или 68 вместо настоящей причины. По таблице
+// партнёра код определяется статусом: скомпрометирована - 75, потеряна - 40,
+// украдена - 41 и так далее. Поэтому статус карты важнее общего кода.
+//
+// Конкретные коды процессинга (недостаточно средств, неверный PIN) не трогаем:
+// они точнее любого статуса.
+func refineDeclineCode(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
+	if cardInfo == nil || !isGenericDecline(authRespCode) {
+		return authRespCode
+	}
+	if code := statusDeclineCode(cardInfo, isDebit); code != "" {
+		return code
+	}
+	return authRespCode
+}
+
+// isGenericDecline - отказ без конкретной причины: "несанкционированное
+// использование" и "отказ внешнего хоста". Оба ничего не говорят о том, что
+// именно не так с картой.
+func isGenericDecline(authRespCode string) bool {
+	return authRespCode == "50" || authRespCode == utils.TwoExternalDecline
 }
