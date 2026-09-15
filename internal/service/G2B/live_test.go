@@ -152,3 +152,42 @@ func buildLegacyPinRequest(pan, pin, expDate string) (d8corp.SetPinReq, error) {
 		PinBlockType:   0,
 	}, nil
 }
+
+// Какие статусы карты процессинг отклоняет сам.
+//
+// Вызывает авторизацию напрямую, минуя предварительную проверку статуса в
+// PosReq: нужно увидеть вердикт самого D8 и понять, создаёт ли он tlId.
+// Одобренную операцию сразу отменяет, чтобы не оставлять движение по счёту.
+func TestLiveAuthorizeWithCardStatus(t *testing.T) {
+	liveSetup(t)
+
+	const pan = "5058270530003879"
+	in := trnInput{txnType: utils.Sales, pan: pan}
+
+	ecTxRefNo, err := InitiateTransaction()
+	if err != nil {
+		t.Fatalf("InitiateTransaction: %v", err)
+	}
+
+	trn, err := AuthorizeTransaction(in, *ecTxRefNo)
+	if err != nil {
+		t.Fatalf("AuthorizeTransaction: %v", err)
+	}
+
+	r := trn.TransactionResponse
+	t.Logf("D8 ответил: actionCode=%s rspCode=%s tlId=%d aprvlCode=%q причина=%q",
+		r.ActionCode, r.RspCode, r.TlId, r.ApprovalCode, trn.DeclineReason)
+	t.Logf("код в кодировке TWO: %s", utils.AuthRespCode(r.ActionCode, r.RspCode))
+
+	if utils.IsApproved(r.ActionCode) {
+		t.Log("операция одобрена - отменяю")
+		rev, errRev := InitiateTransaction()
+		if errRev != nil {
+			t.Fatalf("реверс не инициирован: %v", errRev)
+		}
+		if _, errRev = ReverseTransaction(*rev, r.EcTxRefno, in.GetAmount(), in.GetCurrency(), 4000); errRev != nil {
+			t.Fatalf("ВНИМАНИЕ: операция %d не отменена: %v", r.TlId, errRev)
+		}
+		t.Log("отменена")
+	}
+}
