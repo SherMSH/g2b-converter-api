@@ -38,6 +38,7 @@ type TransactionResponse struct {
 	Rrn          string `json:"rrn"`
 	ActionCode   string `json:"actionCode"`
 	RspCode      string `json:"rspCode"`
+	TxStatus     int    `json:"txStatus"`
 	ApprovalCode string `json:"aprvlCode"`
 }
 

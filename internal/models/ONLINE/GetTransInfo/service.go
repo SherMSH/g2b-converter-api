@@ -5,6 +5,7 @@ import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -48,9 +49,23 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 		logger.Errorf("[SERVICE] gettransinfo time parsing err: %v", err)
 		err = nil
 	}
-	var rspCode string = "0"
-	if trn.Details.RspCode == "00" {
-		rspCode = "1"
+	// Код ответа авторизатора в кодировке TWO: процессинг отвечает парой
+	// actionCode/rspCode, партнёр ждёт код из своего справочника.
+	rspCode := utils.AuthRespCode(trn.Details.ActionCode, trn.Details.RspCode)
+
+	// Error - ошибка обработки, не связанная с авторизацией (0 - нет, >0 - есть).
+	// По ней принимающая сторона решает, повторять ли операцию, поэтому
+	// отмечаем сбои обработки: системные ошибки и незавершённые статусы.
+	txStatus := utils.D8TxStatus(strconv.Itoa(trn.Details.TxStatus))
+	txError := "0"
+	if trn.Details.ActionCode == "9" || txStatus == utils.Rejected || txStatus == utils.AdviceLogRejected {
+		txError = "1"
+	}
+
+	// Операция уже отменена реверсом: идентификатора реверса процессинг не
+	// отдаёт, но сам факт партнёру важен
+	if txStatus == utils.GotRev || txStatus == utils.GotPrtRev || txStatus == utils.GotPartialRev {
+		logger.Warnf("[SERVICE] GetTransInfo: транзакция %d отменена реверсом, RevRequestId процессинг не возвращает", trn.Details.TlId)
 	}
 	tranListArr := []TranListRow{
 		{
@@ -81,7 +96,7 @@ func Svc(b *Body) (soapResp *Envelope, err error) {
 			AmountAcct:           fmt.Sprintf("%.2f", trn.Details.Amtbill),
 			ExchangeRateAcct:     fmt.Sprintf("%.2f", trn.Details.Ratebill),
 			RevRequestId:         "",
-			Error:                "0",
+			Error:                txError,
 			OrigType:             "9",
 			TermFIName:           trn.Details.CrdacptID,
 			TermInstID:           trn.Details.TermCode,

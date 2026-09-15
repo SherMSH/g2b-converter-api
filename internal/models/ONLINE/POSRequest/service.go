@@ -6,7 +6,19 @@ import (
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"fmt"
+	"strconv"
 )
+
+// isDebit - операция списывает средства со счёта.
+// Статусы счёта «только приход» отклоняют именно расход.
+func isDebit(txnType utils.TxnType) bool {
+	switch txnType {
+	case utils.Deposit, utils.A2C, utils.H2C, utils.Balance, utils.Accver:
+		return false
+	default:
+		return true
+	}
+}
 
 func PosReq(body *Body) (soapResp *Envelope, err error) {
 	//Basic checkups
@@ -38,7 +50,10 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		body.SoapRq.Req.RespCode = trn.TransactionResponse.RspCode
 		body.SoapRq.ApprovalCode = trn.TransactionResponse.ApprovalCode
 	}
-	if trn.TransactionResponse.RspCode == string(utils.AdviceLogNotProceed) {
+	// Операция не принята к обработке: это состояние транзакции, а не код ответа.
+	// Раньше здесь сравнивался rspCode, у которого 17 означает Bad PIN, - отказ по
+	// неверному PIN превращался в ошибку сервиса вместо ответа с кодом причины.
+	if strconv.Itoa(trn.TransactionResponse.TxStatus) == string(utils.AdviceLogNotProceed) {
 		logger.Errorf("bad response tx status {Skipped}")
 		return nil, fmt.Errorf("bad response tx status {Skipped}")
 	}
@@ -63,6 +78,29 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 			avlbal = cardInfo.CardAccounts[0].AvlBal
 			blkamt = cardInfo.CardAccounts[0].BlkAmt
 		}
+	}
+
+	// Код ответа авторизатора партнёр ждёт в кодировке TWO, а процессинг отвечает
+	// парой code/rspcode - переводим по справочнику.
+	authRespCode := utils.AuthRespCode(trn.TransactionResponse.ActionCode, trn.TransactionResponse.RspCode)
+
+	// Если операция отклонена, а причина обобщена до внешнего отказа, уточняем её
+	// по статусу карты и счёта: партнёру важна конкретная причина.
+	if !utils.IsApproved(trn.TransactionResponse.ActionCode) && authRespCode == utils.TwoExternalDecline && cardInfo != nil {
+		if code, ok := utils.CardStatusRespCodes[utils.CardStatuses[cardInfo.CardBasicInfo.StatCode]]; ok {
+			authRespCode = code
+		} else if len(cardInfo.CardAccounts) != 0 {
+			acctStatus := utils.AccountStatuses[cardInfo.CardAccounts[0].StatCode]
+			if code := utils.AccountStatusRespCode(acctStatus, isDebit(txnType)); code != "" {
+				authRespCode = code
+			}
+		}
+	}
+
+	if !utils.IsApproved(trn.TransactionResponse.ActionCode) {
+		logger.Warnf("[SERVICE] POSRequest declined: D8 %s/%s -> TWO %s, tlId %d",
+			trn.TransactionResponse.ActionCode, trn.TransactionResponse.RspCode,
+			authRespCode, trn.TransactionResponse.TlId)
 	}
 
 	// Детали и данные карты могли не прийти: собираем ответ из того, что есть
@@ -96,7 +134,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 
 					AccountCurrency:      accountCurrency,
 					ApprovalCode:         trn.TransactionResponse.ApprovalCode,
-					AuthRespCode:         body.SoapRq.Req.RespCode,
+					AuthRespCode:         authRespCode,
 					AuthRespCodeCategory: "0",
 					AvailBalance:         fmt.Sprintf("%.2f", avlbal),
 					BalanceCurrency:      balanceCurrency,

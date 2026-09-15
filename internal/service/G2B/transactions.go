@@ -79,10 +79,19 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction RESP marshaling err: %v", err)
 		return nil, err
 	}
-	if resp.Status.Code != "0" {
+	// Отказ авторизатора (code 1 - decline, 2 - pickup) - это штатный ответ, а не
+	// сбой: партнёр должен получить операцию с кодом причины, а не SOAP Fault.
+	// Ошибкой считаем только то, после чего ответа не построить: сбой транспорта,
+	// системную ошибку процессинга (code 9) и пустое тело.
+	if !utils.IsApproved(resp.Status.Code) && resp.Status.Code != "1" && resp.Status.Code != "2" {
 		logger.Errorf("bad response status code: %+v", resp.Status)
-		return nil, fmt.Errorf("%s - %s", resp.Status.Code, resp.Status.Message)
+		return nil, StatusError(resp.Status)
 	}
+	if !utils.IsApproved(resp.Status.Code) {
+		logger.Warnf("[SERVICE] D8 G2b authorizeTransaction declined: %s/%s - %s",
+			resp.Status.Code, resp.Status.RspCode, resp.Status.Message)
+	}
+
 	err = json.Unmarshal(resp.Data, trnData)
 	if err != nil {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction DATA marshaling err: %v", err)
@@ -91,6 +100,15 @@ func AuthorizeTransaction(input models.TrnInputIface, ecTxRefNo string) (*d8corp
 	if len(trnData.TransactionResponse.EcTxRefno) == 0 {
 		logger.Errorf("[SERVICE] D8 G2b authorizeTransaction err: empty trnData response")
 		return nil, fmt.Errorf("D8 G2b authorizeTransaction err: empty trnData response")
+	}
+
+	// Процессинг не всегда дублирует причину отказа в transactionResponse -
+	// переносим её из статуса, иначе код причины потеряется при сборке ответа
+	if trnData.TransactionResponse.ActionCode == "" {
+		trnData.TransactionResponse.ActionCode = resp.Status.Code
+	}
+	if trnData.TransactionResponse.RspCode == "" {
+		trnData.TransactionResponse.RspCode = resp.Status.RspCode
 	}
 	return trnData, nil
 }
