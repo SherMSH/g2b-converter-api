@@ -28,29 +28,45 @@ var CardTypes = map[int]string{
 	2: "3", //	виртуальная
 }
 
+// CardStatuses - перевод статуса карты D8 в статус TWO.
+//
+// Справочник статусов предоставлен командой процессинга: в спецификации их нет,
+// поле statCode помечено как configurable value. В комментариях указан ответ
+// авторизатора, который D8 отдаёт по каждому статусу - по нему видно, какие
+// статусы процессинг пропускает, а какие отклоняет сам.
 var CardStatuses = map[string]string{
 	"": "unknown",
 
-	"00": "1",  // Normal, active -> Open
-	"01": "0",  // Card data prepared -> Not active
-	"02": "0",  // Card data extracted -> Not active
-	"03": "12", // Card prepared -> Not active
-	"04": "0",  // Card production fail -> Not active
-	"05": "5",  // VIP -> VIP
-	"06": "6",  // Open Domestic
-	"08": "8",  // Compromised
-	"10": "4",  // PIN tries exceeded -> Restricted (ограничена)
-	"11": "15", // Card expired -> Expired
-	"12": "2",  // Card reported lost -> Lost
-	"13": "3",  // Card reported stolen -> Stolen
-	"14": "9",  // Customer closed -> Closed
-	"15": "9",  // Bank cancelled -> Closed (закрыта банком)
-	"16": "8",  // Card used fraudulent -> Compromised (заподозрена в мошенничестве)
-	"17": "10", // Referral -> Referral (Работает c запросом к эмитенту)
-	"20": "1",  //  ATM Operator card -> Open (активна, как ATM оператора)
+	"21": "0", // V-ACT P-PREP INA     0/00 - одобряет
+	"22": "0", // V-ACT P-EXTR INA     0/00 - одобряет
+	"23": "0", // V-ACT P-PROD OK INA  0/00 - одобряет
+	"24": "0", // V-ACT P-PROD FAIL    0/00 - одобряет
+
+	"00": "1",  // Normal, active        0/00 - одобряет
+	"01": "0",  // Card data prepared    1/00 - отклоняет
+	"02": "0",  // Card data extracted   1/00 - отклоняет
+	"03": "12", // Card prepared         1/00 - отклоняет
+	"04": "0",  // Card production fail  1/00 - отклоняет
+	"05": "5",  // VIP                   0/03 - одобряет
+	"06": "6",  // Open Domestic         0/05 - одобряет
+	"08": "8",  // Compromised           1/00 - отклоняет общим кодом
+	"10": "4",  // PIN tries exceeded    1/06 - отклоняет ВСЕ операции, включая зачисление
+	"11": "15", // Card expired          1/01 - отклоняет
+	"12": "2",  // Card reported lost    2/08 - отклоняет с изъятием
+	"13": "3",  // Card reported stolen  2/09 - отклоняет с изъятием
+	"14": "9",  // Customer closed       2/00 - отклоняет с изъятием
+	"15": "9",  // Bank cancelled        2/00 - отклоняет с изъятием
+	"16": "8",  // Card used fraudulent  2/02 - отклоняет с изъятием
+	"17": "10", // Referral              0/01 - ОДОБРЯЕТ, хотя TWO требует отказ 71
+	"20": "1",  // ATM Operator card     0/00 - одобряет
 }
 
-// ReverseCardStatuses - обратный маппинг: TWO код -> список внешних кодов
+// ReverseCardStatuses - обратный маппинг: TWO код -> список статусов D8.
+// Используется при установке статуса, берётся первый код списка.
+//
+// Точного соответствия статусу 4 (Restricted) в D8 нет: по справочнику
+// процессинга ближайший - 10 (PIN tries exceeded), но он отклоняет все
+// операции, включая зачисление, тогда как TWO запрещает только расход.
 var ReverseCardStatuses = map[string][]string{
 	"0":  {"14"},       // Not active
 	"1":  {"00"},       // Open
