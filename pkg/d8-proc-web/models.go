@@ -85,6 +85,18 @@ type TerminalsData struct {
 	PostypID      int    `json:"postyp_id"`
 }
 
+// AccountUpdate - тело запроса /api/miss/v1/updateAccount.
+// Поля обязательные, поэтому без omitempty: процессинг отклоняет запрос, если в
+// нём нет версии записи, компании, клиента, типа или статуса счёта.
+type AccountUpdate struct {
+	ID         int    `json:"account_id"`
+	Recver     int    `json:"account_recver"`
+	CompanyID  int    `json:"company_id"`
+	CustomerID int    `json:"customer_id"`
+	Typecode   string `json:"typecode"`
+	Statcode   string `json:"statcode"`
+}
+
 type CompaniesData struct {
 	ID        int    `json:"id"`
 	RegNumber string `json:"reg_number"`

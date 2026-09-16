@@ -18,9 +18,10 @@ import (
 	posrequestrq "converterapi/internal/models/ONLINE/POSRequest"
 	relinkpreissuedcards "converterapi/internal/models/ONLINE/RelinkPreIssuedCards"
 	removecmsabonent "converterapi/internal/models/ONLINE/RemoveCMSAbonent"
-	reversetransaction "converterapi/internal/models/ONLINE/ReverseTransaction"
 	removepersoncmsabonent "converterapi/internal/models/ONLINE/RemovePersonCMSAbonent"
 	resetbadpintries "converterapi/internal/models/ONLINE/ResetBadPINTries"
+	reversetransaction "converterapi/internal/models/ONLINE/ReverseTransaction"
+	setacctstatus "converterapi/internal/models/ONLINE/SetAcctStatus"
 	setcardstatus "converterapi/internal/models/ONLINE/SetCardStatus"
 	updateperson "converterapi/internal/models/ONLINE/UpdatePerson"
 	"converterapi/internal/utils"
@@ -266,6 +267,19 @@ func D8Converter(c *gin.Context) {
 		resp, err = unmBody.Body.Call()
 		if err != nil {
 			SendSoapFault(c, 400, "Client", err.Error())
+			return
+		}
+	case utils.SetAcctStatusRq:
+		var unmBody setacctstatus.Body
+		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
+		if err != nil {
+			logger.Errorf("setacctstatus.Body unmarshal err: %v", err)
+			SendSoapFault(c, 500, "Client", "Internal server error")
+			return
+		}
+		resp, err = unmBody.Call()
+		if err != nil {
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.ReverseTransactionRq:

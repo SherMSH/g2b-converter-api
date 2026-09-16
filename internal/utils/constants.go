@@ -33,6 +33,7 @@ const (
 	RemovePersonCMSAbonentRq RqBodyType = "RemovePersonCMSAbonentRq"
 	ResetBadPINTriesRq       RqBodyType = "ResetBadPINTriesRq"
 	SetCardStatusRq          RqBodyType = "SetCardStatusRq"
+	SetAcctStatusRq          RqBodyType = "SetAcctStatusRq"
 	UpdatePersonRq           RqBodyType = "UpdatePersonRq"
 )
 
@@ -59,6 +60,7 @@ var BodyTypes = []RqBodyType{
 	RemovePersonCMSAbonentRq,
 	ResetBadPINTriesRq,
 	SetCardStatusRq,
+	SetAcctStatusRq,
 	UpdatePersonRq,
 }
 

@@ -22,6 +22,18 @@ var AccountStatuses = map[string]string{
 	"10": "5", // 5 – Information only;
 }
 
+// ReverseAccountStatuses - обратный маппинг статуса счёта: код TWO -> код D8.
+// Используется при установке статуса счёта через MDI.
+var ReverseAccountStatuses = map[string]string{
+	"1": "00", // Open
+	"0": "01", // Inactive
+	"2": "02", // Deposit only
+	"3": "03", // Open primary account
+	"4": "04", // Deposit only primary account
+	"9": "09", // Closed
+	"5": "10", // Information only
+}
+
 var CardTypes = map[int]string{
 	0: "1", // пластиковая;
 	1: "2", //	TelebankID;
