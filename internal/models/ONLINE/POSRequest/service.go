@@ -116,13 +116,21 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		authRespCode = refineDeclineCode(authRespCode, cardInfo, isDebit(txnType))
 	}
 
-	// Причина отказа обязана быть в каждом неуспешном ответе. Процессинг её
-	// заполняет не всегда, поэтому при пустом сообщении собираем текст сами -
-	// по статусу карты или счёта, а если и он ни при чём, по коду ответа.
+	// Причина отказа обязана быть в каждом неуспешном ответе.
+	//
+	// Когда операцию не пропускает статус карты или счёта, текст собираем сами в
+	// формате TWO: процессинг пишет по-своему и для одного и того же статуса
+	// по-разному - на платёж "PIN tries exceeded has been set on card status", на
+	// перевод "AFT Rejected". Партнёр же ждёт "Response for card status ...".
+	// Сообщение процессинга оставляем там, где причина не в статусе: например,
+	// при нехватке средств оно точнее любого нашего текста.
 	declined := declinedByStatus != "" || !utils.IsApproved(trn.TransactionResponse.ActionCode)
 	declineReason := trn.DeclineReason
-	if declined && (declineReason == "" || declinedByStatus != "") {
-		declineReason = buildDeclineReason(authRespCode, cardInfo, isDebit(txnType))
+	if declined {
+		byStatus := statusDeclineCode(cardInfo, isDebit(txnType)) != ""
+		if byStatus || declineReason == "" {
+			declineReason = buildDeclineReason(authRespCode, cardInfo, isDebit(txnType))
+		}
 	}
 
 	if declined {
@@ -308,28 +316,20 @@ func reverseApproved(trn *d8corp.TrnData, amount float64, currency string) error
 // проведения. Коды причин - Appendix C спецификации D8.
 const reversalReasonStatus = 4000
 
-// refineDeclineCode уточняет код отказа по статусу карты и счёта.
+// refineDeclineCode определяет код отказа по статусу карты и счёта.
 //
-// Процессинг часто отвечает общим отказом - "Do not honour" или неизвестным
-// кодом, - и партнёр получает 50 или 68 вместо настоящей причины. По таблице
-// партнёра код определяется статусом: скомпрометирована - 75, потеряна - 40,
-// украдена - 41 и так далее. Поэтому статус карты важнее общего кода.
+// В таблицах партнёра код однозначно задан статусом, и подпись под ними прямо
+// говорит, что это ответы на запросы POSRequest: ограничена - 58,
+// скомпрометирована - 75, потеряна - 40. Формулировка причины отказа
+// ("in authorization scheme #1") тоже показывает, что статус проверяется первым.
+// Поэтому статус важнее кода процессинга: на карте со статусом 4 процессинг
+// отвечает 1/06 "PIN tries exceeded", что дало бы 62 вместо ожидаемого 58.
 //
-// Конкретные коды процессинга (недостаточно средств, неверный PIN) не трогаем:
-// они точнее любого статуса.
+// Код процессинга остаётся, когда статусы операцию не запрещают - тогда причина
+// в самой операции: нехватка средств, неверный PIN, превышение лимита.
 func refineDeclineCode(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
-	if cardInfo == nil || !isGenericDecline(authRespCode) {
-		return authRespCode
-	}
 	if code := statusDeclineCode(cardInfo, isDebit); code != "" {
 		return code
 	}
 	return authRespCode
-}
-
-// isGenericDecline - отказ без конкретной причины: "несанкционированное
-// использование" и "отказ внешнего хоста". Оба ничего не говорят о том, что
-// именно не так с картой.
-func isGenericDecline(authRespCode string) bool {
-	return authRespCode == "50" || authRespCode == utils.TwoExternalDecline
 }
