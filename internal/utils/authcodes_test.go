@@ -179,7 +179,7 @@ func TestCardStatusesFraudulent(t *testing.T) {
 // в статус TWO, иначе в ответ партнёру уйдёт заглушка "unknown".
 func TestCardStatusesCoversD8Dictionary(t *testing.T) {
 	d8 := []string{"00", "01", "02", "03", "04", "05", "06", "08", "10", "11",
-		"12", "13", "14", "15", "16", "17", "20", "21", "22", "23", "24"}
+		"12", "13", "14", "15", "16", "17", "20", "21", "22", "23", "24", "25"}
 	for _, code := range d8 {
 		if two, ok := CardStatuses[code]; !ok || two == "" || two == "unknown" {
 			t.Errorf("statCode %s не переводится в статус TWO: %q", code, two)
