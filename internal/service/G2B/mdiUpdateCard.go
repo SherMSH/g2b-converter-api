@@ -113,7 +113,7 @@ func RelinkPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err 
 			DbCardaStatcode:      "00",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
-			DbCardaLimitCat:      "LIM01",
+			DbCardaLimitCat:      limitCategory,
 			DbCardEmbossname:     v.NameOnCard,
 			DbCardFirstname:      nameInLat,
 			DbCardLastname:       lastNameinLat,

@@ -107,7 +107,7 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			DbCardaStatcode:      "03",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
-			DbCardaLimitCat:      "LIM01",
+			DbCardaLimitCat:      limitCategory,
 			DbCardEmbossname:     v.NameOnCard,
 			DbCardFirstname:      nameInLat,
 			DbCardLastname:       lastNameinLat,
@@ -165,6 +165,10 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 
 	return mdiData, nil
 }
+
+// limitCategory - категория лимитов, с которой выпускаются карты.
+// Значение задаётся в процессинге; до 17.09.2026 здесь стоял LIM01.
+const limitCategory = "Infirod"
 
 // recNumberer раздаёт номера записей внутри одного пакета MDI
 type recNumberer interface {
@@ -257,7 +261,7 @@ func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err err
 			DbCardaStatcode:      "03",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
-			DbCardaLimitCat:      "LIM01",
+			DbCardaLimitCat:      limitCategory,
 			DbCardEmbossname:     v.NameOnCard,
 			DbCardFirstname:      nameInLat,
 			DbCardLastname:       lastNameinLat,
@@ -369,7 +373,7 @@ func ReissueCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, cards []d8co
 			DbCardaStatcode:      "03",
 			DbCardaCommCat:       "COM03",
 			DbCardaEnroll3ds:     "1",
-			DbCardaLimitCat:      "LIM01",
+			DbCardaLimitCat:      limitCategory,
 			DbCardEmbossname:     embossName,
 			DbCardFirstname:      curCard.CardBasicInfo.FirstName,
 			DbCardLastname:       curCard.CardBasicInfo.LastName,
