@@ -4,6 +4,7 @@ import (
 	models "converterapi/internal/models/OFFLINE"
 	service "converterapi/internal/service/G2B"
 	"converterapi/internal/utils"
+	"converterapi/pkg/logger"
 	"encoding/xml"
 	"fmt"
 )
@@ -36,19 +37,37 @@ func (r Root) Call() (respContent []byte, err error) {
 		return []byte(err.Error()), err
 	}
 
-	for i, v := range mdiData.Details {
-		if mdiData.Details[i].C_ACTIONCODE != "0" {
+	// В пакете вместе с картами идут контракты оповещений, поэтому детали
+	// ответа больше не совпадают с записями файла один к одному: берём только
+	// карты, а отказы по оповещениям отмечаем в логе - выпуск они не отменяют.
+	card := 0
+	for _, v := range mdiData.Details {
+		if v.ISS_RECTYPE != "CARD" {
+			if v.C_ACTIONCODE != "0" {
+				logger.Errorf("[CreateCardsOut] запись %s #%d отклонена: %s - %s",
+					v.ISS_RECTYPE, v.ISS_RECNUM, v.C_RSPCODE, v.I_REJMSG)
+			}
+			continue
+		}
+		if card >= len(r.Records) {
 			break
 		}
+		if v.C_ACTIONCODE != "0" {
+			logger.Errorf("[CreateCardsOut] карта %s не выпущена: %s - %s",
+				r.Records[card].ExternalID, v.C_RSPCODE, v.I_REJMSG)
+			card++
+			continue
+		}
 		pck := models.Pack{
-			CustomerId:   r.Records[i].PCode,
-			CustomerCode: r.Records[i].ExtID,
-			AccNum:       r.Records[i].Account,
-			CurrencyCode: r.Records[i].CurrencyNo,
-			LkeyAlias:    r.Records[i].ExternalID,
+			CustomerId:   r.Records[card].PCode,
+			CustomerCode: r.Records[card].ExtID,
+			AccNum:       r.Records[card].Account,
+			CurrencyCode: r.Records[card].CurrencyNo,
+			LkeyAlias:    r.Records[card].ExternalID,
 			CardPan:      v.KL_LKEY_CLR,
 		}
 		respContent = append(respContent, pck.GetData()...)
+		card++
 	}
 	return respContent, nil
 }

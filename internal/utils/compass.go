@@ -1,6 +1,9 @@
 package utils
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 var AccountTypes = map[string]string{
 	"":   "unknown",
@@ -147,4 +150,22 @@ func TranCode(code int) string {
 		return v
 	}
 	return strconv.Itoa(code)
+}
+
+// PhoneE164 приводит номер к виду +992928560139 - в таком формате процессинг
+// хранит цель SMS-оповещений.
+//
+// Всё, кроме цифр, отбрасывается: партнёр присылает номера то со скобками, то
+// с пробелами, то с восьмёркой в начале.
+func PhoneE164(phone string) string {
+	var digits strings.Builder
+	for _, r := range phone {
+		if r >= '0' && r <= '9' {
+			digits.WriteRune(r)
+		}
+	}
+	if digits.Len() == 0 {
+		return ""
+	}
+	return "+" + digits.String()
 }

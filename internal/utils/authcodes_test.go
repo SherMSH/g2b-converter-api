@@ -186,3 +186,20 @@ func TestCardStatusesCoversD8Dictionary(t *testing.T) {
 		}
 	}
 }
+
+// Цель SMS-оповещений процессинг хранит в виде +992928560139
+func TestPhoneE164(t *testing.T) {
+	tests := map[string]string{
+		"992928560139":     "+992928560139",
+		"+992928560139":    "+992928560139",
+		"992 92 856-01-39": "+992928560139",
+		"(992)928560139":   "+992928560139",
+		"":                 "",
+		"нет номера":       "",
+	}
+	for in, want := range tests {
+		if got := PhoneE164(in); got != want {
+			t.Errorf("PhoneE164(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
