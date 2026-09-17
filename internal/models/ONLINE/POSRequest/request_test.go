@@ -3,6 +3,7 @@ package posrequestrq
 import (
 	d8corp "converterapi/internal/models/D8CORP"
 	"converterapi/internal/utils"
+	"strings"
 	"testing"
 )
 
@@ -148,5 +149,48 @@ func TestRelatedTranEmpty(t *testing.T) {
 	details := &d8corp.Transaction{Details: d8corp.TransactionDetails{TlId: 1}}
 	if rows := relatedTran(details).Rows; rows != nil {
 		t.Errorf("без групп связей быть не должно: %+v", rows)
+	}
+}
+
+// Плечи перевода процессинг отклоняет дежурным "AFT Rejected" - причину для
+// партнёра в этом случае собираем сами.
+func TestIsPlaceholderReason(t *testing.T) {
+	for _, reason := range []string{"", "  ", "AFT Rejected", "aft rejected", "OCT Rejected"} {
+		if !isPlaceholderReason(reason) {
+			t.Errorf("%q - заглушка процессинга, причину нужно собрать самим", reason)
+		}
+	}
+	real := "PIN tries exceeded has been set on card status"
+	if isPlaceholderReason(real) {
+		t.Errorf("%q - осмысленная причина, её нельзя терять", real)
+	}
+}
+
+// Формат причины по нехватке средств повторяет эталон партнёра
+func TestBuildDeclineReasonInsufficientFunds(t *testing.T) {
+	cardInfo := &d8corp.CardInfoData{
+		CardBasicInfo: d8corp.CardBasicInfo{
+			StatCode: "00",
+			Lkey:     d8corp.Lkey{Pan: "5058270530003879"},
+		},
+		CardAccounts: []d8corp.CardAccount{{
+			AccountNumber: "20216972300001176308",
+			StatCode:      "00",
+			AvlBal:        5.58,
+		}},
+	}
+
+	got := buildDeclineReason(utils.TwoInsufficientFunds, cardInfo, true, 1000)
+	want := "Insufficient funds on account #20216972300001176308. Tranx amount=1000.00 is more than " +
+		"AcctEffectiveBalance=5.58 (AvailBalance=5.58, OverdraftLimit=0.00, Bonus=0.00, " +
+		"TmpOverdraft=0.00, EMVOfflineHold=0.00, Protected Amount=0.00)"
+	if got != want {
+		t.Errorf("причина отказа:\n получено %q\n ожидалось %q", got, want)
+	}
+
+	// Статус карты по-прежнему важнее кода операции
+	cardInfo.CardBasicInfo.StatCode = "12" // Card reported lost
+	if got := buildDeclineReason("40", cardInfo, true, 1000); !strings.Contains(got, "card status 'Lost'") {
+		t.Errorf("отказ по статусу карты потерян: %q", got)
 	}
 }

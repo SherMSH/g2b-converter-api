@@ -122,14 +122,16 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 	// формате TWO: процессинг пишет по-своему и для одного и того же статуса
 	// по-разному - на платёж "PIN tries exceeded has been set on card status", на
 	// перевод "AFT Rejected". Партнёр же ждёт "Response for card status ...".
-	// Сообщение процессинга оставляем там, где причина не в статусе: например,
-	// при нехватке средств оно точнее любого нашего текста.
+	// Сообщение процессинга оставляем только там, где оно действительно несёт
+	// причину: на нехватку средств оно приходит то коротким "Insufficient
+	// funds !", то дежурным "AFT Rejected" на переводе, а партнёр в обоих
+	// случаях ждёт разбор по слагаемым остатка.
 	declined := declinedByStatus != "" || !utils.IsApproved(trn.TransactionResponse.ActionCode)
 	declineReason := trn.DeclineReason
 	if declined {
 		byStatus := statusDeclineCode(cardInfo, isDebit(txnType)) != ""
-		if byStatus || declineReason == "" {
-			declineReason = buildDeclineReason(authRespCode, cardInfo, isDebit(txnType))
+		if byStatus || authRespCode == utils.TwoInsufficientFunds || isPlaceholderReason(declineReason) {
+			declineReason = buildDeclineReason(authRespCode, cardInfo, isDebit(txnType), body.SoapRq.Req.Amount)
 		}
 	}
 
@@ -211,7 +213,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 // "Response for card status 'Lost' in authorization scheme #1. Card #505827******0016".
 // Если статус карты и счёта операцию не запрещают, причина неизвестна - тогда
 // отдаём хотя бы код ответа, но не оставляем поле пустым.
-func buildDeclineReason(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool) string {
+func buildDeclineReason(authRespCode string, cardInfo *d8corp.CardInfoData, isDebit bool, amount float64) string {
 	if cardInfo != nil {
 		cardStatus := utils.CardStatuses[cardInfo.CardBasicInfo.StatCode]
 		if utils.CardStatusRespCode(cardStatus, isDebit) != "" {
@@ -222,6 +224,17 @@ func buildDeclineReason(authRespCode string, cardInfo *d8corp.CardInfoData, isDe
 		if len(cardInfo.CardAccounts) != 0 {
 			acct := cardInfo.CardAccounts[0]
 			acctStatus := utils.AccountStatuses[acct.StatCode]
+
+			// Нехватку средств партнёр ждёт с разбором по слагаемым остатка.
+			// Поля, которых процессинг не отдаёт, показываем нулями - в его
+			// эталонных ответах они тоже нулевые.
+			if authRespCode == utils.TwoInsufficientFunds {
+				return fmt.Sprintf("Insufficient funds on account #%s. Tranx amount=%.2f is more than "+
+					"AcctEffectiveBalance=%.2f (AvailBalance=%.2f, OverdraftLimit=%.2f, Bonus=0.00, "+
+					"TmpOverdraft=0.00, EMVOfflineHold=0.00, Protected Amount=0.00)",
+					acct.AccountNumber, amount, acct.AvlBal+acct.Crlimit, acct.AvlBal, acct.Crlimit)
+			}
+
 			switch {
 			// Неактивный и закрытый счёт партнёр видит отдельной формулировкой
 			case acctStatus == "0" || acctStatus == "9":
@@ -233,6 +246,23 @@ func buildDeclineReason(authRespCode string, cardInfo *d8corp.CardInfoData, isDe
 		}
 	}
 	return fmt.Sprintf("Transaction declined with response code %s", authRespCode)
+}
+
+// placeholderReasons - дежурные сообщения процессинга, которые причину не
+// несут. Плечи перевода (AFT - списание, OCT - зачисление) отклоняются именно
+// с ними, из-за чего партнёр видел "AFT Rejected" там, где ждал разбор отказа.
+var placeholderReasons = map[string]bool{
+	"":              true,
+	"aft rejected":  true,
+	"oct rejected":  true,
+	"txn rejected":  true,
+	"trxn rejected": true,
+}
+
+// isPlaceholderReason сообщает, что текст процессинга бесполезен и причину
+// нужно собрать самим.
+func isPlaceholderReason(reason string) bool {
+	return placeholderReasons[strings.ToLower(strings.TrimSpace(reason))]
 }
 
 // maskPan приводит номер карты к виду 976249******4049 - так он выглядит в

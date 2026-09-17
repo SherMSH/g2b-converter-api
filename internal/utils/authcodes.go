@@ -10,7 +10,10 @@ const (
 	TwoApprovedPartial = "2"  // Одобрено на частичную сумму
 	TwoExternalDecline = "68" // Отказ внешнего хоста: отказ, которого нет в таблице
 	TwoSystemError     = "54" // Системная ошибка
-	TwoNone            = "0"  // None - ответа авторизатора нет
+	// TwoInsufficientFunds - нехватка средств: причину отказа по нему партнёр
+	// ждёт с разбором по слагаемым остатка
+	TwoInsufficientFunds = "59"
+	TwoNone              = "0" // None - ответа авторизатора нет
 )
 
 // d8AuthRespCodes - перевод пары code/rspcode процессинга в код ответа TWO.
