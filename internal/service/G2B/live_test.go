@@ -1,10 +1,10 @@
 package service
 
 import (
-	d8corp "converterapi/internal/models/D8CORP"
-	"converterapi/pkg/crypto"
 	"converterapi/internal/config"
+	d8corp "converterapi/internal/models/D8CORP"
 	"converterapi/internal/utils"
+	"converterapi/pkg/crypto"
 	"os"
 	"testing"
 )
@@ -102,7 +102,8 @@ func TestLivePinBlockVariants(t *testing.T) {
 		if err != nil {
 			t.Fatalf("сборка запроса: %v", err)
 		}
-		t.Logf("результат: %v", verifyPinRequest(req))
+		status, err := verifyPinRequest(req)
+		t.Logf("результат: %v/%v %v (err %v)", status.Code, status.RspCode, PinVerifyReason(status), err)
 	})
 
 	t.Run("два слоя - как в текущем SetPinG2b", func(t *testing.T) {
@@ -110,7 +111,8 @@ func TestLivePinBlockVariants(t *testing.T) {
 		if err != nil {
 			t.Fatalf("сборка запроса: %v", err)
 		}
-		t.Logf("результат: %v", verifyPinRequest(req))
+		status, err := verifyPinRequest(req)
+		t.Logf("результат: %v/%v %v (err %v)", status.Code, status.RspCode, PinVerifyReason(status), err)
 	})
 }
 

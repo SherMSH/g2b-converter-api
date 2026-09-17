@@ -151,7 +151,9 @@ ConvScanner (gocron, 60 с) → glob по маскам → xml.Unmarshal → Roo
 | `GetTransInfoRq` | `GetCardInfo`, `GetTransactionDetailsG2b` |
 | `POSRequestRq` | `GetTerminalByIdG2b`, `GetCardInfo`, `InitiateTransaction`, `AuthorizeTransaction`, `GetTransactionDetailsG2b` |
 | `SetCardStatusRq` | `SetCardStatusG2b` |
+| `SetAcctStatusRq` | `GetAcctInfoG2b`, `SetAccountStatusG2b` |
 | `ResetBadPINTriesRq` | `ResetCardPINTriesG2b` |
+| `VerifyPINRq` | `GetExpDateByPan`, `VerifyPinStatusG2b` |
 | `UpdatePersonRq` | `UpdateCustomerG2b` |
 | `UpdateCard2AcctLinkRq` | `UpdateCardAcctLinkG2b`, `DeleteCardAcctLinkG2b`, `SetCardStatusG2b` |
 | `AddCMSAbonentRq`, `AddPersonCMSAbonentRq` | `AddCardNotificationG2b` |

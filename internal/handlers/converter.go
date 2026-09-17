@@ -24,6 +24,7 @@ import (
 	setacctstatus "converterapi/internal/models/ONLINE/SetAcctStatus"
 	setcardstatus "converterapi/internal/models/ONLINE/SetCardStatus"
 	updateperson "converterapi/internal/models/ONLINE/UpdatePerson"
+	verifypin "converterapi/internal/models/ONLINE/VerifyPIN"
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"encoding/xml"
@@ -267,6 +268,19 @@ func D8Converter(c *gin.Context) {
 		resp, err = unmBody.Body.Call()
 		if err != nil {
 			SendSoapFault(c, 400, "Client", err.Error())
+			return
+		}
+	case utils.VerifyPINRq, utils.VerifyPinRq:
+		var unmBody verifypin.Body
+		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
+		if err != nil {
+			logger.Errorf("verifypin.Body unmarshal err: %v", err)
+			SendSoapFault(c, 500, "Client", "Internal server error")
+			return
+		}
+		resp, err = unmBody.Call()
+		if err != nil {
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
 			return
 		}
 	case utils.SetAcctStatusRq:

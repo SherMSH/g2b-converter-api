@@ -34,7 +34,12 @@ const (
 	ResetBadPINTriesRq       RqBodyType = "ResetBadPINTriesRq"
 	SetCardStatusRq          RqBodyType = "SetCardStatusRq"
 	SetAcctStatusRq          RqBodyType = "SetAcctStatusRq"
-	UpdatePersonRq           RqBodyType = "UpdatePersonRq"
+
+	// Проверка PIN. Партнёр пишет тег и как VerifyPINRq, и как VerifyPinRq -
+	// принимаем оба написания, чтобы не ловить "Unknown XML body" на регистре
+	VerifyPINRq    RqBodyType = "VerifyPINRq"
+	VerifyPinRq    RqBodyType = "VerifyPinRq"
+	UpdatePersonRq RqBodyType = "UpdatePersonRq"
 )
 
 var BodyTypes = []RqBodyType{
@@ -61,6 +66,8 @@ var BodyTypes = []RqBodyType{
 	ResetBadPINTriesRq,
 	SetCardStatusRq,
 	SetAcctStatusRq,
+	VerifyPINRq,
+	VerifyPinRq,
 	UpdatePersonRq,
 }
 
