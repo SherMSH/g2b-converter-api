@@ -4,7 +4,6 @@ import (
 	"converterapi/internal/config"
 	"converterapi/internal/models"
 	d8corp "converterapi/internal/models/D8CORP"
-	offline "converterapi/internal/models/OFFLINE"
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
 	"encoding/json"
@@ -120,16 +119,6 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 			return nil, err
 		}
 		recDetails.MdiRecords = append(recDetails.MdiRecords, jsonCrd)
-
-		// Контракты SMS-оповещений кладём в тот же пакет: карта в них
-		// указывается по алиасу, а он известен заранее - в отличие от PAN,
-		// который процессинг присвоит только при выпуске.
-		notifs, err := cardNotificationRecords(v.ExternalID, notificationTarget(v, mobTel), recNums)
-		if err != nil {
-			logger.Errorf("[SERVICE] D8 G2b ADDCARD notification req marshaling record err: %v", err)
-			return nil, err
-		}
-		recDetails.MdiRecords = append(recDetails.MdiRecords, notifs...)
 	}
 
 	cardJSON, err := json.Marshal(recDetails)
@@ -169,55 +158,6 @@ func AddCardsG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 // limitCategory - категория лимитов, с которой выпускаются карты.
 // Значение задаётся в процессинге; до 17.09.2026 здесь стоял LIM01.
 const limitCategory = "Infirod"
-
-// recNumberer раздаёт номера записей внутри одного пакета MDI
-type recNumberer interface {
-	NextVal() int
-}
-
-// notifyServiceTypes - контракты оповещений, которые заводятся на каждую карту:
-// транзакционные и общие SMS. Партнёр ожидает оба.
-var notifyServiceTypes = []string{"SMSTXN", "SMSGEN"}
-
-// cardNotificationRecords собирает записи контрактов оповещений для карты,
-// указанной алиасом. Пустой номер пропускаем: запись без цели процессинг
-// отклонит, а вместе с ней незачем валить весь выпуск.
-func cardNotificationRecords(lkeyAlias, target string, recNums recNumberer) ([]json.RawMessage, error) {
-	if lkeyAlias == "" || target == "" {
-		logger.Warnf("[SERVICE] D8 G2b ADDCARD: контракты оповещений пропущены (alias %q, номер %q)", lkeyAlias, target)
-		return nil, nil
-	}
-
-	records := make([]json.RawMessage, 0, len(notifyServiceTypes))
-	for _, svcType := range notifyServiceTypes {
-		rec, err := json.Marshal(d8corp.MdiRecordDetails{
-			IssRectype:      "CDRNOTIF",
-			IssRecaction:    "ADD",
-			IssRecnum:       recNums.NextVal(),
-			IssCompanyRegnr: "ARVD",
-			KlLkeyAlias:     lkeyAlias,
-			DbCdNotifSvcTyp: svcType,
-			DbCdNotifTarget: target,
-		})
-		if err != nil {
-			return nil, err
-		}
-		records = append(records, rec)
-	}
-	return records, nil
-}
-
-// notificationTarget выбирает номер для оповещений.
-//
-// Партнёр присылает его в CELLPHONE, но часть файлов приходит со старым
-// форматом, где номер - первое слово FIO, поэтому он и остаётся запасным.
-func notificationTarget(v offline.MRecord, fioPhone string) string {
-	phone := strings.TrimSpace(v.CellPhone)
-	if phone == "" {
-		phone = strings.TrimSpace(fioPhone)
-	}
-	return utils.PhoneE164(phone)
-}
 
 func AddPreissiedCardG2b(input models.MDIface) (mdiData *d8corp.MdiData, err error) {
 	var (
