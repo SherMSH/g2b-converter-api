@@ -57,5 +57,6 @@ func main() {
 }
 
 func beforeQuit() {
+	jobs.CloseSFTP()
 	logger.Infof("[MAIN] Work has stopped!")
 }
