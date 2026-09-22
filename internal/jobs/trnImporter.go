@@ -1,7 +1,7 @@
 package jobs
 
 import (
-	"converterapi/internal/config"
+	configpkg "converterapi/internal/config"
 	"converterapi/pkg/logger"
 	"fmt"
 	"io"
@@ -13,18 +13,24 @@ import (
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 // ImportedFilesTracker отслеживает импортированные файлы
 type ImportedFilesTracker struct {
-	importedDir string
+	dirs        []string
 	importedMap map[string]bool
 }
 
-// NewImportedFilesTracker создает новый трекер импортированных файлов
-func NewImportedFilesTracker(importedDir string) (*ImportedFilesTracker, error) {
+// NewImportedFilesTracker создает новый трекер импортированных файлов.
+//
+// Смотрим сразу в два каталога: куда файлы скачиваются и куда их переносит
+// обработчик после разбора. Раньше учитывался только второй, а кладёт туда
+// файлы внешний процесс - пока он этого не сделал, файл считался неимпортированным
+// и скачивался заново на каждом заходе джобы.
+func NewImportedFilesTracker(dirs ...string) (*ImportedFilesTracker, error) {
 	tracker := &ImportedFilesTracker{
-		importedDir: importedDir,
+		dirs:        dirs,
 		importedMap: make(map[string]bool),
 	}
 
@@ -36,20 +42,25 @@ func NewImportedFilesTracker(importedDir string) (*ImportedFilesTracker, error) 
 	return tracker, nil
 }
 
-// scanImportedFiles сканирует локальную директорию импортированных файлов
+// scanImportedFiles сканирует локальные директории импортированных файлов
 func (t *ImportedFilesTracker) scanImportedFiles() error {
-	files, err := os.ReadDir(t.importedDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// Создаем директорию, если ее нет
-			return os.MkdirAll(t.importedDir, 0755)
+	for _, dir := range t.dirs {
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// Создаем директорию, если ее нет
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					return err
+				}
+				continue
+			}
+			return err
 		}
-		return err
-	}
 
-	for _, file := range files {
-		if !file.IsDir() {
-			t.importedMap[file.Name()] = true
+		for _, file := range files {
+			if !file.IsDir() {
+				t.importedMap[file.Name()] = true
+			}
 		}
 	}
 
@@ -73,13 +84,13 @@ func (t *ImportedFilesTracker) markAsImported(fileName string) {
 // закрывать его нужно отдельно.
 func connectSFTP() (*sftp.Client, *ssh.Client, error) {
 	// Настраиваем SSH клиент
-	config := config.Config.Processing.SFTP
+	config := configpkg.Config.Processing.SFTP
 	sshConfig := &ssh.ClientConfig{
 		User: config.Name,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(config.Token),
 		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // В продакшене используйте нормальную проверку ключей
+		HostKeyCallback: hostKeyCallback(config),
 		Timeout:         30 * time.Second,
 	}
 
@@ -98,6 +109,27 @@ func connectSFTP() (*sftp.Client, *ssh.Client, error) {
 	}
 
 	return client, conn, nil
+}
+
+// hostKeyCallback задаёт проверку ключа сервера.
+//
+// Путь к known_hosts берётся из processing.sftp.extra.known_hosts. Если он не
+// задан, ключ не проверяется - так работало всегда, и менять это молча нельзя:
+// сервис просто перестал бы подключаться. Поэтому о небезопасном режиме
+// предупреждаем в логе.
+func hostKeyCallback(cfg configpkg.Server) ssh.HostKeyCallback {
+	path := cfg.Extra["known_hosts"]
+	if path == "" {
+		logger.Warnf("[JOBS] SFTP: known_hosts не задан, ключ сервера не проверяется")
+		return ssh.InsecureIgnoreHostKey()
+	}
+
+	callback, err := knownhosts.New(path)
+	if err != nil {
+		logger.Errorf("[JOBS] SFTP: не удалось прочитать known_hosts %s: %v", path, err)
+		return ssh.InsecureIgnoreHostKey()
+	}
+	return callback
 }
 
 // sftpConn - переиспользуемое соединение с файловым сервером процессинга.
@@ -172,7 +204,7 @@ func CloseSFTP() {
 }
 
 // importSingleFile импортирует один файл через SFTP
-func importSingleFile(client *sftp.Client, remotePath, localDir string) error {
+func importSingleFile(client *sftp.Client, remotePath, localDir string, remoteSize int64) error {
 	// Получаем имя файла
 	fileName := filepath.Base(remotePath)
 	localPath := filepath.Join(localDir, fileName)
@@ -203,16 +235,11 @@ func importSingleFile(client *sftp.Client, remotePath, localDir string) error {
 		return fmt.Errorf("ошибка копирования: %w", err)
 	}
 
-	// Получаем информацию о файле для проверки размера
-	remoteInfo, err := client.Stat(remotePath)
-	if err != nil {
+	// Размер берём из листинга каталога: отдельный Stat - это лишний
+	// round-trip к серверу на каждый файл
+	if bytesCopied != remoteSize {
 		os.Remove(localPath)
-		return fmt.Errorf("ошибка получения информации о файле: %w", err)
-	}
-
-	if bytesCopied != remoteInfo.Size() {
-		os.Remove(localPath)
-		return fmt.Errorf("скопировано %d байт, ожидалось %d", bytesCopied, remoteInfo.Size())
+		return fmt.Errorf("скопировано %d байт, ожидалось %d", bytesCopied, remoteSize)
 	}
 
 	return nil
@@ -225,7 +252,7 @@ func ImportAllFilesWithFilter(remoteDir, localDir string, filter func(string) bo
 		return err
 	}
 
-	tracker, err := NewImportedFilesTracker(localDir + "/../success")
+	tracker, err := NewImportedFilesTracker(localDir, localDir+"/../success")
 	if err != nil {
 		return err
 	}
@@ -237,6 +264,7 @@ func ImportAllFilesWithFilter(remoteDir, localDir string, filter func(string) bo
 		return err
 	}
 
+	var imported int
 	for _, file := range files {
 		if file.IsDir() {
 			continue
@@ -250,18 +278,22 @@ func ImportAllFilesWithFilter(remoteDir, localDir string, filter func(string) bo
 		}
 
 		if tracker.isImported(fileName) {
-			fmt.Printf("Файл %s уже импортирован\n", fileName)
 			continue
 		}
 
 		remotePath := remoteDir + "/" + fileName
-		if err := importSingleFile(client, remotePath, localDir); err != nil {
-			fmt.Printf("Ошибка импорта %s: %v\n", fileName, err)
+		if err := importSingleFile(client, remotePath, localDir, file.Size()); err != nil {
+			logger.Errorf("[JOBS] ошибка импорта %s: %v", fileName, err)
 			continue
 		}
 
 		tracker.markAsImported(fileName)
-		fmt.Printf("Файл %s импортирован\n", fileName)
+		imported++
+		logger.Infof("[JOBS] файл %s импортирован (%d байт)", fileName, file.Size())
+	}
+
+	if imported == 0 {
+		logger.Debugf("[JOBS] новых файлов нет")
 	}
 
 	return nil
@@ -274,14 +306,14 @@ func TrnImporter() {
 	defer mutx.Unlock()
 	logger.Infof("[JOBS] TRN files importer")
 
-	remoteDir := config.Config.Jobs.TrnImporter.Extra["remote"]
-	localDir := config.Config.Jobs.TrnImporter.Extra["local"]
+	remoteDir := configpkg.Config.Jobs.TrnImporter.Extra["remote"]
+	localDir := configpkg.Config.Jobs.TrnImporter.Extra["local"]
 
 	filter := func(filename string) bool {
 		return strings.HasSuffix(filename, ".json")
 	}
 
 	if err := ImportAllFilesWithFilter(remoteDir, localDir, filter); err != nil {
-		fmt.Printf("Ошибка импорта: %v\n", err)
+		logger.Errorf("[JOBS] TRN импорт: %v", err)
 	}
 }

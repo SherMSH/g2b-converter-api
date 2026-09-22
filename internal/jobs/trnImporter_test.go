@@ -3,6 +3,8 @@ package jobs
 import (
 	"converterapi/internal/config"
 	"net"
+	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 )
@@ -42,4 +44,43 @@ func TestSftpConnDropIdempotent(t *testing.T) {
 		t.Error("drop обязан обнулять обе сущности")
 	}
 	CloseSFTP()
+}
+
+// Файл, уже лежащий в каталоге загрузки, повторно скачивать не нужно - раньше
+// учитывался только каталог success, куда его перекладывает внешний обработчик.
+func TestTrackerCountsDownloadDir(t *testing.T) {
+	downloads := t.TempDir()
+	success := t.TempDir()
+
+	if err := os.WriteFile(filepath.Join(downloads, "trn_1.json"), []byte("{}"), 0644); err != nil {
+		t.Fatalf("подготовка файла: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(success, "trn_2.json"), []byte("{}"), 0644); err != nil {
+		t.Fatalf("подготовка файла: %v", err)
+	}
+
+	tracker, err := NewImportedFilesTracker(downloads, success)
+	if err != nil {
+		t.Fatalf("трекер: %v", err)
+	}
+
+	for _, name := range []string{"trn_1.json", "trn_2.json"} {
+		if !tracker.isImported(name) {
+			t.Errorf("%s уже скачан, повторная загрузка не нужна", name)
+		}
+	}
+	if tracker.isImported("trn_3.json") {
+		t.Error("незнакомый файл должен скачиваться")
+	}
+}
+
+// Отсутствующий каталог трекер создаёт, а не падает
+func TestTrackerCreatesMissingDir(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "success")
+	if _, err := NewImportedFilesTracker(missing); err != nil {
+		t.Fatalf("трекер: %v", err)
+	}
+	if _, err := os.Stat(missing); err != nil {
+		t.Errorf("каталог должен быть создан: %v", err)
+	}
 }
