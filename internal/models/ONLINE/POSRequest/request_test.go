@@ -5,6 +5,7 @@ import (
 	"converterapi/internal/utils"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestGetTxnType(t *testing.T) {
@@ -192,5 +193,71 @@ func TestBuildDeclineReasonInsufficientFunds(t *testing.T) {
 	cardInfo.CardBasicInfo.StatCode = "12" // Card reported lost
 	if got := buildDeclineReason("40", cardInfo, true, 1000); !strings.Contains(got, "card status 'Lost'") {
 		t.Errorf("отказ по статусу карты потерян: %q", got)
+	}
+}
+
+// Повтор операции не должен приводить к новой транзакции: отдаём прежний ответ
+func TestPosDedup(t *testing.T) {
+	cache := posDedup{entries: make(map[string]dedupEntry)}
+	req := Request{TranNumber: "A-100", PAN: "5058270530003879", TranCode: 175, Amount: 1.0}
+
+	key := dedupKey(req)
+	if key == "" {
+		t.Fatal("номер операции задан - ключ обязан быть")
+	}
+	if _, ok := cache.get(key); ok {
+		t.Error("пустой кеш не должен ничего отдавать")
+	}
+
+	resp := new(Envelope)
+	resp.Body.POSRequestRp.Response.ThisTranId = "777"
+	cache.put(key, resp)
+
+	got, ok := cache.get(key)
+	if !ok || got.Body.POSRequestRp.Response.ThisTranId != "777" {
+		t.Errorf("повтор должен вернуть прежний ответ, получено %+v (ok=%v)", got, ok)
+	}
+
+	// Та же сумма и карта, но другой номер операции - это новый платёж
+	other := req
+	other.TranNumber = "A-101"
+	if _, ok := cache.get(dedupKey(other)); ok {
+		t.Error("другой номер операции - другая транзакция")
+	}
+
+	// Тот же номер, но другая сумма - тоже не дубль
+	changed := req
+	changed.Amount = 2.0
+	if _, ok := cache.get(dedupKey(changed)); ok {
+		t.Error("та же операция с другой суммой не считается повтором")
+	}
+}
+
+// Без номера операции дедупликация не работает - поведение прежнее
+func TestPosDedupWithoutTranNumber(t *testing.T) {
+	cache := posDedup{entries: make(map[string]dedupEntry)}
+	key := dedupKey(Request{PAN: "5058270530003879", TranCode: 175, Amount: 1.0})
+	if key != "" {
+		t.Fatalf("без TranNumber ключа быть не должно, получено %q", key)
+	}
+
+	resp := new(Envelope)
+	cache.put(key, resp)
+	if _, ok := cache.get(key); ok {
+		t.Error("пустой ключ не должен попадать в кеш")
+	}
+}
+
+// Протухшие записи не отдаются и вычищаются
+func TestPosDedupExpiry(t *testing.T) {
+	cache := posDedup{entries: make(map[string]dedupEntry)}
+	key := "stale"
+	cache.entries[key] = dedupEntry{resp: Envelope{}, at: time.Now().Add(-dedupTTL - time.Second)}
+
+	if _, ok := cache.get(key); ok {
+		t.Error("запись старше окна повтора не должна отдаваться")
+	}
+	if _, exists := cache.entries[key]; exists {
+		t.Error("протухшая запись должна удаляться")
 	}
 }

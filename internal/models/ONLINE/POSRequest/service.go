@@ -40,6 +40,18 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 		logger.Errorf("PosReq error: Wrong 'Amount' field value")
 		return nil, fmt.Errorf("PosReq error: Wrong 'Amount' field value")
 	}
+	// Повтор того же запроса не должен порождать новую операцию в процессинге:
+	// партнёр при таймауте шлёт запрос заново, а деньги списались бы дважды.
+	// Отвечаем прежним результатом - с тем же ThisTranId и кодом ответа.
+	key := dedupKey(body.SoapRq.Req)
+	if cached, ok := dedupCache.get(key); ok {
+		logger.Warnf("[SERVICE] POSRequest: повтор операции %s (карта %s, код %d, сумма %.2f) - отвечаем прежним результатом, новую транзакцию не создаём",
+			body.SoapRq.Req.TranNumber, maskPan(body.SoapRq.Req.PAN), body.SoapRq.Req.TranCode, body.SoapRq.Req.Amount)
+		cached.Body.POSRequestRp.Response.Echo = body.SoapRq.Req.Echo
+		cached.Body.POSRequestRp.Response.Product = body.SoapRq.Req.Product
+		return &cached, nil
+	}
+
 	ectxNum, err := service.InitiateTransaction()
 	if err != nil {
 		logger.Errorf("POS req {InitiateTransaction} error: %v", err)
@@ -203,6 +215,7 @@ func PosReq(body *Body) (soapResp *Envelope, err error) {
 			},
 		},
 	}
+	dedupCache.put(key, soapResp)
 	return soapResp, nil
 }
 
