@@ -75,23 +75,48 @@ HTTP `200`, `Content-Type: application/xml; charset=utf-8`.
             xmlns:m0="http://schemas.compassplus.com/two/1.0/fimi_types.xsd">
    <s:Body>
       <m1:SetDynamicPVV_PINOffsetRp>
-         <m1:Response Echo="7" Product="FIMI" Response="1" TranId="1790257728046629335" Ver="1.0"/>
+
+         <!-- Echo       - возвращается из запроса как есть. По нему приложение
+                           сопоставляет ответ со своим запросом
+              Product    - тоже из запроса
+              Response   - признак успеха. "1" = PIN сгенерирован.
+                           Отказ приходит не здесь, а SOAP Fault'ом (см. ниже)
+              TranId     - идентификатор обращения на нашей стороне,
+                           timestamp-based. Пригодится при разборе инцидентов:
+                           по нему мы найдём запрос в логе
+              Ver        - версия формата ответа, всегда "1.0" -->
+
+         <m1:Response Echo="42" Product="FIMI" Response="1"
+                      TranId="1790259899756691687" Ver="1.0"/>
+
       </m1:SetDynamicPVV_PINOffsetRp>
    </s:Body>
 </s:Envelope>
 ```
 
-`Echo` и `Product` возвращаются из запроса, `TranId` — идентификатор обращения на нашей стороне.
+Тело ответа пустое: **значения PIN в нём нет и не будет**. Успех означает лишь
+то, что процессинг принял команду и сгенерировал новый PIN.
 
-## Отказы
+Комментарии выше добавлены для пояснения - в реальном ответе их нет.
 
-Приходят SOAP Fault с HTTP `400`, текст в `<Text>`:
+## Отказ
 
-| Ситуация | Текст |
-|----------|-------|
-| пустой `PAN` | ``wrong mandatory field `fimi1:PAN` `` |
-| `PINBlock` не пустой | `PINBlock must be empty: PIN задаётся процессингом, ручной ввод отключён` |
-| карта не найдена, PIN не установлен | текст ошибки процессинга, например `09 - System malfunction` |
+Приходит SOAP Fault с HTTP `400`. Причина - в `<Text>`, префикс
+`Service error:` добавляет наш сервис.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Fault>
+  <Code>
+    <Value>soap:Client</Value>          <!-- всегда soap:Client -->
+  </Code>
+  <Reason>
+    <!-- Текст причины. Сюда попадает либо наша проверка, либо ответ
+         процессинга в формате "<rspcode> - <сообщение>" -->
+    <Text>Service error: 00 - Card not found</Text>
+  </Reason>
+</Fault>
+```
 
 ## Откуда держатель узнаёт PIN
 
