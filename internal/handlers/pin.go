@@ -14,21 +14,42 @@ type PinChangeReq struct {
 	PIN        string `json:"pin"`
 }
 
+// SetPIN назначает карте новый PIN.
+//
+// Значение не принимается: PIN выбирает процессинг и наружу не отдаёт, до
+// держателя карты он доходит SMS-оповещением. Присланный pin отклоняем, а не
+// игнорируем - иначе клиент будет считать, что установлен его PIN.
 func SetPIN(c *gin.Context) {
-
 	var req PinChangeReq
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.Errorf("Error binding PinChageReq: %v", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Error binding PinChageReq"})
 		return
 	}
 
-	if err := service.SetPinG2b(req.PAN, req.PIN, req.ExpiryDate); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+	if req.PIN != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "pin must be empty: PIN задаётся процессингом, ручной ввод отключён"})
+		return
+	}
+	if req.PAN == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "pan is required"})
+		return
+	}
+	if req.ExpiryDate == "" {
+		var err error
+		req.ExpiryDate, err = service.GetExpDateByPan(req.PAN)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "expiryDate is required: " + err.Error()})
+			return
+		}
+	}
+
+	if err := service.GeneratePIN(req.PAN, req.ExpiryDate); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{"generated": true})
 }
 
 // VerifyPIN проверяет PIN по карте.

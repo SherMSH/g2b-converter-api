@@ -32,24 +32,23 @@ type Request struct {
 	MBR     string `xml:"MBR" json:"mbr"`
 	CardUID string `xml:"CardUID" json:"card_uid"`
 
-	// PINBlock - значение PIN. Процессинг D8 принимает PIN-блок только под
-	// одноразовым ключом, который собираем мы сами, поэтому здесь ожидается
-	// открытый PIN, а не блок под TPK - см. комментарий в Svc.
+	// PINBlock должен быть пустым: PIN выбирает процессинг, задать своё
+	// значение нельзя - см. комментарий в Svc.
 	PINBlock string `xml:"PINBlock" json:"pin_block"`
 
 	// KeyId - идентификатор рабочего ключа. В схеме D8 рабочих ключей нет,
 	// поле принимается для совместимости и не используется.
 	KeyId string `xml:"KeyId" json:"key_id"`
 
-	// PVKI - индекс ключа проверки PIN. D8 задаёт его на уровне карты, через
-	// setPIN не меняется; поле принимается, но не применяется.
+	// PVKI - индекс ключа проверки PIN. D8 задаёт его на уровне карты и через
+	// генерацию PIN не меняет; поле принимается, но не применяется.
 	PVKI string `xml:"PVKI" json:"pvki"`
 
 	// ExpDate в формате YYMM. Если не прислан - берём из карты
 	ExpDate string `xml:"ExpDate" json:"exp_date"`
 
 	// SingleOperation - PIN на одну операцию. D8 такого режима не имеет:
-	// setPIN меняет PIN насовсем.
+	// сгенерированный PIN действует постоянно.
 	SingleOperation string `xml:"SingleOperation" json:"single_operation"`
 
 	ChangeReason string `xml:"ChangeReason" json:"change_reason"`

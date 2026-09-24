@@ -9,18 +9,17 @@ import (
 	"strings"
 )
 
-// Svc устанавливает PIN карты.
+// Svc назначает карте новый PIN.
 //
 // Интерфейс повторяет запрос партнёра, но процессинг D8 динамического PVV не
-// поддерживает вовсе: в спецификации 1.80 pvv и pvki доступны только на чтение,
-// а из методов работы с PIN есть setPIN, verifyPIN, generatePIN и
-// resetCardPINTries. Поэтому запрос выполняется через xmiss/setPIN, и PIN
-// меняется постоянно - SingleOperation не действует.
+// поддерживает вовсе: в спецификации 1.80 pvv и pvki доступны только на чтение.
+// Поэтому запрос выполняется через xmiss/generatePIN, и PIN меняется постоянно -
+// SingleOperation не действует.
 //
-// PIN-блок под TPK принять мы не можем: этого ключа у нас нет, расшифровать
-// блок нечем, а setPIN требует блок под одноразовым 3DES-ключом, который
-// генерируем и заворачиваем в RSA-ключ процессинга мы сами. Поэтому в PINBlock
-// ожидается открытый PIN - так же, как его принимает POST /g2b/SetPIN.
+// Значение PIN задать нельзя: его выбирает процессинг и наружу не отдаёт
+// (спецификация, 7.7). До держателя карты новый PIN доходит SMS-оповещением,
+// поэтому у карты должен быть контракт SMSGEN. Присланный PINBlock отклоняем,
+// а не игнорируем: иначе на той стороне будут считать, что PIN назначен их.
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	req := sb.SoapRq.Req
 
@@ -28,12 +27,8 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		return nil, fmt.Errorf("wrong mandatory field `fimi1:PAN`")
 	}
 
-	pin := strings.TrimSpace(req.PINBlock)
-	if pin == "" {
-		return nil, fmt.Errorf("PINBlock is empty: сброс динамического PVV процессингом не поддерживается")
-	}
-	if !isClearPIN(pin) {
-		return nil, fmt.Errorf("PINBlock must contain clear PIN (4-12 digits): PIN-блок под рабочим ключом процессинг не принимает")
+	if strings.TrimSpace(req.PINBlock) != "" {
+		return nil, fmt.Errorf("PINBlock must be empty: PIN задаётся процессингом, ручной ввод отключён")
 	}
 
 	if len(req.ExpDate) == 0 {
@@ -51,10 +46,10 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		logger.Warnf("[SERVICE] SetDynamicPVV: SingleOperation=1 по карте %s не выполнено - процессинг ставит PIN постоянно", req.PAN)
 	}
 	if req.PVKI != "" && req.PVKI != "0" {
-		logger.Warnf("[SERVICE] SetDynamicPVV: PVKI=%s не применён - setPIN его не меняет", req.PVKI)
+		logger.Warnf("[SERVICE] SetDynamicPVV: PVKI=%s не применён - процессинг его не меняет", req.PVKI)
 	}
 
-	if err = service.SetPinG2b(req.PAN, pin, req.ExpDate); err != nil {
+	if err = service.GeneratePIN(req.PAN, req.ExpDate); err != nil {
 		return nil, err
 	}
 
@@ -71,18 +66,4 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		Ver:          "1.0",
 	}
 	return soapResp, nil
-}
-
-// isClearPIN проверяет, что пришёл именно PIN, а не шифрованный блок.
-// Длина PIN по ANSI X9.8 - от 4 до 12 цифр.
-func isClearPIN(pin string) bool {
-	if len(pin) < 4 || len(pin) > 12 {
-		return false
-	}
-	for _, r := range pin {
-		if r < '0' || r > '9' {
-			return false
-		}
-	}
-	return true
 }
