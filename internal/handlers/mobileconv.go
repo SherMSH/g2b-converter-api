@@ -22,6 +22,7 @@ import (
 	resetbadpintries "converterapi/internal/models/ONLINE/ResetBadPINTries"
 	reversetransaction "converterapi/internal/models/ONLINE/ReverseTransaction"
 	setcardstatus "converterapi/internal/models/ONLINE/SetCardStatus"
+	setdynamicpvv "converterapi/internal/models/ONLINE/SetDynamicPVV"
 	updateperson "converterapi/internal/models/ONLINE/UpdatePerson"
 	"converterapi/internal/utils"
 	"converterapi/pkg/logger"
@@ -338,6 +339,19 @@ func D8MobileConvert(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("updateperson.Body unmarshal err: %v", err)
+			SendSoapFault(c, 500, "Client", "Internal server error")
+			return
+		}
+		resp, err = unmBody.Call()
+		if err != nil {
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			return
+		}
+	case utils.SetDynamicPVVPINOffsetRq:
+		var unmBody setdynamicpvv.Body
+		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
+		if err != nil {
+			logger.Errorf("setdynamicpvv.Body unmarshal err: %v", err)
 			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}

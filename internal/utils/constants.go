@@ -37,8 +37,13 @@ const (
 
 	// Проверка PIN. Партнёр пишет тег и как VerifyPINRq, и как VerifyPinRq -
 	// принимаем оба написания, чтобы не ловить "Unknown XML body" на регистре
-	VerifyPINRq    RqBodyType = "VerifyPINRq"
-	VerifyPinRq    RqBodyType = "VerifyPinRq"
+	VerifyPINRq RqBodyType = "VerifyPINRq"
+	VerifyPinRq RqBodyType = "VerifyPinRq"
+
+	// Установка PIN из мобильного приложения. Обрабатывается только в
+	// мобильном канале /g2b/mobile/v1/d8convert
+	SetDynamicPVVPINOffsetRq RqBodyType = "SetDynamicPVV_PINOffsetRq"
+
 	UpdatePersonRq RqBodyType = "UpdatePersonRq"
 )
 
@@ -68,6 +73,7 @@ var BodyTypes = []RqBodyType{
 	SetAcctStatusRq,
 	VerifyPINRq,
 	VerifyPinRq,
+	SetDynamicPVVPINOffsetRq,
 	UpdatePersonRq,
 }
 
