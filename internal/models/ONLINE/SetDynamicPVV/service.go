@@ -20,6 +20,12 @@ import (
 // (спецификация, 7.7). До держателя карты новый PIN доходит SMS-оповещением,
 // поэтому у карты должен быть контракт SMSGEN. Присланный PINBlock отклоняем,
 // а не игнорируем: иначе на той стороне будут считать, что PIN назначен их.
+//
+// TODO: ручной ввод PIN вернём. В PINBlock тогда ожидается открытый PIN
+// (4-12 цифр) и вызывается xmiss/setPIN вместо generatePIN - реализация была в
+// service.SetPinG2b, удалена в 3083cae. PIN-блок под рабочим ключом принять
+// по-прежнему нельзя: ключа у нас нет, а setPIN требует блок под одноразовым
+// 3DES-ключом, который собираем мы сами.
 func Svc(sb *Body) (soapResp *Envelope, err error) {
 	req := sb.SoapRq.Req
 
@@ -27,6 +33,7 @@ func Svc(sb *Body) (soapResp *Envelope, err error) {
 		return nil, fmt.Errorf("wrong mandatory field `fimi1:PAN`")
 	}
 
+	// TODO: при возврате ручного ввода здесь вместо отказа разбирается PIN
 	if strings.TrimSpace(req.PINBlock) != "" {
 		return nil, fmt.Errorf("PINBlock must be empty: PIN задаётся процессингом, ручной ввод отключён")
 	}

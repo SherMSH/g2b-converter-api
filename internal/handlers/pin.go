@@ -19,6 +19,11 @@ type PinChangeReq struct {
 // Значение не принимается: PIN выбирает процессинг и наружу не отдаёт, до
 // держателя карты он доходит SMS-оповещением. Присланный pin отклоняем, а не
 // игнорируем - иначе клиент будет считать, что установлен его PIN.
+//
+// TODO: ручной ввод PIN вернём. Тогда при непустом pin вместо отказа снова
+// вызывается xmiss/setPIN - реализация была в service.SetPinG2b, её можно
+// достать из истории (удалена в 3083cae). Криптография для этого на месте:
+// buildPinRequest живёт в pinBlock.go и используется verifyPIN.
 func SetPIN(c *gin.Context) {
 	var req PinChangeReq
 	if err := c.ShouldBindJSON(&req); err != nil {
