@@ -49,9 +49,10 @@ func SetCardStatusG2b(pan, expDate, newStatus, reason string) (cardInfo *d8corp.
 		return nil, fmt.Errorf("%s - %s", resp.Status.RspCode, resp.Status.Message)
 	}
 
-	if cardInfo.CardBasicInfo.StatCode == "03" && newStatus == "00" {
-		GeneratePIN(pan, expDate)
-	}
-
+	// PIN при активации больше не генерируем: у именных карт Арванда он должен
+	// уходить только по запросу держателя (USSD), а различить типы карт на
+	// нашей стороне пока нечем - все выпускаются с одним продуктом. Поэтому
+	// генерация вынесена в явный вызов: POST /g2b/SetPIN либо
+	// SetDynamicPVV_PINOffsetRq.
 	return
 }
