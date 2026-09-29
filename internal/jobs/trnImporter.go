@@ -204,9 +204,13 @@ func CloseSFTP() {
 }
 
 // importSingleFile импортирует один файл через SFTP
-func importSingleFile(client *sftp.Client, remotePath, localDir string, remoteSize int64) error {
-	// Получаем имя файла
+func importSingleFile(client *sftp.Client, remotePath, localDir string, remoteSize int64, localName ...string) error {
+	// Имя на диске может отличаться от удалённого: пакеты выпуска карт
+	// приводим к виду, который понимает сканер
 	fileName := filepath.Base(remotePath)
+	if len(localName) != 0 && localName[0] != "" {
+		fileName = localName[0]
+	}
 	localPath := filepath.Join(localDir, fileName)
 
 	// // Проверяем, не существует ли уже файл локально
@@ -315,5 +319,11 @@ func TrnImporter() {
 
 	if err := ImportAllFilesWithFilter(remoteDir, localDir, filter); err != nil {
 		logger.Errorf("[JOBS] TRN импорт: %v", err)
+	}
+
+	// В том же каталоге партнёр выкладывает пакеты на выпуск карт - забираем и
+	// их, соединение переиспользуется
+	if err := ImportOfflinePackets(remoteDir); err != nil {
+		logger.Errorf("[JOBS] импорт офлайн-пакетов: %v", err)
 	}
 }

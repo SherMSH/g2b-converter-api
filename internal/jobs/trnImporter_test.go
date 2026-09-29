@@ -84,3 +84,37 @@ func TestTrackerCreatesMissingDir(t *testing.T) {
 		t.Errorf("каталог должен быть создан: %v", err)
 	}
 }
+
+// Партнёр называет пакеты по-своему - имя приводим к виду, который понимает
+// сканер, иначе файл теряется молча
+func TestOfflineLocalName(t *testing.T) {
+	tests := map[string]string{
+		"CreateCards_Out_2026.09.29_16.36.44":     "CreateCardsOut_2026.09.29_16.36.44.xml",
+		"CreateCardsOut_2026.09.29_16.36.44.xml":  "CreateCardsOut_2026.09.29_16.36.44.xml",
+		"createcardsout20260929":                  "CreateCardsOut_20260929.xml",
+		"Reissue_Cards_Out_001":                   "ReissueCardsOut_001.xml",
+		"RelinkPreIssuedCards_Out_5":              "RelinkPreIssuedCardsOut_5.xml",
+		"CreatePreIssuedCards_2026.09.29":         "CreatePreIssuedCards_2026.09.29.xml",
+		"CreateCustomerAndAccount_2026.09.29.xml": "CreateCustomerAndAccount_2026.09.29.xml",
+
+		// не наши файлы
+		"trn_20260929.json": "",
+		"readme.txt":        "",
+		"":                  "",
+	}
+
+	for remote, want := range tests {
+		if got := offlineLocalName(remote); got != want {
+			t.Errorf("offlineLocalName(%q) = %q, want %q", remote, got, want)
+		}
+	}
+}
+
+// Транзакционные файлы офлайн-импортом не забираются: у них свой маршрут
+func TestOfflineLocalNameSkipsTransactions(t *testing.T) {
+	for _, name := range []string{"G2BTRN-20260929.json", "out.json", "20260929.json"} {
+		if got := offlineLocalName(name); got != "" {
+			t.Errorf("%q не пакет выпуска, получено %q", name, got)
+		}
+	}
+}
