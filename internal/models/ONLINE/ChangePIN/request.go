@@ -4,6 +4,16 @@ type Body struct {
 	SoapRq SoapRq `xml:"ChangePIN" json:"ChangePIN"`
 }
 
+// RqBody - то же тело под тегом ChangePINRq. Партнёр пишет операцию и так, и
+// так, поэтому принимаем оба написания.
+type RqBody struct {
+	SoapRq SoapRq `xml:"ChangePINRq" json:"ChangePINRq"`
+}
+
+func (sb *RqBody) Call() (*Envelope, error) {
+	return Svc(&Body{SoapRq: sb.SoapRq})
+}
+
 func (sb *Body) Call() (*Envelope, error) {
 	rsp, err := Svc(sb)
 	return rsp, err

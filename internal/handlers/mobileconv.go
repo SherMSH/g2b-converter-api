@@ -7,6 +7,7 @@ import (
 	addcmsabonent "converterapi/internal/models/ONLINE/AddCmsAbonent"
 	addpersoncmsabonent "converterapi/internal/models/ONLINE/AddPersonCMSAbonent"
 	changecmsabonent "converterapi/internal/models/ONLINE/ChangeCMSAbonent"
+	changepin "converterapi/internal/models/ONLINE/ChangePIN"
 	getaccinfo "converterapi/internal/models/ONLINE/GetAccInfo"
 	getacctstatement "converterapi/internal/models/ONLINE/GetAcctStatement"
 	getcvv "converterapi/internal/models/ONLINE/GetCVV"
@@ -339,6 +340,32 @@ func D8MobileConvert(c *gin.Context) {
 		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
 		if err != nil {
 			logger.Errorf("updateperson.Body unmarshal err: %v", err)
+			SendSoapFault(c, 500, "Client", "Internal server error")
+			return
+		}
+		resp, err = unmBody.Call()
+		if err != nil {
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			return
+		}
+	case utils.ChangePINRq:
+		var unmBody changepin.RqBody
+		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
+		if err != nil {
+			logger.Errorf("changepin.Body unmarshal err: %v", err)
+			SendSoapFault(c, 500, "Client", "Internal server error")
+			return
+		}
+		resp, err = unmBody.Call()
+		if err != nil {
+			SendSoapFault(c, 400, "Client", "Service error: "+err.Error())
+			return
+		}
+	case utils.ChangePIN:
+		var unmBody changepin.Body
+		err = xml.Unmarshal(envelope.Body.XMLData, &unmBody.SoapRq)
+		if err != nil {
+			logger.Errorf("changepin.Body unmarshal err: %v", err)
 			SendSoapFault(c, 500, "Client", "Internal server error")
 			return
 		}

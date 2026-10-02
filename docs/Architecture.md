@@ -154,7 +154,8 @@ ConvScanner (gocron, 60 с) → glob по маскам → xml.Unmarshal → Roo
 | `SetAcctStatusRq` | `GetAcctInfoG2b`, `SetAccountStatusG2b` |
 | `ResetBadPINTriesRq` | `ResetCardPINTriesG2b` |
 | `VerifyPINRq` | `GetExpDateByPan`, `VerifyPinStatusG2b` |
-| `SetDynamicPVV_PINOffsetRq` (только мобильный канал) | `GetExpDateByPan`, `SetPinG2b` |
+| `SetDynamicPVV_PINOffsetRq` (только мобильный канал) | `GetExpDateByPan`, `GeneratePIN` |
+| `ChangePINRq` / `ChangePIN` | `GetExpDateByPan`, `GeneratePIN` |
 | `UpdatePersonRq` | `UpdateCustomerG2b` |
 | `UpdateCard2AcctLinkRq` | `UpdateCardAcctLinkG2b`, `DeleteCardAcctLinkG2b`, `SetCardStatusG2b` |
 | `AddCMSAbonentRq`, `AddPersonCMSAbonentRq` | `AddCardNotificationG2b` |

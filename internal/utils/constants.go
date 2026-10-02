@@ -44,6 +44,10 @@ const (
 	// мобильном канале /g2b/mobile/v1/d8convert
 	SetDynamicPVVPINOffsetRq RqBodyType = "SetDynamicPVV_PINOffsetRq"
 
+	// Смена PIN. Партнёр пишет тег в двух вариантах - принимаем оба
+	ChangePINRq RqBodyType = "ChangePINRq"
+	ChangePIN   RqBodyType = "ChangePIN"
+
 	UpdatePersonRq RqBodyType = "UpdatePersonRq"
 )
 
@@ -74,6 +78,8 @@ var BodyTypes = []RqBodyType{
 	VerifyPINRq,
 	VerifyPinRq,
 	SetDynamicPVVPINOffsetRq,
+	ChangePINRq,
+	ChangePIN,
 	UpdatePersonRq,
 }
 
