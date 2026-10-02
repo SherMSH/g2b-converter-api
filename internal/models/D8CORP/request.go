@@ -112,12 +112,23 @@ type PagingAdvanced struct {
 	Page int `json:"page"`
 }
 
+// Типы журнала выписки - поле logType, появилось в версии 1.81 спецификации.
+const (
+	LogTypeAll       = 0 // все записи, включая смену статусов счёта
+	LogTypeFinancial = 1 // только финансовые движения
+	LogTypeBlocked   = 2 // только изменения блокированных сумм
+	LogTypeFinBlk    = 3 // финансовые движения и блокировки
+)
+
 // GetAccountStatementReq - запрос выписки по счёту (7.30).
 // Даты в формате YYYYMMDD.
 type GetAccountStatementReq struct {
-	AccountKey     AccountKey     `json:"accountKey"`
-	DateFrom       string         `json:"dateFrom"`
-	DateTo         string         `json:"dateTo"`
+	AccountKey AccountKey `json:"accountKey"`
+	DateFrom   string     `json:"dateFrom"`
+	DateTo     string     `json:"dateTo"`
+
+	// LogType без omitempty: нулевое значение здесь осмысленное - "все записи"
+	LogType        int            `json:"logType"`
 	PagingAdvanced PagingAdvanced `json:"pagingAdvanced"`
 }
 

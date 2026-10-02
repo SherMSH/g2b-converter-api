@@ -15,6 +15,14 @@ import (
 // операции, прошедшие мимо карты, и состояние баланса на начало и конец периода.
 //
 // Даты в формате YYYYMMDD. Пагинация - size + page, нумерация страниц с 1.
+//
+// Запрашиваем финансовые движения вместе с блокировками. Без logType процессинг
+// отдаёт весь журнал, включая правки карточки счёта: баланс по ним не менялся,
+// и в выписке они превращаются в строки с нулевой суммой.
+//
+// Именно 3, а не 1: блокировка денег со счёта не снимает, но доступный остаток
+// уменьшает - для держателя это движение, и в выписке оно нужно. С logType=1
+// преавторизации и холды пропали бы молча.
 func GetAccountStatementG2b(accNum, currency, dateFrom, dateTo string, size, page int) (statement *d8corp.AccountStatementData, err error) {
 	var resp *d8corp.CommonResp
 
@@ -28,6 +36,7 @@ func GetAccountStatementG2b(accNum, currency, dateFrom, dateTo string, size, pag
 		},
 		DateFrom: dateFrom,
 		DateTo:   dateTo,
+		LogType:  d8corp.LogTypeFinBlk,
 		PagingAdvanced: d8corp.PagingAdvanced{
 			Size: size,
 			Page: page,
